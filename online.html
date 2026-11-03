@@ -247,6 +247,7 @@ body{padding:8px 12px 12px}
 @media(max-width:650px){.header-actions{gap:4px}.forfeit-button{padding:6px 7px;font-size:10px}.played-tracker{padding:6px}.played-grid{grid-template-columns:39px repeat(10,minmax(0,1fr));gap:2px}.played-suit{font-size:9px}.played-cell{height:22px;font-size:10px}.played-tracker-foot{font-size:8px}}
 
 /* V21-compatible Online room styles. Battle layout and CSS remain unchanged. */
+.hand-zone .card,.slot.mine .card{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .online-room-code{font-size:36px;font-weight:1000;letter-spacing:.17em;color:var(--gold);padding:5px}.online-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.online-actions input{font:inherit;width:155px;background:#152126;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:12px;text-transform:uppercase;text-align:center;letter-spacing:.1em}.online-status{font-size:12px;color:var(--muted)}.online-actions button:disabled{opacity:.45;cursor:not-allowed}.online-selection{outline:3px solid var(--gold)!important;transform:translateY(-3px)}.online-dragcopy{position:fixed!important;z-index:150!important;pointer-events:none!important;opacity:.9;transform:rotate(-5deg)}.hand-zone.drop-target{outline:2px dashed #4cc47c;outline-offset:2px}.online-mode-link{color:#cce2de;text-decoration:none;font-size:12px;margin-left:5px}@media(max-width:560px){.online-actions input{width:130px}.online-room-code{font-size:29px}}
 </style></head><body>
 <div class="app">
@@ -324,7 +325,6 @@ function renderHistory(){const h=game?.history||[];const holder=$('historyConten
  const last=h[h.length-1];for(let i=0;i<3;i++)$('prev1'+i).innerHTML=last&&last.round<game.round&&last.cards[i]?cardHTML(last.cards[i]):'';
 }
 function comboReveal(combos){
- const c=comos=>comos;
  combos.forEach((v,i)=>setTimeout(()=>{
  const kind=v.kind, digit=kind==='pack'?'7':kind==='zero'?'0':'9',cls=kind==='pack'?'pack':kind==='zero'?'zero':'kiants';
  const subtitle=kind==='pack'?'THE PERFECT SEVENS':kind==='zero'?'FROM NOTHING TO POWER':'THE PRICE OF POWER';
