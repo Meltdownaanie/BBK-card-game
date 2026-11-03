@@ -312,6 +312,131 @@ body{padding:8px 12px 12px}
 'use strict';
 (function(){
 const $=id=>document.getElementById(id);
+const S={hp:[100,100],token:1};
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const reducedMotion=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function flightCopy(source){const rect=source.getBoundingClientRect();const copy=source.cloneNode(true);copy.classList.add('card-flight');copy.removeAttribute('id');copy.removeAttribute('data-id');copy.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;z-index:1000;pointer-events:none;`;document.body.appendChild(copy);return {copy,rect}}
+
+async function animateDealtCard(card,token){
+  if(!card||reducedMotion())return;
+  const target=[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id);
+  const deck=document.querySelector('.player-hud .deck-stack');
+  if(!target||!deck)return;
+  const end=target.getBoundingClientRect(),start=deck.getBoundingClientRect();
+  if(!end.width||!start.width)return;
+  const {copy}=flightCopy(target);target.style.visibility='hidden';
+  copy.style.left=`${start.left+start.width/2-end.width/2}px`;
+  copy.style.top=`${start.top+start.height/2-end.height/2}px`;
+  copy.style.width=end.width+'px';copy.style.height=end.height+'px';
+  const dx=end.left-(start.left+start.width/2-end.width/2),dy=end.top-(start.top+start.height/2-end.height/2);
+  try{const a=copy.animate([{transform:'translate(0,0) rotate(-14deg) scale(.48)',opacity:.15},{transform:`translate(${dx*.65}px,${dy*.65}px) rotate(9deg) scale(.9)`,opacity:1,offset:.7},{transform:`translate(${dx}px,${dy}px) rotate(0) scale(1)`,opacity:1}],{duration:490,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});await a.finished}catch(e){await sleep(400)}finally{copy.remove();target.style.visibility='';}
+}
+
+function clashMeta(a,b,result){
+  if(!a||!b||result.w<0)return null;
+  const winnerSuit=result.w===0?a.suit:b.suit,loserSuit=result.w===0?b.suit:a.suit;
+  if(winnerSuit==='hammer'&&loserSuit==='scissors')return{type:'smash',text:'SMASH!',burst:'💥'};
+  if(winnerSuit==='scissors'&&loserSuit==='paper')return{type:'cut',text:'SLASH!',burst:'✂️'};
+  if(winnerSuit==='paper'&&loserSuit==='hammer')return{type:'wrap',text:'WRAP!',burst:'🌀'};
+  return {type:'plain',text:'IMPACT!',burst:result.dmg>=6?'✹':'✦'};
+}
+
+function spawnSpecialFx(meta,cx,cy,power){
+  if(!meta||reducedMotion())return;
+  const fx=document.createElement('div');fx.className='special-fx '+('fx-'+meta.type);fx.style.left=cx+'px';fx.style.top=cy+'px';fx.style.setProperty('--pow',String(power));
+  if(meta.type==='smash')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">🔨</div><div class="fx-sub">✂️</div><div class="fx-ring"></div><div class="fx-ring2"></div>`;
+  else if(meta.type==='cut')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">✂️</div><div class="fx-sub">📄</div><div class="fx-slash"></div><div class="fx-slash2"></div>`;
+  else if(meta.type==='wrap')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">📄</div><div class="fx-sub">✊</div><div class="fx-loop"></div><div class="fx-loop2"></div>`;
+  else fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">${meta.burst||'✦'}</div>`;
+  document.body.appendChild(fx);setTimeout(()=>fx.remove(),820+power*70);
+}
+
+function screenJolt(power){
+  if(reducedMotion())return;
+  const p=Math.max(1,Math.min(10,power));
+  try{document.body.animate([
+    {transform:'translate(0,0)'},
+    {transform:`translate(${(-2-p*1.2).toFixed(1)}px, ${(1+p*.28).toFixed(1)}px)`},
+    {transform:`translate(${(2+p*1.2).toFixed(1)}px, ${(-1-p*.28).toFixed(1)}px)`},
+    {transform:`translate(${(-1-p*.6).toFixed(1)}px, ${(p*.18).toFixed(1)}px)`},
+    {transform:'translate(0,0)'}
+  ],{duration:190+p*28,easing:'ease-out'})}catch(e){}
+}
+
+async function animateClash(i,result,token,aCard,bCard){
+  const me=$('slot0'+i).querySelector('.card'),ai=$('slot1'+i).querySelector('.card');
+  const dmg=Math.max(0,result.dmg||0),power=Math.max(.75,Math.min(3.2,.8+dmg*.17+(result.dbl?.45:0))),meta=clashMeta(aCard,bCard,result);
+  if(!me||!ai||reducedMotion()){if(dmg>=7)screenJolt(dmg);await sleep(180+Math.min(120,dmg*12));return}
+  const mr=me.getBoundingClientRect(),ar=ai.getBoundingClientRect();
+  const cx=(mr.left+mr.width/2+ar.left+ar.width/2)/2;
+  const cy=(mr.top+mr.height/2+ar.top+ar.height/2)/2;
+  const twins=[flightCopy(me).copy,flightCopy(ai).copy];
+  me.style.visibility='hidden';ai.style.visibility='hidden';
+  const paths=[{x:cx-(mr.left+mr.width/2),y:cy-(mr.top+mr.height/2)},{x:cx-(ar.left+ar.width/2),y:cy-(ar.top+ar.height/2)}];
+  const dur=Math.round(430+Math.min(300,dmg*34));
+  try{
+    const anims=twins.map((copy,j)=>copy.animate([
+      {transform:'translate(0,0) scale(1)',opacity:1,offset:0},
+      {transform:`translate(${paths[j].x*1.02}px,${paths[j].y*1.02}px) rotate(${j===0?(-12-power*7):(12+power*7)}deg) scale(${(1.06+power*.08).toFixed(2)})`,opacity:1,offset:.48},
+      {transform:`translate(${paths[j].x*.46}px,${paths[j].y*.46}px) rotate(${j===0?(9+power*2):(-9-power*2)}deg) scale(${(0.88-power*.03).toFixed(2)})`,opacity:1,offset:.75},
+      {transform:'translate(0,0) scale(1)',opacity:0,offset:1}],
+      {duration:dur,easing:'cubic-bezier(.18,.84,.2,1)',fill:'forwards'}));
+    setTimeout(()=>{if(token!==S.token)return;const burst=document.createElement('div');burst.className='clash-burst';burst.textContent=(meta&&meta.burst)|| (result.w<0?'✦':'✹');burst.style.left=cx+'px';burst.style.top=cy+'px';burst.style.fontSize=(24+power*9)+'px';document.body.appendChild(burst);setTimeout(()=>burst.remove(),700)},Math.round(dur*.45));
+    setTimeout(()=>{if(token!==S.token)return;spawnSpecialFx(meta,cx,cy,power);if(dmg>=6)screenJolt(dmg)},Math.round(dur*.43));
+    await Promise.all(anims.map(a=>a.finished.catch(()=>{})));
+  }finally{twins.forEach(el=>el.remove());me.style.visibility='';ai.style.visibility='';}
+}
+
+function animateHpHit(p,dmg,before){if(dmg<=0)return;const hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');if(!hud)return;
+  const bar=$('bar'+p),old=Math.max(0,Math.min(100,before)),now=Math.max(0,Math.min(100,S.hp[p])),power=Math.max(1,Math.min(10,dmg));
+  hud.classList.remove('hp-hit');void hud.offsetWidth;hud.classList.add('hp-hit');
+  try{hud.animate([
+    {transform:'translateX(0) scale(1)',boxShadow:'0 0 0 0 rgba(255,0,0,0)'},
+    {transform:`translateX(${(-2-power*1.1).toFixed(1)}px) scale(${(1+power*.012).toFixed(3)})`,boxShadow:`0 0 0 2px rgba(255,99,93,.85),0 0 ${(16+power*4).toFixed(0)}px rgba(255,57,57,.38)`},
+    {transform:`translateX(${(2+power*1.1).toFixed(1)}px) scale(${(1+power*.008).toFixed(3)})`},
+    {transform:`translateX(${(-1-power*.4).toFixed(1)}px) scale(1)`},
+    {transform:'translateX(0) scale(1)',boxShadow:'0 0 0 0 rgba(255,0,0,0)'}
+  ],{duration:360+power*55,easing:'ease-out'})}catch(e){}
+  const strong=hud.querySelector('.who strong');
+  try{strong&&strong.animate([{color:'var(--ink)'},{color:'#ff7b73',offset:.25},{color:'#fff2f2',offset:.45},{color:'var(--ink)'}],{duration:450+power*60,easing:'ease-out'})}catch(e){}
+  const f=document.createElement('span');f.className='hp-float';f.textContent='−'+dmg+' HP';f.style.fontSize=(18+power*1.9)+'px';hud.appendChild(f);setTimeout(()=>f.remove(),1200);
+  if(old>now){const trail=document.createElement('span');trail.className='hp-loss-trail';trail.style.left=now+'%';trail.style.width=(old-now)+'%';trail.style.animationDuration=(.7+power*.08)+'s';trail.style.boxShadow=`0 0 ${8+power*2}px #ff5555`;bar.appendChild(trail);setTimeout(()=>trail.remove(),1300);
+    const flash=document.createElement('span');flash.className='hp-impact-flash';flash.style.animation=`hpImpactFlash ${(.42+power*.05).toFixed(2)}s ease-out forwards`;bar.appendChild(flash);setTimeout(()=>flash.remove(),1100);
+  }
+  if(power>=6)screenJolt(power*.8);
+  setTimeout(()=>hud.classList.remove('hp-hit'),780);
+}
+
+async function celebrateCombo(kind,player,description,token){
+ const overlay=$('comboCelebration');
+ const combos={
+  pack:{number:7,name:'PACK JOT WIN',subtitle:'THE PERFECT SEVENS',effect:'INSTANT VICTORY',symbol:'✦'},
+  zero:{number:0,name:'ZERO TO HERO CALL',subtitle:'FROM NOTHING TO POWER',effect:'ENEMY SLOT SEALED',symbol:'◈'},
+  kiants:{number:9,name:'KIANTS GILLER',subtitle:'THE PRICE OF POWER',effect:'DOUBLE DAMAGE · BONUS DRAW',symbol:'✕'}
+ };
+ const combo=combos[kind];if(!combo)return true;
+ const heading=`${combo.symbol} SECRET COMBO DISCOVERED ${combo.symbol}`;
+ overlay.className='combo-celebration '+kind;
+ overlay.innerHTML=`<div class="combo-panel"><div class="combo-kicker"></div><div class="combo-cards">${['✊','📄','✂️'].map(icon=>`<div class="combo-card"><span class="combo-number">${combo.number}</span><span class="combo-icon">${icon}</span></div>`).join('')}</div><h2 class="combo-name"></h2><p class="combo-subtitle"></p><div class="combo-effect"></div><p class="combo-description"></p></div>`;
+ overlay.querySelector('.combo-kicker').textContent=heading;
+ overlay.querySelector('.combo-name').textContent=combo.name;
+ overlay.querySelector('.combo-subtitle').textContent=combo.subtitle;
+ overlay.querySelector('.combo-effect').textContent=combo.effect;
+ overlay.querySelector('.combo-description').textContent=description;
+ if(!reducedMotion())for(let i=0;i<22;i++){
+  const p=document.createElement('i');p.className='combo-particle';
+  const angle=2*Math.PI*i/22,dist=125+(i%5)*55;
+  p.style.setProperty('--px',Math.round(Math.cos(angle)*dist)+'px');
+  p.style.setProperty('--py',Math.round(Math.sin(angle)*dist)+'px');
+  p.style.setProperty('--delay',(i%6)*.06+'s');overlay.appendChild(p);
+ }
+ overlay.hidden=false;
+ await sleep(reducedMotion()?750:2500);
+ overlay.hidden=true;overlay.innerHTML='';
+ return token===S.token;
+}
+
+
 const suits=['hammer','paper','scissors'], names={hammer:'HAMMER',paper:'PAPER',scissors:'SCISSORS'}, symbols={hammer:'✊',paper:'📄',scissors:'✂️'};
 const SOCKET='wss://bbk-game-server.onrender.com';
 let ws=null, game=null, seat=null, room='', selected=null, drag=null, skipClick=false, seen=new Set(), lastRound=0, comboKey='', gameFinished=false;
