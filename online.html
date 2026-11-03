@@ -440,6 +440,7 @@ async function celebrateCombo(kind,player,description,token){
 const suits=['hammer','paper','scissors'], names={hammer:'HAMMER',paper:'PAPER',scissors:'SCISSORS'}, symbols={hammer:'✊',paper:'📄',scissors:'✂️'};
 const SOCKET='wss://bbk-game-server.onrender.com';
 let ws=null, game=null, seat=null, room='', selected=null, drag=null, skipClick=false, seen=new Set(), lastRound=0, comboKey='', gameFinished=false;
+let animationLock=false,queuedState=null,playedRevealRound=0,dealingRound=0;
 const send=obj=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(obj));};
 const message=s=>{$('message').textContent=s;};
 const cardHTML=c=>!c?'':c.back?'<div class="card back"></div>':'<button type="button" class="card '+c.suit+'" data-id="'+c.id+'" aria-label="'+names[c.suit]+' '+c.n+'"><span class="number">'+c.n+'</span><span class="suitname">'+names[c.suit]+'</span><span class="symbol" aria-hidden="true">'+symbols[c.suit]+'</span></button>';
@@ -448,16 +449,6 @@ function paintHp(side,hp){const h=$('hp'+side),bar=$('bar'+side),hud=document.qu
 function renderTracker(){const root=$('playedGrid');let html='';for(const s of suits){html+='<div class="played-suit '+s+'">'+symbols[s]+' '+names[s].slice(0,1)+'</div>';for(let n=0;n<10;n++)html+='<div class="played-cell '+s+(seen.has(s+'-'+n)?' revealed':'')+'">'+n+'</div>';}root.innerHTML=html;$('playedCount').textContent=seen.size+' / 30 revealed';}
 function renderHistory(){const h=game?.history||[];const holder=$('historyContent');holder.innerHTML=h.length?h.slice().reverse().map(x=>'<div class="history-round"><strong>ROUND '+x.round+'</strong><div class="history-cards">'+x.cards.map(c=>c?'<span class="history-card '+c.suit+'">'+symbols[c.suit]+' '+c.n+'</span>':'<span class="history-card">—</span>').join('')+'</div></div>').join(''):'<p>No rounds played yet.</p>';
  const last=h[h.length-1];for(let i=0;i<3;i++)$('prev1'+i).innerHTML=last&&last.round<game.round&&last.cards[i]?cardHTML(last.cards[i]):'';
-}
-function comboReveal(combos){
- combos.forEach((v,i)=>setTimeout(()=>{
- const kind=v.kind, digit=kind==='pack'?'7':kind==='zero'?'0':'9',cls=kind==='pack'?'pack':kind==='zero'?'zero':'kiants';
- const subtitle=kind==='pack'?'THE PERFECT SEVENS':kind==='zero'?'FROM NOTHING TO POWER':'THE PRICE OF POWER';
- const effect=kind==='pack'?'INSTANT VICTORY':kind==='zero'?'ENEMY SLOT SEALED':'DOUBLE DAMAGE · BONUS DRAW';
- const o=$('comboCelebration');o.className='combo-celebration '+cls;
- o.innerHTML='<div class="combo-panel"><div class="combo-kicker">✦ SECRET COMBO DISCOVERED ✦</div><div class="combo-cards"><span>'+digit+'</span> <span>'+digit+'</span> <span>'+digit+'</span></div><h2 class="combo-name">'+v.title+'</h2><p class="combo-subtitle">'+subtitle+'</p><div class="combo-effect">'+effect+'</div><p class="combo-description">'+(v.owner===seat?'YOU':'OPPONENT')+' · '+v.description+'</p></div>';
- o.hidden=false;setTimeout(()=>{o.hidden=true;o.innerHTML='';},2700);
- },i*2900));
 }
 function showEnd(){const g=game;gameFinished=true;$('overlay').hidden=false;
  $('dialogTitle').textContent=g.winner==='you'?'🏆 YOU WIN':g.winner==='opponent'?'YOU LOSE':'DRAW';
@@ -473,7 +464,7 @@ function render(){
  $('handCount').textContent=g.hand.length+' cards';
  $('hand').innerHTML=g.hand.map(c=>'<div class="hand-item"><span class="card-origin hand">IN HAND</span>'+cardHTML(c)+'</div>').join('');
  $('hand').querySelectorAll('button.card').forEach(el=>{el.draggable=onlineCanMove();el.disabled=!onlineCanMove();});
- paintHp(0,g.hp[0]);paintHp(1,g.hp[1]);$('deck0').textContent=g.deck[0];$('deck1').textContent=g.deck[1];
+ paintHp(0,animationLock?S.hp[0]:g.hp[0]);paintHp(1,animationLock?S.hp[1]:g.hp[1]);$('deck0').textContent=g.deck[0];$('deck1').textContent=g.deck[1];
  $('discard0').textContent=g.yourDiscards.length;$('discard1').textContent='—';
  $('backs1').innerHTML='<i></i>'.repeat(g.opponentHandCount);
  for(let i=0;i<3;i++){
@@ -482,7 +473,7 @@ function render(){
    a.innerHTML=lockMe?'':cardHTML(g.ownSlots[i]);b.innerHTML=lockOp?'':cardHTML(g.opponentSlots[i]);const placed=a.querySelector('button.card');if(placed)placed.draggable=onlineCanMove();
    const vs=$('vs'+i);vs.className='versus';vs.innerHTML='<span class="pill">'+(i+1)+' VS '+(i+1)+'</span>';
  }
- if(g.lastResult&&['reveal','discard','over'].includes(phase))for(const r of g.lastResult.outcomes){
+ if(!animationLock&&g.lastResult&&['reveal','discard','over'].includes(phase))for(const r of g.lastResult.outcomes){
    const i=r.slots[seat],x=r.winner===-1?'TIE':r.winner===seat?'YOU':'OPPONENT',vs=$('vs'+i);
    vs.className='versus '+(x==='YOU'?'me':x==='OPPONENT'?'ai':'tie');vs.innerHTML='<span class="pill">'+x+' · '+r.damage+'</span>';
  }
@@ -499,20 +490,109 @@ function render(){
    lastRound=g.lastResult.round;
    message('Round '+lastRound+': '+g.lastResult.wins[seat]+'–'+g.lastResult.wins[1-seat]+' slots. You took '+g.lastResult.damageTaken[seat]+' damage; opponent took '+g.lastResult.damageTaken[1-seat]+'.');
  }
- if(g.combo&&g.combo.length){const k=g.round+':'+g.combo.map(c=>c.kind).join(',');if(k!==comboKey){comboKey=k;comboReveal(g.combo);}}
- else if(phase==='plan')comboKey='';
- if(phase==='over'&&!gameFinished)showEnd();
+ if(phase==='plan')comboKey='';
+ if(phase==='over'&&!gameFinished&&!animationLock)showEnd();
 }
+
+function applyState(m) {
+ const old=game;
+ game=m;seat=m.seat;room=m.code;
+ S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;
+ S.hp=[...m.hp];S.token++;
+ $('overlay').hidden=true;
+ render();
+ // The original V21 deck-to-hand animation uses the real card and deck stack.
+ if(m.phase==='plan'&&m.round!==dealingRound){
+   dealingRound=m.round;
+   const known=new Set([...(old?.hand||[]),...(old?.ownSlots||[])].filter(Boolean).map(c=>c.id));
+   const added=m.round===1?m.hand:m.hand.filter(c=>!known.has(c.id));
+   const token=S.token;
+   (async()=>{
+     for(const c of added){if(token!==S.token||game?.phase!=='plan')break;
+       await animateDealtCard(c,token);
+       if(token!==S.token)break;
+       await sleep(reducedMotion()?0:90);
+     }
+   })().catch(console.error);
+ }
+}
+async function playV21Battle(resultState, startHp){
+ const token=S.token;
+ const res=resultState.lastResult;
+ if(!res)return;
+ const g=resultState;
+ S.hp=[...startHp];
+ // Draw revealed hands first with pre-hit HP, then animate each exact V21 clash.
+ game=g;
+ S.phase='reveal';S.hand[0]=g.hand;S.slots[0]=g.ownSlots;
+ render();
+ message('Revealing cards…');
+ await sleep(reducedMotion()?0:220);
+ for(const outcome of res.outcomes){
+  if(token!==S.token)return;
+  const own=outcome.slots[seat],other=outcome.slots[1-seat];
+  const a=g.ownSlots[own],b=g.opponentSlots[other];
+  const w=outcome.winner===-1?-1:outcome.winner===seat?0:1;
+  const r={w,dmg:outcome.damage,dbl:Boolean(a&&b&&a.suit!==b.suit&&a.n===b.n)};
+  if(own===other&&a&&b)await animateClash(own,r,token,a,b);
+  else await sleep(reducedMotion()?0:180);
+  if(token!==S.token)return;
+  const vs=$('vs'+own);
+  vs.className='versus '+(w===0?'me':w===1?'ai':'tie');
+  vs.innerHTML='<span class="pill">'+(w===-1?'TIE':(w===0?'YOU':'OPPONENT')+' deals '+r.dmg)+'</span>';
+  if(w>=0&&r.dmg>0){
+   const loser=w===0?1:0,before=S.hp[loser];
+   S.hp[loser]-=r.dmg;
+   paintHp(loser,S.hp[loser]);
+   animateHpHit(loser,r.dmg,before);
+  }
+  $('slot0'+own).querySelector('.card')?.classList.toggle('win',w===0);
+  $('slot1'+other).querySelector('.card')?.classList.toggle('win',w===1);
+  $('slot0'+own).querySelector('.card')?.classList.toggle('lose',w===1);
+  $('slot1'+other).querySelector('.card')?.classList.toggle('lose',w===0);
+  await sleep(reducedMotion()?0:300);
+ }
+ // The server also calculates perfect-sweep and 999 damage after slot clashes.
+ for(let side=0;side<2;side++){
+  const extra=Math.max(0,S.hp[side]-g.hp[side]);
+  if(extra){const before=S.hp[side];S.hp[side]-=extra;paintHp(side,S.hp[side]);animateHpHit(side,extra,before);await sleep(reducedMotion()?0:300);}
+ }
+ if(res.fullSweep)message('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
+ for(const combo of g.combo||[]){
+   if(token!==S.token)return;
+   comboKey=g.round+':'+combo.kind;
+   await celebrateCombo(combo.kind,combo.owner,((combo.owner===seat)?'YOU':'OPPONENT')+' · '+combo.description,token);
+ }
+}
+async function handleState(m) {
+ if(animationLock){queuedState=m;return;}
+ if(m.phase==='reveal'&&m.lastResult&&playedRevealRound!==m.lastResult.round){
+   playedRevealRound=m.lastResult.round;
+   const before=[...(game?.hp||[100,100])];
+   animationLock=true;
+   S.token++;
+   try{await playV21Battle(m,before);}catch(e){console.error('V21 battle animation failed:',e);}
+   finally{
+     animationLock=false;
+     const latest=queuedState||m;
+     queuedState=null;
+     applyState(latest);
+   }
+   return;
+ }
+ applyState(m);
+}
+
 function onMsg(m){
  if(m.type==='error'){$('connection').textContent=m.message;message('⚠ '+m.message);return;}
- if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();room=m.code;seat=m.seat;
+ if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();S.token++;S.hp=[100,100];room=m.code;seat=m.seat;animationLock=false;queuedState=null;playedRevealRound=0;dealingRound=0;
   $('overlay').hidden=false;$('roomArea').hidden=false;$('joinArea').hidden=true;
   $('roomCode').textContent=room;
   const other=m.players.find(p=>p.seat!==seat),mine=m.players.find(p=>p.seat===seat);
   $('roomPeople').textContent=other?'Two players joined. Ready to start!':'Waiting for another player...';
   $('readyRoom').hidden=false;$('copyRoom').hidden=false;$('readyRoom').disabled=!other;$('readyRoom').textContent=mine&&mine.ready?'✓ READY':'I’M READY';
   return;}
- if(m.type==='state'){game=m;seat=m.seat;room=m.code;S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;$('overlay').hidden=true;render();return;}
+ if(m.type==='state'){handleState(m).catch(console.error);return;}
  if(m.type==='room_left')window.location.reload();
 }
 function connect(){ws=new WebSocket('wss://bbk-game-server.onrender.com');
