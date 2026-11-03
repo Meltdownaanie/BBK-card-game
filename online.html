@@ -332,6 +332,71 @@ body{padding:8px 12px 12px}
 
 /* Three-digit room selection keeps V21 gameplay intact. */
 .online-actions #joinCode{width:120px;min-width:0;font-size:20px;font-weight:900;letter-spacing:.18em;min-height:46px}.online-actions #enterRoom{min-height:46px;white-space:normal}@media(max-width:380px){.online-actions #joinCode{width:108px}.online-actions #enterRoom{padding-inline:9px;font-size:13px}}
+
+
+/* V21 mobile layout corrections: fix centering and make previous-round cards readable.
+   No changes to V21's card animations or native/touch drag-drop handlers. */
+@media (max-width:650px){
+  /* Center hands that fit; retain normal horizontal scroll when many cards overflow. */
+  #hand.hand{
+    justify-content:center;
+    justify-content:safe center;
+    gap:clamp(4px,1.25vw,7px);
+  }
+  /* Use the available space in each opponent lane, without shrinking the battle slots. */
+  .ai-row{gap:3px}
+  .ghost-slot{
+    width:clamp(37px,11.5vw,56px);
+    opacity:1;
+    background:#172328;
+    border-color:#617880;
+    overflow:hidden;
+  }
+  /* Keep the real V21 card template, but stack number, suit and icon legibly. */
+  .ghost-slot .card{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    align-items:stretch;
+    width:100%;
+    height:100%;
+    padding:3px 3px 7px;
+    opacity:1;
+    filter:none;
+    box-shadow:none;
+  }
+  .ghost-slot .number{
+    font-size:clamp(20px,5.8vw,28px);
+    line-height:1;
+    text-align:left;
+  }
+  .ghost-slot .suitname{
+    display:block;
+    position:static;
+    font-size:clamp(6px,1.7vw,8px);
+    letter-spacing:-.04em;
+    font-weight:900;
+    line-height:1;
+    text-align:left;
+    white-space:nowrap;
+  }
+  .ghost-slot .symbol{
+    position:static;
+    font-size:clamp(13px,3.9vw,19px);
+    line-height:1;
+    text-align:right;
+    align-self:flex-end;
+  }
+  .ghost-slot:empty::after{font-size:12px;color:#7e959e}
+}
+@media (max-width:355px){
+  .ghost-slot{width:clamp(35px,11.5vw,40px)}
+  .ai-row{gap:2px}
+  .ghost-slot .number{font-size:20px}
+  .ghost-slot .suitname{font-size:6px}
+  .ghost-slot .symbol{font-size:13px}
+}
+
 </style></head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">ONLINE · <b id="difficultyStatus">1v1</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
@@ -588,7 +653,10 @@ function applyState(m) {
  if(m.phase==='plan'&&m.round!==dealingRound){
    dealingRound=m.round;
    const known=new Set([...(old?.hand||[]),...(old?.ownSlots||[])].filter(Boolean).map(c=>c.id));
-   const added=m.round===1?m.hand:m.hand.filter(c=>!known.has(c.id));
+   // Opening five cards are already in the server's initial state and visible
+   // after render(); replaying deck flights here makes them appear dealt twice.
+   // Keep the original V21 draw animation for actual new cards from round 2 onward.
+   const added=m.round===1?[]:m.hand.filter(c=>!known.has(c.id));
    const token=S.token;
    (async()=>{
      for(const c of added){if(token!==S.token||game?.phase!=='plan')break;
