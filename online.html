@@ -876,6 +876,7 @@ function apply(m){
 }
 async function opening(m){
  busy=true;everPlayed=true;state=m;const token=++S.token;
+ if(!S.timer)S.timer=setInterval(tick,150);
  prime(m,[]);S.phase='dealing';S.deck[0]=Array(m.deck[0]+m.hand.length).fill(null);
  $('overlay').hidden=true;$('hand').closest('.hand-zone').classList.add('is-dealing');paint();msg('Dealing the opening five cards…');
  try{for(const c of m.hand){if(token!==S.token)break;const card={...c,origin:'hand'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:110)}}
