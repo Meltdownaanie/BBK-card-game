@@ -141,17 +141,21 @@ wss.on('connection',ws=>{
   let msg;try{msg=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Invalid message'});}
   if(!msg||typeof msg.type!=='string')return;
   const info=peers.get(ws),room=info?rooms.get(info.code):null,g=room?.game;
-  if(msg.type==='create_room'){
-    if(info)return send(ws,{type:'error',message:'Already in a room'});
-    if(rooms.size>=1000)return send(ws,{type:'error',message:'Server busy'});
-    const id=code(),r={code:id,players:[{seat:0,ws,ready:false}],game:null,timer:null};rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
-  }
-  if(msg.type==='join_room'){
-    if(info)return send(ws,{type:'error',message:'Leave your current room first'});
-    const id=String(msg.code||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6),r=rooms.get(id);
-    if(!r)return send(ws,{type:'error',message:'Room not found'});
-    if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room unavailable'});
-    const seat=r.players.some(p=>p.seat===0)?1:0;r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
+  // Both players type the same three-digit number. First arrival creates a
+  // room; second arrival joins it. Strings preserve leading zeros (e.g. 007).
+  if(msg.type==='enter_room'){
+    if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    const id=String(msg.code??'').trim();
+    if(!/^\d{3}$/.test(id))return send(ws,{type:'error',message:'Enter exactly 3 digits (000–999)'});
+    let r=rooms.get(id);
+    if(!r){
+      if(rooms.size>=1000)return send(ws,{type:'error',message:'Server room limit reached'});
+      r={code:id,players:[{seat:0,ws,ready:false}],game:null,timer:null};
+      rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
+    }
+    if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room '+id+' is full or a match is in progress. Choose another number.'});
+    const seat=r.players.some(p=>p.seat===0)?1:0;
+    r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
   }
   if(msg.type==='leave_room'){leave(ws);return send(ws,{type:'room_left'});}
   if(msg.type==='ping')return send(ws,{type:'pong'});
