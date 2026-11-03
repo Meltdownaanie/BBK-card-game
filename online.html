@@ -249,6 +249,86 @@ body{padding:8px 12px 12px}
 /* V21-compatible Online room styles. Battle layout and CSS remain unchanged. */
 .hand-zone .card,.slot.mine .card{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .online-room-code{font-size:36px;font-weight:1000;letter-spacing:.17em;color:var(--gold);padding:5px}.online-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.online-actions input{font:inherit;width:155px;background:#152126;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:12px;text-transform:uppercase;text-align:center;letter-spacing:.1em}.online-status{font-size:12px;color:var(--muted)}.online-actions button:disabled{opacity:.45;cursor:not-allowed}.online-selection{outline:3px solid var(--gold)!important;transform:translateY(-3px)}.online-dragcopy{position:fixed!important;z-index:150!important;pointer-events:none!important;opacity:.9;transform:rotate(-5deg)}.hand-zone.drop-target{outline:2px dashed #4cc47c;outline-offset:2px}.online-mode-link{color:#cce2de;text-decoration:none;font-size:12px;margin-left:5px}@media(max-width:560px){.online-actions input{width:130px}.online-room-code{font-size:29px}}
+
+
+/* Mobile responsive refinement — visual-only; original V21 JS animations
+   and mouse/touch drag-drop handlers are deliberately unchanged. */
+@media (max-width:650px){
+  html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%}
+  body{width:100%;max-width:100%;overflow-x:hidden;padding: max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))}
+  .app,.game-layout,.game-main,.board,.columns,.hand-zone{min-width:0;max-width:100%}
+  .app{gap:6px}.game-main{gap:6px}
+  .top{gap:5px;min-height:34px}
+  .top .logo{font-size:clamp(15px,4.4vw,20px);letter-spacing:.015em;white-space:nowrap}
+  .header-actions{gap:4px;min-width:0}
+  .header-actions .tutorial-open,.header-actions .forfeit-button{min-height:40px;padding:6px 7px;font-size:10px;letter-spacing:0}
+  .header-actions .tag{display:none}
+  .board{padding:7px 3px}
+  .columns{grid-template-columns:repeat(3,minmax(0,1fr));gap:2px}
+  .column{min-width:0;gap:7px}
+  .ai-row{min-width:0;width:100%;gap:4px}
+  :root{--cw:clamp(47px,16vw,74px);--sw:clamp(52px,17vw,78px)}
+  .slot{min-width:0;border-radius:7px}
+  .ghost-slot{width:clamp(25px,8vw,37px);border-radius:6px}
+  .ghost-slot .number{font-size:clamp(15px,4vw,24px)}
+  .ghost-slot .suitname{display:none}
+  .column .versus{min-height:23px;font-size:10px}
+  .versus .pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:3px 4px;font-size:10px}
+  .card{border-radius:7px;padding:4px}
+  .card .number{font-size:clamp(23px,7vw,37px)}
+  .card .suitname{font-size:clamp(7px,2vw,10px);right:4px;top:5px}
+  .card .symbol{font-size:clamp(15px,4.7vw,24px);right:4px;bottom:8px}
+  .status{grid-template-columns:49px minmax(0,1fr) auto;gap:6px;padding:7px 6px;min-height:58px}
+  .status .roundinfo strong{font-size:23px}
+  .status .time{font-size:clamp(20px,6vw,29px)}
+  .status .time small{font-size:10px}
+  .status .primary{min-height:44px;padding:7px 8px;font-size:11px;max-width:145px;white-space:normal}
+  .message{min-height:30px;font-size:12px;line-height:1.3}
+  .hand-zone{padding:7px 4px 9px;overflow:hidden}
+  .hand{display:flex;flex-wrap:nowrap!important;justify-content:flex-start;align-items:flex-start;gap:5px;min-height:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scroll-padding-inline:5px;padding:3px 5px 9px!important}
+  .hand-item{flex:0 0 auto;max-width:none}
+  .hand-item .card{width:var(--cw)}
+  .card-origin{font-size:9px;line-height:1.1}
+  .hand .card,.slot.mine .card{touch-action:none;-webkit-user-select:none;user-select:none}
+  .hand-item .card:active{cursor:grabbing}
+  .bottom-hud{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .bottom-hud .hud{min-width:0;height:auto;min-height:90px;padding:7px 5px;gap:4px}
+  .bottom-hud .who strong{font-size:clamp(17px,5vw,23px)}
+  .bottom-hud .who span{font-size:9px}
+  .bottom-hud .deck-num{font-size:15px}
+  .bottom-hud .discard-counter{font-size:10px}
+  .played-tracker{padding:6px 4px}
+  .played-grid{grid-template-columns:35px repeat(10,minmax(0,1fr));gap:2px}
+  .played-cell{height:23px;font-size:10px;border-radius:3px}
+  .played-tracker-heading{font-size:10px}
+  .played-tracker-heading span{font-size:9px}
+  .dialog{padding:clamp(14px,4vw,24px);max-height:calc(100dvh - 26px);overflow-y:auto;overscroll-behavior:contain}
+  .overlay{padding: max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom))}
+  .online-actions{gap:7px}
+  .online-actions button,.online-actions input{min-height:44px}
+  .tutorial-dialog,.pile-dialog{max-height:calc(100dvh - 26px);overflow-y:auto}
+}
+@media (max-width:355px){
+  :root{--cw:46px;--sw:49px}
+  .ghost-slot{width:24px}
+  .ai-row{gap:2px}
+  .top .logo{font-size:14px}
+  .header-actions .tutorial-open,.header-actions .forfeit-button{font-size:9px;padding-inline:5px}
+  .played-grid{grid-template-columns:30px repeat(10,minmax(0,1fr));gap:1px}
+  .played-cell{font-size:9px}
+  .bottom-hud .hud{padding:5px 3px}
+  .status{grid-template-columns:42px minmax(0,1fr) auto;gap:4px}
+  .status .primary{font-size:10px;padding:6px}
+}
+@media (max-width:650px) and (max-height:730px){
+  .app,.game-main{gap:4px}
+  .column{gap:5px}
+  .board{padding-block:5px}
+  .status{min-height:50px;padding-block:5px}
+  .hand-zone{padding-block:4px}
+  .bottom-hud .hud{min-height:76px}
+}
+
 </style></head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">ONLINE · <b id="difficultyStatus">1v1</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
