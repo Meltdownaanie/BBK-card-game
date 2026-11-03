@@ -589,7 +589,7 @@ const suits=['hammer','paper','scissors'], names={hammer:'HAMMER',paper:'PAPER',
 const SOCKET='wss://bbk-game-server.onrender.com';
 let ws=null, game=null, seat=null, room='', selected=null, drag=null, skipClick=false, seen=new Set(), lastRound=0, comboKey='', gameFinished=false;
 let animationLock=false,queuedState=null,playedRevealRound=0,dealingRound=0;
-let openingDealVisible=null,handOrigins=new Map(),handMotion=new Set();
+let openingDealVisible=null,handOrigins=new Map(),handMotion=new Set(),hiddenDrawIds=new Set();
 const send=obj=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(obj));};
 const message=s=>{$('message').textContent=s;};
 const cardHTML=c=>!c?'':c.back?'<div class="card back"></div>':'<button type="button" class="card '+c.suit+'" data-id="'+c.id+'" aria-label="'+names[c.suit]+' '+c.n+'"><span class="number">'+c.n+'</span><span class="suitname">'+names[c.suit]+'</span><span class="symbol" aria-hidden="true">'+symbols[c.suit]+'</span></button>';
@@ -610,7 +610,7 @@ function render(){
  if(!game)return;const g=game,phase=g.phase;
  $('round').textContent=g.round;
  $('limit').textContent='/ '+(phase==='discard'?50:75)+'s';
- const visibleHand=openingDealVisible===null?g.hand:g.hand.slice(0,openingDealVisible);
+ const visibleHand=(openingDealVisible===null?g.hand:g.hand.slice(0,openingDealVisible)).filter(c=>!hiddenDrawIds.has(c.id));
  $('handCount').textContent=visibleHand.length+' cards';
  const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};
  const sorted=[...visibleHand].sort((a,b)=>suits.indexOf(a.suit)-suits.indexOf(b.suit)||a.n-b.n);
@@ -675,24 +675,43 @@ function applyState(m) {
  S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;
  S.hp=[...m.hp];S.token++;
  $('overlay').hidden=true;
+ const roundChanged=m.phase==='plan'&&m.round!==dealingRound;
+ const known=new Set([...(old?.hand||[]),...(old?.ownSlots||[])].filter(Boolean).map(c=>c.id));
+ const newDraws=roundChanged&&m.round>1?m.hand.filter(c=>!known.has(c.id)):[];
+ if(roundChanged)dealingRound=m.round;
+ hiddenDrawIds=new Set(newDraws.map(c=>c.id));
+ // Returned cards are visible immediately with their original V21 return animation.
+ for(const c of m.hand)if(handOrigins.get(c.id)==='returned')handMotion.add(c.id);
+ if(newDraws.length)animationLock=true;
  render();
- if(m.phase==='plan'&&m.round!==dealingRound){
-   dealingRound=m.round;
-   // Unlike the opening deal, only genuinely new cards fly from the deck.
-   // Cards retained from last round use the V21 RETURNED label/animation.
-   const known=new Set([...(old?.hand||[]),...(old?.ownSlots||[])].filter(Boolean).map(c=>c.id));
-   const added=m.round===1?[]:m.hand.filter(c=>!known.has(c.id));
-   const token=S.token;
-   (async()=>{
-     for(const c of added){
-       if(token!==S.token||game?.phase!=='plan')break;
+ if(!newDraws.length)return;
+ const token=S.token;
+ $('hand').closest('.hand-zone').classList.add('is-dealing');
+ message('Drawing cards for the next round…');
+ (async()=>{
+   try{
+     for(const c of newDraws){
+       if(token!==S.token)break;
+       hiddenDrawIds.delete(c.id);
+       handMotion.add(c.id);
+       render();
        await animateDealtCard(c,token);
        if(token!==S.token)break;
        await sleep(reducedMotion()?0:90);
      }
-   })().catch(console.error);
- }
+   }catch(e){console.error('V21 card draw animation failed:',e);}
+   finally{
+     hiddenDrawIds.clear();
+     animationLock=false;
+     $('hand').closest('.hand-zone').classList.remove('is-dealing');
+     const latest=queuedState;
+     queuedState=null;
+     if(latest)applyState(latest);
+     else{render();message(game?.ready?'Cards locked. Waiting for opponent…':'Place '+game.needed+' cards, then CONFIRM.');}
+   }
+ })();
 }
+
 async function showOpeningDeal(m){
  animationLock=true;
  openingDealVisible=0;
@@ -798,7 +817,7 @@ async function handleState(m) {
 
 function onMsg(m){
  if(m.type==='error'){$('connection').textContent=m.message;message('⚠ '+m.message);return;}
- if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();S.token++;S.hp=[100,100];room=m.code;seat=m.seat;animationLock=false;queuedState=null;playedRevealRound=0;dealingRound=0;openingDealVisible=null;handOrigins=new Map();handMotion=new Set();
+ if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();S.token++;S.hp=[100,100];room=m.code;seat=m.seat;animationLock=false;queuedState=null;playedRevealRound=0;dealingRound=0;openingDealVisible=null;handOrigins=new Map();handMotion=new Set();hiddenDrawIds=new Set();
   $('overlay').hidden=false;$('roomArea').hidden=false;$('joinArea').hidden=true;
   $('roomCode').textContent=room;
   const other=m.players.find(p=>p.seat!==seat),mine=m.players.find(p=>p.seat===seat);
