@@ -880,7 +880,7 @@ async function opening(m){
  prime(m,[]);S.phase='dealing';S.deck[0]=Array(m.deck[0]+m.hand.length).fill(null);
  $('overlay').hidden=true;$('hand').closest('.hand-zone').classList.add('is-dealing');paint();msg('Dealing the opening five cards…');
  try{for(const c of m.hand){if(token!==S.token)break;const card={...c,origin:'hand'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:110)}}
- finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;apply(latest)}
+ finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;await receive(latest)}
 }
 async function nextRound(m){
  busy=true;const old=new Map([...S.hand[0],...S.slots[0].filter(Boolean)].map(c=>[c.id,c])),slots=new Set(S.slots[0].filter(Boolean).map(c=>c.id));
@@ -889,7 +889,7 @@ async function nextRound(m){
  S.animateHand=new Set(retained.filter(c=>c.origin==='returned').map(c=>c.id));
  const token=++S.token;$('hand').closest('.hand-zone').classList.add('is-dealing');paint();msg('Drawing cards for the next round…');
  try{for(const c of fresh){if(token!==S.token)break;const card={...c,origin:'new'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:90)}}
- finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;apply(latest)}
+ finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;await receive(latest)}
 }
 async function revealOnline(m){
  busy=true;roundRevealed=m.round;const hp=[...S.hp],token=++S.token;
@@ -914,7 +914,7 @@ async function revealOnline(m){
   for(let p=0;p<2;p++){const x=Math.max(0,S.hp[p]-m.hp[p]);if(x){const before=S.hp[p];S.hp[p]-=x;renderHud();animateHpHit(p,x,before);await sleep(reducedMotion()?0:250)}}
   for(const c of m.combo||[])await celebrateCombo(c.kind,c.owner===m.seat?0:1,c.description,token);
  }catch(e){console.error(e)}
- finally{busy=false;const latest=queued||m;queued=null;apply(latest)}
+ finally{busy=false;const latest=queued||m;queued=null;await receive(latest)}
 }
 async function receive(m){
  if(busy){queued=m;return}
