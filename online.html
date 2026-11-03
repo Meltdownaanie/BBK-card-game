@@ -329,6 +329,9 @@ body{padding:8px 12px 12px}
   .bottom-hud .hud{min-height:76px}
 }
 
+
+/* Three-digit room selection keeps V21 gameplay intact. */
+.online-actions #joinCode{width:120px;min-width:0;font-size:20px;font-weight:900;letter-spacing:.18em;min-height:46px}.online-actions #enterRoom{min-height:46px;white-space:normal}@media(max-width:380px){.online-actions #joinCode{width:108px}.online-actions #enterRoom{padding-inline:9px;font-size:13px}}
 </style></head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">ONLINE · <b id="difficultyStatus">1v1</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
@@ -382,8 +385,8 @@ body{padding:8px 12px 12px}
 <h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1>
 <div class="emblems">✊ 📄 ✂️</div><p>ONLINE 1v1 · PRIVATE ROOM</p>
 <p id="connection" class="online-status">Connecting to server…</p>
-<div id="joinArea" class="online-actions"><button type="button" id="createRoom" class="primary" disabled>CREATE ROOM</button><input id="joinCode" placeholder="ROOM CODE" maxlength="6" aria-label="Room code"><button type="button" id="joinRoom" class="secondary" disabled>JOIN ROOM</button></div>
-<div id="roomArea" hidden><div class="tag">ROOM CODE</div><div class="online-room-code" id="roomCode"></div>
+<p class="online-status">Both players enter the same 3-digit number. The first creates the room; the second joins.</p><div id="joinArea" class="online-actions"><input id="joinCode" type="text" inputmode="numeric" pattern="[0-9]{3}" autocomplete="off" maxlength="3" placeholder="000–999" aria-label="Three digit room number"><button type="button" id="enterRoom" class="primary" disabled>CREATE / JOIN ROOM</button></div>
+<div id="roomArea" hidden><div class="tag">ROOM NUMBER</div><div class="online-room-code" id="roomCode"></div>
 <p id="roomPeople" class="online-status"></p><div class="online-actions"><button id="copyRoom" class="secondary">COPY CODE</button><button id="readyRoom" class="primary" disabled>I'M READY</button><button id="leaveRoom" class="secondary">LEAVE</button></div></div>
 <button type="button" id="showTutorialStart" class="secondary help-start">? HOW TO PLAY</button>
 <a href="./index.html" class="online-mode-link">← PLAY VS AI</a>
@@ -676,10 +679,10 @@ function onMsg(m){
  if(m.type==='room_left')window.location.reload();
 }
 function connect(){ws=new WebSocket('wss://bbk-game-server.onrender.com');
- ws.onopen=()=>{$('connection').textContent='● Connected to BBK online server';$('createRoom').disabled=false;$('joinRoom').disabled=false;};
+ ws.onopen=()=>{$('connection').textContent='● Connected to BBK online server';$('enterRoom').disabled=false;};
  ws.onmessage=e=>{try{onMsg(JSON.parse(e.data));}catch(err){console.error(err);}};
  ws.onerror=()=>{$('connection').textContent='Connecting to Render server…';};
- ws.onclose=()=>{$('connection').textContent='Disconnected. Refresh to reconnect.';$('createRoom').disabled=true;$('joinRoom').disabled=true;message('Disconnected from game server.');};
+ ws.onclose=()=>{$('connection').textContent='Disconnected. Refresh to reconnect.';$('enterRoom').disabled=true;message('Disconnected from game server.');};
 }
 function onlineCanMove(){return !!game&&game.phase==='plan'&&!game.ready&&!animationLock;}
 function onlineBlocked(i){return !game||game.lockedOwn.includes(i);}
@@ -807,8 +810,14 @@ for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>{
  if(game.ownSlots[i])send({type:'return',slot:i});
 });
 $('mainButton').onclick=()=>send({type:'lock'});
-$('createRoom').onclick=()=>send({type:'create_room'});
-$('joinRoom').onclick=()=>send({type:'join_room',code:$('joinCode').value});
+function enterRoom(){
+ const number=$('joinCode').value.trim();
+ if(!/^\d{3}$/.test(number)){$('connection').textContent='Please enter exactly three digits (e.g. 007 or 123).';$('joinCode').focus();return;}
+ send({type:'enter_room',code:number});
+}
+$('enterRoom').onclick=enterRoom;
+$('joinCode').addEventListener('input',e=>{const cleaned=e.target.value.replace(/\D/g,'').slice(0,3);if(cleaned!==e.target.value)e.target.value=cleaned;});
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')enterRoom();});
 $('readyRoom').onclick=()=>send({type:'ready',ready:true});
 $('leaveRoom').onclick=()=>send({type:'leave_room'});
 $('copyRoom').onclick=()=>{const c=$('roomCode').textContent;navigator.clipboard?.writeText(c).then(()=>$('copyRoom').textContent='COPIED!').catch(()=>window.prompt('Copy room code:',c));};
