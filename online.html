@@ -589,6 +589,7 @@ const suits=['hammer','paper','scissors'], names={hammer:'HAMMER',paper:'PAPER',
 const SOCKET='wss://bbk-game-server.onrender.com';
 let ws=null, game=null, seat=null, room='', selected=null, drag=null, skipClick=false, seen=new Set(), lastRound=0, comboKey='', gameFinished=false;
 let animationLock=false,queuedState=null,playedRevealRound=0,dealingRound=0;
+let openingDealVisible=null,handOrigins=new Map(),handMotion=new Set();
 const send=obj=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(obj));};
 const message=s=>{$('message').textContent=s;};
 const cardHTML=c=>!c?'':c.back?'<div class="card back"></div>':'<button type="button" class="card '+c.suit+'" data-id="'+c.id+'" aria-label="'+names[c.suit]+' '+c.n+'"><span class="number">'+c.n+'</span><span class="suitname">'+names[c.suit]+'</span><span class="symbol" aria-hidden="true">'+symbols[c.suit]+'</span></button>';
@@ -609,8 +610,17 @@ function render(){
  if(!game)return;const g=game,phase=g.phase;
  $('round').textContent=g.round;
  $('limit').textContent='/ '+(phase==='discard'?50:75)+'s';
- $('handCount').textContent=g.hand.length+' cards';
- $('hand').innerHTML=g.hand.map(c=>'<div class="hand-item"><span class="card-origin hand">IN HAND</span>'+cardHTML(c)+'</div>').join('');
+ const visibleHand=openingDealVisible===null?g.hand:g.hand.slice(0,openingDealVisible);
+ $('handCount').textContent=visibleHand.length+' cards';
+ const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};
+ const sorted=[...visibleHand].sort((a,b)=>suits.indexOf(a.suit)-suits.indexOf(b.suit)||a.n-b.n);
+ $('hand').innerHTML=sorted.map(c=>{
+   const kind=handOrigins.get(c.id)||'hand';
+   const [label,cls]=origins[kind]||origins.hand;
+   const motion=handMotion.has(c.id)?(cls==='new'?' card-drawn':cls==='returned'?' card-returned':''):'';
+   return '<div class="hand-item'+motion+'"><span class="card-origin '+cls+'">'+label+'</span>'+cardHTML(c)+'</div>';
+ }).join('');
+ handMotion.clear();
  $('hand').querySelectorAll('button.card').forEach(el=>{el.draggable=onlineCanMove();el.disabled=!onlineCanMove();});
  paintHp(0,animationLock?S.hp[0]:g.hp[0]);paintHp(1,animationLock?S.hp[1]:g.hp[1]);$('deck0').textContent=g.deck[0];$('deck1').textContent=g.deck[1];
  $('discard0').textContent=g.yourDiscards.length;$('discard1').textContent='—';
@@ -642,24 +652,40 @@ function render(){
  if(phase==='over'&&!gameFinished&&!animationLock)showEnd();
 }
 
+function updateHandOrigins(m, old){
+ const previousHand=new Set((old?.hand||[]).map(c=>c.id));
+ const previousSlots=new Set((old?.ownSlots||[]).filter(Boolean).map(c=>c.id));
+ const roundChanged=!old||old.round!==m.round;
+ if(!old){handOrigins=new Map(m.hand.map(c=>[c.id,'hand']));return;}
+ const next=new Map();
+ for(const c of m.hand){
+   let kind;
+   if(previousSlots.has(c.id))kind='returned';
+   else if(previousHand.has(c.id))kind=roundChanged?'hand':(handOrigins.get(c.id)||'hand');
+   else kind=roundChanged?'new':'returned';
+   next.set(c.id,kind);
+   if(kind==='returned'&&!previousHand.has(c.id))handMotion.add(c.id);
+ }
+ handOrigins=next;
+}
 function applyState(m) {
  const old=game;
+ updateHandOrigins(m,old);
  game=m;seat=m.seat;room=m.code;
  S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;
  S.hp=[...m.hp];S.token++;
  $('overlay').hidden=true;
  render();
- // The original V21 deck-to-hand animation uses the real card and deck stack.
  if(m.phase==='plan'&&m.round!==dealingRound){
    dealingRound=m.round;
+   // Unlike the opening deal, only genuinely new cards fly from the deck.
+   // Cards retained from last round use the V21 RETURNED label/animation.
    const known=new Set([...(old?.hand||[]),...(old?.ownSlots||[])].filter(Boolean).map(c=>c.id));
-   // Opening five cards are already in the server's initial state and visible
-   // after render(); replaying deck flights here makes them appear dealt twice.
-   // Keep the original V21 draw animation for actual new cards from round 2 onward.
    const added=m.round===1?[]:m.hand.filter(c=>!known.has(c.id));
    const token=S.token;
    (async()=>{
-     for(const c of added){if(token!==S.token||game?.phase!=='plan')break;
+     for(const c of added){
+       if(token!==S.token||game?.phase!=='plan')break;
        await animateDealtCard(c,token);
        if(token!==S.token)break;
        await sleep(reducedMotion()?0:90);
@@ -667,6 +693,41 @@ function applyState(m) {
    })().catch(console.error);
  }
 }
+async function showOpeningDeal(m){
+ animationLock=true;
+ openingDealVisible=0;
+ const old=game;
+ updateHandOrigins(m,old);
+ game=m;seat=m.seat;room=m.code;
+ S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;
+ S.hp=[...m.hp];S.token++;
+ const token=S.token;
+ dealingRound=1;
+ $('overlay').hidden=true;
+ $('hand').closest('.hand-zone').classList.add('is-dealing');
+ render();
+ message('Dealing the opening five cards…');
+ try{
+   // Render one card at a time, then use V21's original flight from the deck.
+   // Never show all five cards before their animations.
+   for(let i=0;i<m.hand.length;i++){
+     if(token!==S.token)break;
+     openingDealVisible=i+1;
+     render();
+     await animateDealtCard(m.hand[i],token);
+     if(token!==S.token)break;
+     await sleep(reducedMotion()?0:110);
+   }
+ }finally{
+   openingDealVisible=null;
+   animationLock=false;
+   $('hand').closest('.hand-zone').classList.remove('is-dealing');
+   const latest=queuedState||m;
+   queuedState=null;
+   if(latest!==m)applyState(latest);else{render();message('Place '+game.needed+' cards, then CONFIRM.');}
+ }
+}
+
 async function playV21Battle(resultState, startHp){
  const token=S.token;
  const res=resultState.lastResult;
@@ -717,6 +778,7 @@ async function playV21Battle(resultState, startHp){
 }
 async function handleState(m) {
  if(animationLock){queuedState=m;return;}
+ if(!game&&m.phase==='plan'&&m.round===1){await showOpeningDeal(m);return;}
  if(m.phase==='reveal'&&m.lastResult&&playedRevealRound!==m.lastResult.round){
    playedRevealRound=m.lastResult.round;
    const before=[...(game?.hp||[100,100])];
@@ -736,7 +798,7 @@ async function handleState(m) {
 
 function onMsg(m){
  if(m.type==='error'){$('connection').textContent=m.message;message('⚠ '+m.message);return;}
- if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();S.token++;S.hp=[100,100];room=m.code;seat=m.seat;animationLock=false;queuedState=null;playedRevealRound=0;dealingRound=0;
+ if(m.type==='lobby'){game=null;gameFinished=false;lastRound=0;comboKey='';seen=new Set();S.token++;S.hp=[100,100];room=m.code;seat=m.seat;animationLock=false;queuedState=null;playedRevealRound=0;dealingRound=0;openingDealVisible=null;handOrigins=new Map();handMotion=new Set();
   $('overlay').hidden=false;$('roomArea').hidden=false;$('joinArea').hidden=true;
   $('roomCode').textContent=room;
   const other=m.players.find(p=>p.seat!==seat),mine=m.players.find(p=>p.seat===seat);
