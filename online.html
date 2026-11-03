@@ -312,7 +312,7 @@ body{padding:8px 12px 12px}
 'use strict';
 (function(){
 const $=id=>document.getElementById(id);
-const S={hp:[100,100],token:1};
+const S={hp:[100,100],token:1,phase:'idle',hand:[[],[]],slots:[[null,null,null],[null,null,null]],dragId:null};
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const reducedMotion=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function flightCopy(source){const rect=source.getBoundingClientRect();const copy=source.cloneNode(true);copy.classList.add('card-flight');copy.removeAttribute('id');copy.removeAttribute('data-id');copy.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;z-index:1000;pointer-events:none;`;document.body.appendChild(copy);return {copy,rect}}
@@ -472,14 +472,14 @@ function render(){
  $('limit').textContent='/ '+(phase==='discard'?50:75)+'s';
  $('handCount').textContent=g.hand.length+' cards';
  $('hand').innerHTML=g.hand.map(c=>'<div class="hand-item"><span class="card-origin hand">IN HAND</span>'+cardHTML(c)+'</div>').join('');
- $('hand').querySelectorAll('button.card').forEach(el=>el.classList.toggle('online-selection',el.dataset.id===selected));
+ $('hand').querySelectorAll('button.card').forEach(el=>{el.draggable=onlineCanMove();el.disabled=!onlineCanMove();});
  paintHp(0,g.hp[0]);paintHp(1,g.hp[1]);$('deck0').textContent=g.deck[0];$('deck1').textContent=g.deck[1];
  $('discard0').textContent=g.yourDiscards.length;$('discard1').textContent='—';
  $('backs1').innerHTML='<i></i>'.repeat(g.opponentHandCount);
  for(let i=0;i<3;i++){
    const a=$('slot0'+i),b=$('slot1'+i),lockMe=g.lockedOwn.includes(i),lockOp=g.lockedOpponent.includes(i);
    a.classList.toggle('blocked',lockMe);b.classList.toggle('blocked',lockOp);
-   a.innerHTML=lockMe?'':cardHTML(g.ownSlots[i]);b.innerHTML=lockOp?'':cardHTML(g.opponentSlots[i]);
+   a.innerHTML=lockMe?'':cardHTML(g.ownSlots[i]);b.innerHTML=lockOp?'':cardHTML(g.opponentSlots[i]);const placed=a.querySelector('button.card');if(placed)placed.draggable=onlineCanMove();
    const vs=$('vs'+i);vs.className='versus';vs.innerHTML='<span class="pill">'+(i+1)+' VS '+(i+1)+'</span>';
  }
  if(g.lastResult&&['reveal','discard','over'].includes(phase))for(const r of g.lastResult.outcomes){
@@ -512,7 +512,7 @@ function onMsg(m){
   $('roomPeople').textContent=other?'Two players joined. Ready to start!':'Waiting for another player...';
   $('readyRoom').hidden=false;$('copyRoom').hidden=false;$('readyRoom').disabled=!other;$('readyRoom').textContent=mine&&mine.ready?'✓ READY':'I’M READY';
   return;}
- if(m.type==='state'){game=m;seat=m.seat;room=m.code;$('overlay').hidden=true;render();return;}
+ if(m.type==='state'){game=m;seat=m.seat;room=m.code;S.phase=m.phase;S.hand[0]=m.hand;S.slots[0]=m.ownSlots;$('overlay').hidden=true;render();return;}
  if(m.type==='room_left')window.location.reload();
 }
 function connect(){ws=new WebSocket('wss://bbk-game-server.onrender.com');
@@ -521,29 +521,130 @@ function connect(){ws=new WebSocket('wss://bbk-game-server.onrender.com');
  ws.onerror=()=>{$('connection').textContent='Connecting to Render server…';};
  ws.onclose=()=>{$('connection').textContent='Disconnected. Refresh to reconnect.';$('createRoom').disabled=true;$('joinRoom').disabled=true;message('Disconnected from game server.');};
 }
-function active(){return game&&game.phase==='plan'&&!game.ready;}
-function source(el){const card=el?.closest?.('button.card');if(!card)return null;const slot=card.closest('.slot.mine');return slot?{kind:'slot',slot:Number(slot.id.slice(-1))}:card.closest('#hand')?{kind:'hand',id:card.dataset.id}:null;}
-function target(el){const sl=el?.closest?.('.slot.mine');return sl?{kind:'slot',slot:Number(sl.id.slice(-1))}:el?.closest?.('.hand-zone')?{kind:'hand'}:null;}
-function allowed(src,dest){return active()&&src&&dest&&(src.kind==='hand'?dest.kind==='slot'&&!game.lockedOwn.includes(dest.slot):src.kind==='slot'&&(dest.kind==='hand'||dest.kind==='slot'&&src.slot!==dest.slot&&!game.lockedOwn.includes(dest.slot)));}
-function move(src,dest){if(!allowed(src,dest))return;
- if(src.kind==='hand')send({type:'place',cardId:src.id,slot:dest.slot});else if(dest.kind==='hand')send({type:'return',slot:src.slot});else send({type:'swap',from:src.slot,to:dest.slot});selected=null;
+function onlineCanMove(){return !!game&&game.phase==='plan'&&!game.ready&&!animationLock;}
+function onlineBlocked(i){return !game||game.lockedOwn.includes(i);}
+function clearTargets(){document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'))}
+function moveCard(source,destination){
+ if(!onlineCanMove()||!source||!destination)return false;
+ if(destination.kind==='hand'){
+   if(source.kind!=='slot')return false;
+   send({type:'return',slot:source.slot});return true;
+ }
+ const to=destination.slot;
+ if(to<0||to>2||onlineBlocked(to))return false;
+ if(source.kind==='hand'){send({type:'place',cardId:source.id,slot:to});return true;}
+ if(source.kind!=='slot'||onlineBlocked(source.slot)||source.slot===to||!S.slots[0][source.slot])return false;
+ send({type:'swap',from:source.slot,to});return true;
 }
-document.addEventListener('pointerdown',e=>{if(!active())return;const src=source(e.target);if(!src)return;const card=e.target.closest('button.card'),r=card.getBoundingClientRect();drag={pointer:e.pointerId,src,card,x:e.clientX,y:e.clientY,w:r.width,h:r.height,live:false,ghost:null};});
-document.addEventListener('pointermove',e=>{const d=drag;if(!d||d.pointer!==e.pointerId)return;if(!d.live&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<8)return;
- if(!d.live){d.live=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('online-dragcopy');d.ghost.style.width=d.w+'px';d.ghost.style.height=d.h+'px';document.body.appendChild(d.ghost);}
- if(e.cancelable)e.preventDefault();d.ghost.style.left=(e.clientX-d.w/2)+'px';d.ghost.style.top=(e.clientY-d.h/2)+'px';
- document.querySelectorAll('.slot.drop-target').forEach(e=>e.classList.remove('drop-target'));document.querySelector('.hand-zone').classList.remove('drop-target');
- const dest=target(document.elementFromPoint(e.clientX,e.clientY));if(allowed(d.src,dest)){(dest.kind==='slot'?$('slot0'+dest.slot):document.querySelector('.hand-zone')).classList.add('drop-target');}
-},{passive:false});
-document.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const d=drag;drag=null;if(d.ghost)d.ghost.remove();
- if(d.live){move(d.src,target(document.elementFromPoint(e.clientX,e.clientY)));skipClick=true;setTimeout(()=>skipClick=false,240);}
- document.querySelectorAll('.slot.drop-target').forEach(e=>e.classList.remove('drop-target'));document.querySelector('.hand-zone').classList.remove('drop-target');
+function dragSourceFromElement(el){
+ let card=el?.closest?.('button.card');
+ if(!card){
+  const handItem=el?.closest?.('.hand-item');if(handItem)card=handItem.querySelector('button.card');
+  const slotEl=el?.closest?.('.slot.mine');if(!card&&slotEl)card=slotEl.querySelector('button.card');
+ }
+ if(!card)return null;
+ const slot=card.closest('.slot.mine');
+ if(slot){const i=Number(slot.id.slice(-1));return S.slots[0][i]&&!onlineBlocked(i)?{kind:'slot',slot:i,id:S.slots[0][i].id}:null}
+ return card.closest('#hand')&&S.hand[0].some(c=>c.id===card.dataset.id)?{kind:'hand',id:card.dataset.id}:null;
+}
+function dragDestinationFromElement(el){
+ const slot=el?.closest?.('.slot.mine');
+ if(slot)return{kind:'slot',slot:Number(slot.id.slice(-1))};
+ if(el?.closest?.('.hand-zone')||el?.closest?.('#hand'))return{kind:'hand'};
+ return null;
+}
+function validDragTarget(source,dest){
+ if(!source||!dest||!onlineCanMove())return false;
+ if(dest.kind==='hand')return source.kind==='slot';
+ return !onlineBlocked(dest.slot)&&(source.kind==='hand'||(source.kind==='slot'&&source.slot!==dest.slot&&!onlineBlocked(source.slot)));
+}
+function showDropHighlight(source,el){
+ clearTargets();const dest=dragDestinationFromElement(el);
+ if(!validDragTarget(source,dest))return;
+ const target=dest.kind==='hand'?document.querySelector('.hand-zone'):$('slot0'+dest.slot);
+ target?.classList.add('drop-target');
+}
+function sourcePayload(source){return source.kind==='slot'?`slot:${source.slot}`:`hand:${source.id}`}
+function parsePayload(value){
+ const m=/^slot:([012])$/.exec(value);if(m)return {kind:'slot',slot:Number(m[1])};
+ if(value?.startsWith('hand:'))return{kind:'hand',id:value.slice(5)};
+ return null;
+}
+let currentNativeDrag=null;
+document.addEventListener('dragstart',e=>{
+ if(!onlineCanMove())return;
+ const source=dragSourceFromElement(e.target);
+ if(!source){if(e.target.closest?.('button.card'))e.preventDefault();return}
+ currentNativeDrag=source;S.dragId=source.kind==='hand'?source.id:S.slots[0][source.slot]?.id;
+ e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',sourcePayload(source));
 });
-document.addEventListener('pointercancel',()=>{if(drag?.ghost)drag.ghost.remove();drag=null;});
-$('hand').addEventListener('click',e=>{if(skipClick||!active())return;const c=e.target.closest('button.card');if(c){selected=c.dataset.id;render();}});
-for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>{if(skipClick||!game)return;
+document.addEventListener('dragend',()=>{currentNativeDrag=null;S.dragId=null;clearTargets()});
+const handZone=document.querySelector('.hand-zone')||$('hand');
+const dropSurfaces=[handZone,...[0,1,2].map(i=>$('slot0'+i))];
+for(const surface of dropSurfaces){
+ surface.addEventListener('dragover',e=>{
+  const source=currentNativeDrag;if(!source||!onlineCanMove())return;
+  const dest=dragDestinationFromElement(e.target);
+  if(validDragTarget(source,dest)){e.preventDefault();e.dataTransfer.dropEffect='move';showDropHighlight(source,e.target)}
+ });
+ surface.addEventListener('dragleave',e=>{if(!surface.contains(e.relatedTarget))clearTargets()});
+ surface.addEventListener('drop',e=>{
+  if(!onlineCanMove())return;
+  const source=parsePayload(e.dataTransfer?.getData('text/plain'))||currentNativeDrag;
+  const dest=dragDestinationFromElement(e.target);
+  if(validDragTarget(source,dest)){e.preventDefault();moveCard(source,dest)}
+  clearTargets();currentNativeDrag=null;S.dragId=null;
+ });
+}
+// Pointer events for touch/pen. Native HTML drag handles mouse; tapping is still allowed.
+let touchDrag=null;
+function cleanTouchDrag(){
+ if(touchDrag?.ghost)touchDrag.ghost.remove();
+ touchDrag=null;clearTargets();
+}
+document.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'||!onlineCanMove()||!e.isPrimary)return;
+ const source=dragSourceFromElement(e.target);if(!source)return;
+ const card=source.kind==='slot'?$('slot0'+source.slot).querySelector('button.card'):[...$('hand').querySelectorAll('button.card')].find(b=>b.dataset.id===source.id);
+ if(!card)return;
+ touchDrag={pointerId:e.pointerId,source,startX:e.clientX,startY:e.clientY,active:false,ghost:null,card};
+});
+document.addEventListener('pointermove',e=>{
+ const d=touchDrag;if(!d||d.pointerId!==e.pointerId||!onlineCanMove())return;
+ if(!d.active&&Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<9)return;
+ if(!d.active){
+  d.active=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('drag-ghost');
+  d.ghost.style.width=d.card.getBoundingClientRect().width+'px';
+  d.ghost.style.height=d.card.getBoundingClientRect().height+'px';
+  document.body.appendChild(d.ghost);
+ }
+ if(e.cancelable)e.preventDefault();
+ const w=d.card.getBoundingClientRect().width,h=d.card.getBoundingClientRect().height;
+ d.ghost.style.left=(e.clientX-w/2)+'px';d.ghost.style.top=(e.clientY-h/2)+'px';
+ showDropHighlight(d.source,document.elementFromPoint(e.clientX,e.clientY));
+},{passive:false});
+document.addEventListener('pointerup',e=>{
+ const d=touchDrag;if(!d||d.pointerId!==e.pointerId)return;
+ const active=d.active,source=d.source;
+ const dest=active?dragDestinationFromElement(document.elementFromPoint(e.clientX,e.clientY)):null;
+ cleanTouchDrag();
+ if(!active)return;
+ if(validDragTarget(source,dest))moveCard(source,dest);
+ suppressClick=true;setTimeout(()=>suppressClick=false,250);
+});
+document.addEventListener('pointercancel',cleanTouchDrag);
+let suppressClick=false;
+
+$('hand').addEventListener('click',e=>{const b=e.target.closest('button.card');if(!suppressClick&&b&&!b.disabled&&onlineCanMove()){
+ const c=game.hand.find(x=>x.id===b.dataset.id);if(!c)return;
+ const i=game.ownSlots.findIndex((x,j)=>!x&&!onlineBlocked(j));
+ if(i>=0)send({type:'place',cardId:c.id,slot:i});else message('All open slots are full. Drag a card onto a slot to replace it.');
+}});
+for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>{
+ if(suppressClick||!game)return;
  if(game.phase==='discard'){if(game.discardOptions.includes(i))send({type:'discard',slot:i});return;}
- if(!active())return;if(selected)move({kind:'hand',id:selected},{kind:'slot',slot:i});else if(game.ownSlots[i])send({type:'return',slot:i});
+ if(!onlineCanMove()||onlineBlocked(i))return;
+ if(game.ownSlots[i])send({type:'return',slot:i});
 });
 $('mainButton').onclick=()=>send({type:'lock'});
 $('createRoom').onclick=()=>send({type:'create_room'});
