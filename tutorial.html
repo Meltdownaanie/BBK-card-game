@@ -36,6 +36,7 @@
 .pill.me{background:var(--crt-gold);color:var(--crt-dark)}.pill.bot{background:var(--crt-coral);color:var(--crt-dark)}
 .crt-card.win{box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold),0 6px 0 3px var(--crt-line),inset 0 7px 0 var(--s,#ccc)}
 .crt-card.lose{opacity:.5}
+.crt-card.gone{opacity:.25;filter:grayscale(1);transform:translateY(8px) rotate(-6deg)}
 .flip{animation:flip .25s steps(4)}@keyframes flip{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
 .crt-card svg{width:40%;height:auto}
 .hint{animation:hint 1s steps(2) infinite;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)!important}
@@ -52,8 +53,7 @@
 .coach.ok{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #6fd3a0}.coach.bad{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #ff7a8a}
 .circle{display:flex;justify-content:center;align-items:center;gap:6px;font-size:9px;color:var(--crt-mute)}
 .circle span{display:flex;align-items:center;gap:4px}
-.banner{padding:12px;text-align:center;border-radius:12px;background:var(--crt-gold);color:var(--crt-dark);font-size:13px;letter-spacing:.06em;box-shadow:0 0 0 4px var(--crt-line);animation:hint .8s steps(2) 4}
-@media (prefers-reduced-motion:reduce){.hint,.crt-slot.hint,.flip,.banner{animation:none}}
+@media (prefers-reduced-motion:reduce){.hint,.crt-slot.hint,.flip{animation:none}}
 </style>
 </head>
 <body class="crt-page">
@@ -76,7 +76,7 @@ const LESSONS=[
  {t:'PLACE & LOCK IN',d:'Put cards in the slots and reveal.'},
  {t:'THE CIRCLE',d:'Beat all three enemy cards.'},
  {t:'BIG DAMAGE',d:'Deal 18+ damage in one round.'},
- {t:'SECRET COMBO',d:'Three 7s win the match.'},
+ {t:'DISCARD & DRAW',d:'Win a round, then discard a card.'},
  {t:'PRACTICE MATCH',d:'Beat the training bot to finish.'}
 ];
 const step=()=>window.BBK?BBK.tutorial.get():0;
@@ -143,19 +143,18 @@ const LV={
    ready:'Count the gaps in your head, then LOCK IN.',
    judge:(r)=>r.dmgOpp>=18&&r.wins>=2?{ok:true,say:'Nice! '+r.dmgOpp+' damage'+(r.wins===3?' (including the +5 sweep bonus)':'')+'. A big number against a small one wins big.',learn:['Damage = difference between the numbers','Different suits with the same number: damage is doubled','Pick the matchups where your gap is largest']}
     :{ok:false,say:'Only '+r.dmgOpp+' damage, you need 18. Sweeping all 3 slots adds +5. Try to win every slot, and match a high number with a low enemy card.'}},
- 4:{say:'Secret combo! Win a round while playing THREE 7s and you win the whole match. Place the three 7s so each one beats the card above it.',
-   opp:[C('scissors',2),C('hammer',3),C('paper',1)],faceUp:true,hand:[C('hammer',7),C('paper',7),C('scissors',7),C('hammer',2),C('paper',4)],circle:true,
-   ready:'Three 7s in place. Press LOCK IN!',
-   judge:(r)=>{const sevens=r.mine.every(c=>c.n===7);
-    if(sevens&&r.wins>=2)return{ok:true,combo:true,say:'PACK JOT! Three 7s and you won the round: instant victory. The bot never saw it coming.',learn:['7-7-7 and win the round: instant victory','0-0-0 and win: one enemy slot gets sealed next round','9-9-9 is risky: lose the round and you take double damage']};
-    return{ok:false,say:sevens?'You played the 7s but lost the round. Put each 7 against the card it beats: Hammer 7 beats Scissors, Paper 7 beats Hammer, Scissors 7 beats Paper.':'You need all three 7s: HAMMER 7, PAPER 7 and SCISSORS 7.'}}}
+ 4:{say:'Win the round (2 of 3 slots) to earn a discard. The bot shows its cards: pick cards that beat them.',
+   opp:[C('scissors',2),C('hammer',3),C('paper',1)],faceUp:true,hand:[C('hammer',7),C('paper',6),C('scissors',8),C('hammer',2),C('paper',4)],circle:true,
+   ready:'Ready? Press LOCK IN.',
+   judge:(r)=>r.wins>=2?{ok:true,discard:true,say:'You won the round! As the winner you choose ONE of your played cards to throw away for good. Tap the card you want to discard.',learn:['The round winner picks one played card to discard','The loser discards a random card','Other played cards return to your hand and you draw a new one','Discarded cards never come back']}
+    :{ok:false,say:'You need to win at least 2 of the 3 slots. Match each bot card with the suit that beats it.'}}
 };
 const SWEEP=5;
 function stage(k){
  const L=LV[k];
- let slots,sel,phase,gi,note,tone,shown,fx,hpBot,hpMe,tries=0,token=0,banner=false;
+ let slots,sel,phase,gi,note,tone,shown,fx,hpBot,hpMe,tries=0,token=0,gone=null;
  const root=el('div',{class:'stage'});
- function reset(){slots=[null,null,null];sel=null;phase='plan';gi=L.guide?0:99;note=tries>0?note:null;shown=L.faceUp?3:0;fx=[null,null,null];hpBot=100;hpMe=100;banner=false}
+ function reset(){slots=[null,null,null];sel=null;phase='plan';gi=L.guide?0:99;note=tries>0?note:null;shown=L.faceUp?3:0;fx=[null,null,null];hpBot=100;hpMe=100;gone=null}
  reset();
  const placed=()=>slots.filter(x=>x!==null).length;
  const hand=()=>L.hand.map((c,i)=>({c,i})).filter(h=>!slots.includes(h.i));
@@ -175,6 +174,9 @@ function stage(k){
   draw();
  }
  function slotTap(s){
+  if(phase==='discard'&&slots[s]!==null){
+   gone=s;phase='win';note='Discarded! The other two cards go back to your hand and you draw a new card next round. Discarded cards never return, so choose wisely.';draw();
+   if(window.BBK)BBK.tutorial.set(k);return;}
   if(phase!=='plan')return;
   const g=(L.guide||[])[gi];
   if(slots[s]!==null){if(g)return;slots[s]=null;sel=null;note=null;draw();return;}
@@ -197,8 +199,8 @@ function stage(k){
   }
   if(wins===3){await wait(600);if(my!==token)return;dmgOpp+=SWEEP;hpBot=Math.max(0,hpBot-SWEEP);}
   const v=L.judge({wins,dmgOpp,res,mine,opp:L.opp});
-  if(v.ok&&v.combo){await wait(500);if(my!==token)return;hpBot=0;banner=true;}
   await wait(500);if(my!==token)return;
+  if(v.ok&&v.discard){phase='discard';tone='ok';note=v.say;L._learn=v.learn;draw();return;}
   phase=v.ok?'win':'fail';tone=v.ok?'ok':'bad';note=v.say;L._learn=v.learn;draw();
   if(v.ok&&window.BBK)BBK.tutorial.set(k);
  }
@@ -218,7 +220,7 @@ function stage(k){
   }));
   const slotRow=el('div',{class:'row3'},slots.map((hi,s)=>{
    if(hi!==null){const c=L.hand[hi],f=fx[s];
-    return card(c.suit,c.n,(f&&f.w===0?'win ':'')+(f&&f.w===1?'lose ':''),'button',{onclick:()=>slotTap(s),title:'Tap to take it back','aria-label':NAME[c.suit]+' '+c.n+' in slot '+(s+1)+(phase==='plan'?', tap to take back':''),disabled:phase!=='plan'?'':undefined});}
+    return card(c.suit,c.n,(gone===s?'gone ':'')+(phase==='discard'?'hint ':'')+(f&&f.w===0?'win ':'')+(f&&f.w===1?'lose ':''),'button',{onclick:()=>slotTap(s),title:'Tap to take it back','aria-label':NAME[c.suit]+' '+c.n+' in slot '+(s+1)+(phase==='plan'?', tap to take back':phase==='discard'?', tap to discard':''),disabled:(phase!=='plan'&&phase!=='discard')?'':undefined});}
    const hint=phase==='plan'&&((g&&g.slot===s)||(!g&&sel!==null));
    return el('button',{type:'button',class:'crt-slot'+(hint?' hint':''),text:String(s+1),'aria-label':'Empty slot '+(s+1),onclick:()=>slotTap(s)});
   }));
@@ -229,14 +231,13 @@ function stage(k){
    return card(c.suit,c.n,(sel===i?'sel ':'')+(isHint?'hint':''),'button',{onclick:()=>pick(i),disabled:dis?'':undefined,'aria-label':NAME[c.suit]+' '+c.n+(sel===i?', selected':'')});
   });
   const full=placed()===3&&phase==='plan';
-  const btn=phase==='win'?el('button',{type:'button',class:'crt-btn teal',text:k<4?'NEXT LESSON':'NEXT: PRACTICE MATCH',onclick:()=>{token++;go(k+1)}})
+  const btn=phase==='discard'?el('button',{type:'button',class:'crt-btn',disabled:'',text:'CHOOSE A CARD TO DISCARD'}):phase==='win'?el('button',{type:'button',class:'crt-btn teal',text:k<4?'NEXT LESSON':'NEXT: PRACTICE MATCH',onclick:()=>{token++;go(k+1)}})
    :phase==='fail'?el('button',{type:'button',class:'crt-btn coral',text:'TRY AGAIN',onclick:retry})
    :el('button',{type:'button',class:'crt-btn'+(full?' hint':''),disabled:full?undefined:'',text:phase==='reveal'?'REVEALING…':'LOCK IN '+placed()+' / 3',onclick:lock});
   const circle=L.circle?el('div',{class:'circle'},['hammer','scissors','paper','hammer'].map((s,i)=>[i?el('span',{text:'>'}):null,el('span',{},svg('i-'+s,16,16),NAME[s].toUpperCase())]).flat().filter(Boolean)):null;
   const learn=(phase==='win'&&L._learn)?el('div',{class:'crt-panel stack'},el('b',{style:'font-size:11px;color:#6fd3a0',text:'YOU LEARNED'}),...L._learn.map(t=>el('p',{class:'crt-note',text:'• '+t}))):null;
   root.replaceChildren(...[
    hp('TRAINING BOT',hpBot,'bot'),oppRow,pills,slotRow,hp('YOU',hpMe,'me'),circle,
-   banner?el('div',{class:'banner',role:'status',text:'★ PACK JOT · INSTANT VICTORY ★'}):null,
    el('div',{class:'coach '+(phase==='win'?'ok':phase==='fail'?'bad':''),role:'status'},el('span',{class:'face'},svg('i-hand',24,24)),el('p',{text:coachText()})),
    learn,
    el('div',{class:'hand','aria-label':'Your hand'},handEls),
