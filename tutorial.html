@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BBK Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./crt.css">
+<style>
+.lesson-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1a1332;box-shadow:0 0 0 3px var(--crt-line);width:100%;border:0;color:inherit;font-family:var(--crt-font);text-align:left}
+.lesson-row.cur{background:#3a2d63;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)}
+.lesson-row .no{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--crt-line);color:var(--crt-dim)}
+.lesson-row.done .no{background:#2f9a6e;color:var(--crt-line)}
+.lesson-row.cur .no{background:var(--crt-gold);color:var(--crt-dark)}
+.lesson-row b{display:block;font-size:12px;letter-spacing:.05em}
+.lesson-row small{display:block;font-size:9px;line-height:1.6;margin-top:5px;color:#b9aedb}
+.lesson-row.lock b,.lesson-row.lock small{color:#7a6e96}
+.lesson-row[disabled]{cursor:not-allowed}
+.stack{display:flex;flex-direction:column;gap:12px}
+.cards{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.cards .crt-card{width:78px;height:104px}
+.cards .crt-card.sm{width:62px;height:86px}.cards .crt-card.sm b{font-size:16px}
+.vs{align-self:center;font-size:12px;color:var(--crt-gold)}
+.feedback{min-height:44px;font-size:11px;line-height:1.7;letter-spacing:.03em;padding:10px 12px;border-radius:10px;background:#1a1332}
+.feedback.good{background:#2f9a6e;color:var(--crt-dark)}.feedback.bad{background:#7a2a3a;color:#ffd6dc}
+.steps{display:flex;gap:6px;justify-content:center}.steps i{width:26px;height:8px;background:var(--crt-panel-in);box-shadow:0 0 0 2px var(--crt-line)}.steps i.on{background:var(--crt-gold)}
+.slots{display:flex;justify-content:center;gap:12px}.slots .crt-slot,.slots .crt-card{width:78px;height:104px}
+.row-sp{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;letter-spacing:.06em}
+</style>
+</head>
+<body class="crt-page">
+<div class="crt-swirl"></div><div class="crt-vignette"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-hammer" viewBox="0 0 8 8"><path fill="#8a94a8" d="M0 0h8v3H0z"/><path fill="#d3dbe8" d="M0 0h8v1H0z"/><path fill="#5d667a" d="M0 2h8v1H0z"/><path fill="#a8703a" d="M3 3h2v5H3z"/><path fill="#7a4a22" d="M4 3h1v5H4z"/></symbol>
+<symbol id="i-paper" viewBox="0 0 8 8"><path fill="#9cc7ee" d="M1 0h4v2h2v6H1z"/><path fill="#cfe3f6" d="M5 0h1v1h1v1H5z"/><path fill="#2f6fa8" d="M2 4h4v1H2zM2 6h3v1H2z"/></symbol>
+<symbol id="i-scissors" viewBox="0 0 8 8"><path fill="#6d768a" d="M1 0h1v1H1zM2 1h1v1H2zM3 2h1v1H3zM4 3h1v1H4zM5 4h1v1H5zM6 0h1v1H6zM5 1h1v1H5zM4 2h1v1H4zM3 3h1v1H3zM2 4h1v1H2z"/><path fill="#3a9a6e" fill-rule="evenodd" d="M0 5h3v3H0zM1 6h1v1H1zM5 5h3v3H5zM6 6h1v1H6z"/></symbol>
+<symbol id="i-check" viewBox="0 0 8 8"><path fill="#0c0614" d="M0 4h1v1H0zM1 5h1v1H1zM2 6h1v1H2zM3 5h1v1H3zM4 4h1v1H4zM5 3h1v1H5zM6 2h1v1H6zM7 1h1v1H7z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 8 8"><path fill="#7a6e96" d="M2 0h4v1H2zM2 1h1v2H2zM5 1h1v2H5zM1 3h6v5H1z"/><path fill="#1a1332" d="M3 5h2v2H3z"/></symbol>
+</svg>
+<main class="crt-wrap" id="app" aria-live="polite"></main>
+<script src="./bbk-account.js"></script>
+<script>
+(()=>{'use strict';
+const app=document.getElementById('app');
+const SUIT={hammer:'HAMMER',paper:'PAPER',scissors:'SCISSORS'};
+const BEATS={hammer:'scissors',paper:'hammer',scissors:'paper'};   // key beats value
+const LESSONS=[
+ {t:'THE THREE SUITS',d:'Hammer beats scissors, scissors beat paper, paper beats hammer.'},
+ {t:'PLACE YOUR CARDS',d:'Fill three slots, then lock in.'},
+ {t:'CLASH & DAMAGE',d:'Higher number wins. The gap is the damage.'},
+ {t:'COMBOS',d:'Triple 7, 9 or 0 changes the round.'},
+ {t:'PRACTICE MATCH',d:'Beat the training bot to finish.'}
+];
+const step=()=>window.BBK?BBK.tutorial.get():0;
+const el=(tag,attrs,...kids)=>{const n=document.createElement(tag);for(const k in attrs||{}){if(attrs[k]==null||attrs[k]===false)continue;if(k==='class')n.className=attrs[k];else if(k==='text')n.textContent=attrs[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),attrs[k]);else n.setAttribute(k,attrs[k]);}for(const c of kids.flat())if(c!=null)n.append(c.nodeType?c:document.createTextNode(c));return n;};
+const svg=(id,w,h)=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',w);s.setAttribute('height',h);s.setAttribute('viewBox','0 0 8 8');s.setAttribute('aria-hidden','true');const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#'+id);s.append(u);return s;};
+const card=(suit,n,cls='',tag='div',attrs={})=>el(tag,Object.assign({class:'crt-card '+suit+' '+cls,'aria-label':SUIT[suit].toLowerCase()+' '+n},attrs),svg('i-'+suit,30,30),el('b',{text:String(n)}));
+const head=(title,backTo)=>el('div',{class:'crt-head'},el('a',{class:'crt-back','aria-label':'Back',href:backTo||'#',text:'<',onclick:backTo?undefined:(e=>{e.preventDefault();go(null)})}),el('h1',{class:'crt-title',text:title}));
+// same rules as the game server
+function clash(a,b){
+ if(a.suit===b.suit){if(a.n===b.n)return{w:-1,dmg:0};return{w:a.n>b.n?0:1,dmg:Math.abs(a.n-b.n)};}
+ return{w:BEATS[a.suit]===b.suit?0:1,dmg:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};
+}
+let view=null;           // null = lesson list, 1..5 = lesson
+function go(v){view=v;render();window.scrollTo(0,0);}
+async function finish(k){ if(window.BBK)await BBK.tutorial.set(k); go(null); }
+
+/* ---------- lesson list ---------- */
+function hub(){
+ const s=step();
+ const bar=el('div',{class:'crt-panel stack'},el('div',{class:'row-sp'},el('span',{style:'color:var(--crt-mute)',text:'PROGRESS'}),el('b',{style:'color:var(--crt-gold)',text:s+' / 5'})),
+  el('div',{class:'crt-bar'},el('i',{style:'width:'+(s*20)+'%'})));
+ const rows=LESSONS.map((L,i)=>{
+  const k=i+1,state=k<=s?'done':k===s+1?'cur':'lock';
+  const b=el('button',{type:'button',class:'lesson-row '+state,onclick:()=>go(k)},
+   el('span',{class:'no'},state==='done'?svg('i-check',22,22):state==='lock'?svg('i-lock',22,22):String(k)),
+   el('span',{},el('b',{text:k+' · '+L.t}),el('small',{text:L.d})),
+   state==='cur'?el('span',{class:'crt-badge crt-pulse',text:s===0?'START':'NEXT'}):el('span'));
+  if(state==='lock')b.disabled=true;
+  return b;
+ });
+ const done=s>=5;
+ const reward=done
+  ?el('div',{class:'crt-panel stack'},el('b',{style:'color:#6fd3a0;font-size:12px',text:'RANKED UNLOCKED'}),el('p',{class:'crt-note',text:'You finished the tutorial. Ranked matches are open to you.'}),el('a',{class:'crt-btn',href:'./online.html',text:'PLAY MULTIPLAYER'}))
+  :el('div',{class:'crt-panel',style:'border:3px dashed var(--crt-gold)'},el('b',{style:'color:var(--crt-gold);font-size:11px',text:'REWARD'}),el('p',{class:'crt-note',style:'margin-top:8px',text:'Finish all 5 lessons to unlock RANKED matches.'}));
+ return [head('TUTORIAL','./index.html'),bar,el('div',{class:'stack'},rows),el('div',{style:'margin-top:auto'},reward)];
+}
+
+/* ---------- quiz helper (lessons 1, 3, 4) ---------- */
+function quiz(k,intro,questions,onDone){
+ let qi=-1,answered=false;
+ const root=el('div',{class:'stack'});
+ function draw(){
+  root.replaceChildren();
+  if(qi<0){
+   root.append(el('div',{class:'crt-panel stack'},...intro),el('button',{type:'button',class:'crt-btn',text:'START QUIZ',onclick:()=>{qi=0;draw();}}));return;
+  }
+  const q=questions[qi];answered=false;
+  root.append(el('div',{class:'steps','aria-label':'Question '+(qi+1)+' of '+questions.length},questions.map((_,i)=>el('i',{class:i<=qi?'on':''}))));
+  root.append(el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:q.title}),q.view||'' ));
+  const fb=el('div',{class:'feedback',role:'status',text:'Pick an answer.'});
+  const opts=q.options.map((o,i)=>el('button',{type:'button',class:'crt-opt',onclick:ev=>{
+   if(answered)return;
+   const ok=i===q.answer;
+   if(ok){answered=true;ev.currentTarget.classList.add('good');fb.className='feedback good';fb.textContent=q.right;next.hidden=false;next.focus();opts.forEach(b=>b.disabled=true);}
+   else{ev.currentTarget.classList.add('bad');ev.currentTarget.disabled=true;fb.className='feedback bad';fb.textContent=q.hint;}
+  }},o.icon?svg(o.icon,24,24):null,o.label));
+  const next=el('button',{type:'button',class:'crt-btn',hidden:'',text:qi===questions.length-1?'FINISH LESSON':'NEXT',onclick:()=>{if(qi===questions.length-1)onDone();else{qi++;draw();}}});
+  root.append(el('div',{class:'stack'},opts),fb,next);
+ }
+ draw();return root;
+}
+const P=(t)=>el('p',{class:'crt-note',text:t});
+
+function lesson1(){
+ const circle=el('div',{class:'cards'},card('hammer','',''),el('span',{class:'vs',text:'>'}),card('scissors','',''),el('span',{class:'vs',text:'>'}),card('paper','',''),el('span',{class:'vs',text:'>'}),card('hammer','',''));
+ circle.querySelectorAll('.crt-card').forEach(c=>{c.classList.add('sm');c.querySelector('b').textContent='';});
+ const mk=(s,ans)=>({title:'WHAT BEATS '+SUIT[s]+'?',view:el('div',{class:'cards'},card(s,'?','')),options:['hammer','paper','scissors'].map(x=>({label:SUIT[x],icon:'i-'+x})),answer:['hammer','paper','scissors'].indexOf(ans),
+  right:SUIT[ans]+' beats '+SUIT[s]+'.',hint:'Not that one. Follow the circle: hammer, scissors, paper, then back to hammer.'});
+ return quiz(1,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'THE CIRCLE'}),circle,P('Every suit beats one and loses to another. Hammer smashes scissors. Scissors cut paper. Paper wraps hammer.')],
+  [mk('scissors','hammer'),mk('paper','scissors'),mk('hammer','paper')],()=>finish(1));
+}
+
+function lesson2(){
+ const HAND=[['hammer',7],['paper',5],['scissors',9],['hammer',3],['paper',0]];
+ let slots=[null,null,null],sel=null,locked=false;
+ const root=el('div',{class:'stack'});
+ function draw(){
+  root.replaceChildren();
+  const used=new Set(slots.filter(x=>x!==null));
+  const slotEls=slots.map((v,i)=>v===null
+   ?el('button',{type:'button',class:'crt-slot','aria-label':'Empty slot '+(i+1),text:String(i+1),onclick:()=>{if(sel===null||locked)return;slots[i]=sel;sel=null;draw();}})
+   :card(HAND[v][0],HAND[v][1],'','button',{onclick:()=>{if(locked)return;slots[i]=null;draw();},title:'Tap to take it back'}));
+  const handEls=HAND.map((h,i)=>used.has(i)?null:card(h[0],h[1],(sel===i?'sel ':'')+'sm','button',{onclick:()=>{if(locked)return;sel=sel===i?null:i;draw();}}));
+  const full=slots.every(x=>x!==null);
+  root.append(
+   el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'PLACE YOUR CARDS'}),P('Each round you put one card in each of the 3 slots. Tap a card in your hand, then tap an empty slot. Tap a placed card to take it back.')),
+   el('div',{class:'slots'},slotEls),
+   el('div',{class:'cards'},handEls),
+   el('div',{class:'feedback'+(locked?' good':''),role:'status',text:locked?'Locked in! Both players reveal at the same time, then the cards clash.':full?'All slots filled. Press LOCK IN.':'Slots filled: '+slots.filter(x=>x!==null).length+' / 3'}),
+   locked?el('button',{type:'button',class:'crt-btn',text:'FINISH LESSON',onclick:()=>finish(2)})
+        :el('button',{type:'button',class:'crt-btn',text:'LOCK IN '+slots.filter(x=>x!==null).length+' / 3',disabled:full?undefined:'',onclick:()=>{locked=true;draw();}}));
+ }
+ draw();return root;
+}
+
+function lesson3(){
+ const C=(s,n)=>({suit:s,n});
+ const pairs=[[C('hammer',7),C('hammer',3)],[C('paper',5),C('hammer',2)],[C('scissors',4),C('paper',4)],[C('paper',2),C('scissors',8)]];
+ const why=(a,b,r)=>a.suit===b.suit?(r.w<0?'Same suit and same number is a tie.':'Same suit: the higher number wins. Damage is the gap, '+r.dmg+'.')
+  :a.n===b.n?SUIT[r.w===0?a.suit:b.suit]+' wins the circle. Same number, so damage is the number doubled: '+r.dmg+'.'
+  :SUIT[r.w===0?a.suit:b.suit]+' wins the circle, damage is the gap between the numbers: '+r.dmg+'.';
+ const qs=pairs.map(([a,b])=>{
+  const r=clash(a,b),lab=(w,d)=>w<0?'Tie, no damage':(w===0?'You win':'Opponent wins')+' · '+d+' damage';
+  const correct=lab(r.w,r.dmg);
+  const cand=[correct,lab(1-r.w<0?0:1-r.w,r.dmg),lab(r.w,r.dmg+(r.dmg>3?-2:2)),lab(r.w,Math.abs(a.n-b.n)===r.dmg?a.n+b.n:Math.abs(a.n-b.n)),'Tie, no damage'];
+  const uniq=[...new Set(cand)].slice(0,4);
+  if(!uniq.includes(correct))uniq[uniq.length-1]=correct;
+  uniq.sort();
+  return{title:'WHO WINS, AND HOW MUCH DAMAGE?',view:el('div',{class:'cards'},el('div',{class:'stack',style:'align-items:center'},el('small',{text:'YOU'}),card(a.suit,a.n,'')),el('span',{class:'vs',text:'VS'}),el('div',{class:'stack',style:'align-items:center'},el('small',{text:'OPPONENT'}),card(b.suit,b.n,''))),
+   options:uniq.map(l=>({label:l})),answer:uniq.indexOf(correct),right:'Correct. '+why(a,b,r),hint:'Not quite. First check the circle if the suits differ; if they match, compare the numbers.'};
+ });
+ return quiz(3,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'HOW A CLASH WORKS'}),P('Different suits: the circle decides the winner. Same suit: the higher number wins. Damage is the difference between the two numbers.'),P('Same number but different suits: damage is the number times two. Same suit and same number: a tie.')],qs,()=>finish(3));
+}
+
+function lesson4(){
+ const E=['The round is an instant victory','One enemy slot is sealed next round','You take double damage and the enemy draws an extra card','Nothing special happens'];
+ const mk=(title,cards,ans,right)=>({title,view:el('div',{class:'cards'},cards.map(c=>card(c[0],c[1],'sm'))),options:E.map(l=>({label:l})),answer:ans,right,hint:'Not that one. Think about who wins the round and which triple it is.'});
+ return quiz(4,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'THREE OF A KIND'}),P('Play three cards with the same number and the round can change.'),P('7-7-7 and you win the round: instant victory. 0-0-0 and you win: one enemy slot is sealed next round. 9-9-9 is risky: lose the round with it and you take double damage while the enemy draws an extra card.')],[
+  mk('YOU WIN THE ROUND WITH 7-7-7',[['hammer',7],['paper',7],['scissors',7]],0,'Pack Jot: three sevens that win the round end the match at once.'),
+  mk('YOU WIN THE ROUND WITH 0-0-0',[['hammer',0],['paper',0],['scissors',0]],1,'Zero to Hero: a random enemy slot is sealed for the next round.'),
+  mk('YOU LOSE THE ROUND WITH 9-9-9',[['hammer',9],['paper',9],['scissors',9]],2,'Kiants Giller: the big triple backfires if you lose. Double damage to you and a bonus draw for the enemy.')
+ ],()=>finish(4));
+}
+
+function lesson5(){
+ const s=step();
+ const done=s>=5;
+ return el('div',{class:'stack'},
+  el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'YOUR FIRST REAL MATCH'}),
+   P('Play one full match against the training bot on EASY. Win it and the tutorial is complete.'),
+   P('Tips: fill every slot, watch the circle, and save big numbers for slots where you expect to win.')),
+  done?el('div',{class:'feedback good',text:'Already complete. You can replay it any time.'}):null,
+  el('a',{class:'crt-btn coral',href:'./index.html?practice=1',text:done?'PLAY AGAIN':'START PRACTICE MATCH'}));
+}
+
+function render(){
+ let body;
+ if(view===null)body=hub();
+ else{
+  const s=step();
+  if(view>s+1){view=null;body=hub();}
+  else body=[head('LESSON '+view+' / 5'),el('div',{class:'stack'},el('b',{style:'font-size:14px;letter-spacing:.06em',text:LESSONS[view-1].t}),[lesson1,lesson2,lesson3,lesson4,lesson5][view-1]())];
+ }
+ app.replaceChildren(...[].concat(body));
+}
+render();
+if(window.BBK)BBK.onChange(()=>{if(view===null)render();});
+})();
+</script>
+</body>
+</html>

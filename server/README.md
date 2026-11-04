@@ -42,9 +42,11 @@ Set these environment variables on the Render service. Without them the server s
 | `RECONNECT_MS` | Optional, seconds-in-ms a signed-in player's seat is held after a disconnect (default 60000) |
 | `RECORD_RETRY_MS` | Optional, first retry delay when saving a result fails (default 2000, doubles each try) |
 
-More client messages: `auth` (`{"type":"auth","token":"<user JWT>"}` or `token:null` for guest), `ranked_queue`, `ranked_cancel`.
+More client messages: `auth` (`{"type":"auth","token":"<user JWT>"}` or `token:null` for guest), `ranked_queue`, `ranked_cancel`, `random_queue`, `random_cancel`.
+
+`ranked_queue` requires `profiles.tutorial_step >= 5` (otherwise `error` with `code:'tutorial_required'`). `random_queue` is an unranked quick match open to guests.
 Server messages: `auth_ok`, `auth_error`, `queued`, `queue_left`, `match_found`, `rating_update`, `opponent_disconnected`, `opponent_back`.
-`/health` also reports `accounts`, `ranked` and `queue`. Database setup is in `supabase/schema.sql`.
+`/health` also reports `accounts`, `ranked`, `queue` and `casual`. Database setup is in `supabase/schema.sql`.
 
 Important: room state is in memory; redeploys, restarts, and free-instance sleep lose active rooms.
 Free instances sleep after a period without traffic, so the first connection can take up to a minute;
