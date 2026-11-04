@@ -1,11 +1,11 @@
 /* BBK "CRT card table" theme: shared by tutorial.html and the other pages.
    Fonts (add to each page <head>):
-   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet"> */
+   <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Pixelify Sans:wght@400;700&display=swap" rel="stylesheet"> */
 :root{
   --crt-bg:#1a0e33; --crt-panel:#241a42; --crt-panel-in:#3a2d63; --crt-ink:#fff7e8; --crt-mute:#cdbfe8; --crt-dim:#8f84b4;
   --crt-line:#0c0614; --crt-coral:#ff7a59; --crt-coral-d:#d4492b; --crt-teal:#5ad1c4; --crt-teal-d:#2f9a8e;
   --crt-gold:#ffd34d; --crt-gold-d:#d6a31a; --crt-lilac:#c9a7ff; --crt-lilac-d:#8f6ad6; --crt-dark:#1b0d22;
-  --crt-font:'Silkscreen',ui-monospace,monospace; --crt-title:'Pixelify Sans','Silkscreen',monospace;
+  --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
 }
 .crt-page{margin:0;min-height:100vh;min-height:100dvh;background:var(--crt-bg);color:var(--crt-ink);font-family:var(--crt-font);position:relative;overflow-x:hidden}
 .crt-page *{box-sizing:border-box}
@@ -16,9 +16,9 @@
 .crt-vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.65)}
 .crt-wrap{position:relative;z-index:1;width:100%;max-width:440px;margin:0 auto;padding:24px 20px 32px;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;gap:16px}
-.crt-title{font-family:var(--crt-title);font-weight:700;font-size:28px;letter-spacing:.06em;text-shadow:3px 3px 0 var(--crt-line);margin:0}
+.crt-title{font-family:var(--crt-title);font-weight:700;font-size:28px;letter-spacing:.03em;text-shadow:3px 3px 0 var(--crt-line);margin:0}
 .crt-panel{background:var(--crt-panel);border-radius:16px;box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-panel-in);padding:14px}
-.crt-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 16px;border:0;cursor:pointer;font-family:var(--crt-font);font-size:13px;letter-spacing:.06em;
+.crt-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 16px;border:0;cursor:pointer;font-family:var(--crt-font);font-size:15px;letter-spacing:.03em;
   color:var(--crt-dark);background:var(--c,var(--crt-gold));border-radius:12px;text-decoration:none;margin-bottom:8px;
   box-shadow:0 0 0 3px var(--crt-line),0 7px 0 3px var(--crt-line),0 7px 0 0 var(--d,var(--crt-gold-d))}
 .crt-btn:active{transform:translateY(5px);box-shadow:0 0 0 3px var(--crt-line),0 2px 0 3px var(--crt-line),0 2px 0 0 var(--d,var(--crt-gold-d))}
@@ -35,12 +35,12 @@
 .crt-card b{font-size:20px}
 .crt-card.hammer{--s:#ff7a59}.crt-card.paper{--s:#5aa9e8}.crt-card.scissors{--s:#6fd3a0}
 .crt-card.sel{transform:translateY(-8px);box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold),0 6px 0 3px var(--crt-line),inset 0 7px 0 var(--s,#ccc)}
-.crt-slot{border-radius:10px;border:3px dashed #7a63c4;background:rgba(8,20,30,.45);color:#7a63c4;font-family:var(--crt-font);font-size:12px;display:flex;align-items:center;justify-content:center;padding:0}
-.crt-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border:0;border-radius:10px;background:#1a1332;color:var(--crt-ink);font-family:var(--crt-font);font-size:12px;letter-spacing:.04em;text-align:left;cursor:pointer;box-shadow:0 0 0 3px var(--crt-line)}
+.crt-slot{border-radius:10px;border:3px dashed #7a63c4;background:rgba(8,20,30,.45);color:#7a63c4;font-family:var(--crt-font);font-size:14px;display:flex;align-items:center;justify-content:center;padding:0}
+.crt-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border:0;border-radius:10px;background:#1a1332;color:var(--crt-ink);font-family:var(--crt-font);font-size:14px;letter-spacing:.04em;text-align:left;cursor:pointer;box-shadow:0 0 0 3px var(--crt-line)}
 .crt-opt:hover{background:#2a2147}
 .crt-opt.good{background:#2f9a6e;color:var(--crt-dark)} .crt-opt.bad{background:#7a2a3a;color:#ffd6dc}
-.crt-note{font-size:11px;line-height:1.8;letter-spacing:.03em;color:var(--crt-mute);margin:0}
-.crt-badge{display:inline-block;padding:6px 8px;border-radius:7px;background:#fff7e8;color:var(--crt-dark);font-size:9px;box-shadow:0 0 0 3px var(--crt-line)}
+.crt-note{font-size:13px;line-height:1.8;letter-spacing:.03em;color:var(--crt-mute);margin:0}
+.crt-badge{display:inline-block;padding:6px 8px;border-radius:7px;background:#fff7e8;color:var(--crt-dark);font-size:11px;box-shadow:0 0 0 3px var(--crt-line)}
 @keyframes crt-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .crt-pulse{animation:crt-pulse 1.2s steps(2) infinite}
 @media (prefers-reduced-motion:reduce){.crt-swirl,.crt-pulse{animation:none!important}.crt-bar i{transition:none}}
