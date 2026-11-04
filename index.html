@@ -281,6 +281,7 @@ body{padding:8px 12px 12px}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt-game.css?v=20261105c">
 </head><body>
+<script src="./fx2.js?v=20261105f"></script>
 <script src="./fx.js?v=20261105c"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
 <div class="app">
@@ -400,10 +401,15 @@ function screenJolt(power){
     {transform:'translate(0,0)'}
   ],{duration:190+p*28,easing:'ease-out'})}catch(e){}
 }
-FX.jolt=screenJolt;
+FX.jolt=screenJolt;if(window.FX2)FX2.jolt=screenJolt;
 async function animateClash(i,result,token,aCard,bCard){
   const me=$('slot0'+i).querySelector('.card'),ai=$('slot1'+i).querySelector('.card');
   const dmg=Math.max(0,result.dmg||0),power=Math.max(.75,Math.min(3.2,.8+dmg*.17+(result.dbl?.45:0))),meta=clashMeta(aCard,bCard,result);
+  if(meta&&meta.type!=='plain'&&me&&ai&&!reducedMotion()&&window.FX2){
+    const type={smash:'smash',cut:'cut',wrap:'portal'}[meta.type],tw=[flightCopy(me).copy,flightCopy(ai).copy];me.style.visibility='hidden';ai.style.visibility='hidden';
+    try{await FX2.play(type,result.w===0?tw[0]:tw[1],result.w===0?tw[1]:tw[0],power,!!result.dbl,dmg)}finally{tw.forEach(e=>e.remove());me.style.visibility='';ai.style.visibility=''}
+    return;
+  }
   if(!me||!ai||reducedMotion()){if(dmg>=7)screenJolt(dmg);await sleep(180+Math.min(120,dmg*12));return}
   const mr=me.getBoundingClientRect(),ar=ai.getBoundingClientRect();
   const cx=(mr.left+mr.width/2+ar.left+ar.width/2)/2;
