@@ -262,6 +262,22 @@ body{padding:8px 12px 12px}
 .back-link{display:block;text-align:center;text-decoration:none;font-weight:800;letter-spacing:.04em}
 .or-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
 .or-divider:before,.or-divider:after{content:"";flex:1;height:1px;background:var(--line)}
+/* V22.1: previous-round opponent cards show only number + symbol (suit name overlapped the number);
+   on phones both HP panels get an identical right column so the two health bars are always the same width. */
+.ghost-slot .suitname{display:none!important}
+@media(max-width:650px){
+.bottom-hud .hud{grid-template-columns:minmax(0,1fr) 88px;gap:6px}
+.bottom-hud .resource-info{width:88px;min-width:0;gap:4px;justify-content:space-between}
+.bottom-hud .deck-counter{min-width:30px;flex:none}
+.bottom-hud .discard-counter{flex:1 1 0;min-width:0;font-size:9px;line-height:1.2;justify-content:center;text-align:center;overflow:hidden;white-space:nowrap}
+.bottom-hud .discard-open{padding:3px 2px}
+.bottom-hud .discard-open [aria-hidden="true"]{display:none}
+.bottom-hud .who{min-width:0}
+.bottom-hud .who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bottom-hud .who strong{white-space:nowrap;font-size:26px}
+.bottom-hud .healthbar{width:100%;max-width:none}
+}
+@media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style></head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">VS AI · <b id="difficultyStatus">EASY</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
