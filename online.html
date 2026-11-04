@@ -1065,7 +1065,7 @@ function showRating(m){
  if(m.error)el.textContent='Your result could not be saved right now. We will keep retrying; check your profile later.';
  else{const d=m.after-m.before;el.textContent='Rating '+m.before+' → '+m.after+' ('+(d>0?'+':'')+d+')'}
  el.hidden=false;
- if(window.BBK)BBK.refreshProfile();
+ if(window.BBK)BBK.refreshProfile().then(p=>{if(p&&!m.error)el.textContent+=p.games<BBK.placement?' · Placement '+p.games+'/'+BBK.placement+' (no points lost)':' · '+BBK.tier(p.rating,p.games)});
 }
 function giveUp(){
  reconnecting=false;S.token++;clearInterval(S.timer);S.timer=null;busy=false;queued=null;

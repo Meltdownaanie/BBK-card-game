@@ -51,3 +51,6 @@ Server messages: `auth_ok`, `auth_error`, `queued`, `queue_left`, `match_found`,
 Important: room state is in memory; redeploys, restarts, and free-instance sleep lose active rooms.
 Free instances sleep after a period without traffic, so the first connection can take up to a minute;
 the client pings `/health` and retries automatically.
+
+## Rank tiers
+New players are **Unranked** for their first 5 ranked games: wins add points, losses never subtract (rating starts at 1000). From game 6 normal Elo applies, including losses. Tiers by rating: **C-troop** < 1200, **B-Player** 1200–1499, **Alpha-Wolf** 1500–1799, **SSS** 1800+. Only placed players appear on the leaderboard. Constants live in `record_match()` (`placement`) and `bbk-account.js` (`TIERS`, `PLACEMENT`).

@@ -29,8 +29,8 @@ create table public.profiles (
 
 -- Names are unique ignoring case ("Anna" and "anna" cannot both exist).
 create unique index profiles_display_name_key on public.profiles (lower(display_name));
--- Leaderboard: only players with at least one ranked game, best first.
-create index profiles_leaderboard_idx on public.profiles (rating desc, id) where games > 0;
+-- Leaderboard: only placed players (5+ ranked games), best first.
+create index profiles_leaderboard_idx on public.profiles (rating desc, id) where games >= 5;
 
 alter table public.profiles enable row level security;
 
@@ -145,6 +145,8 @@ declare
   k constant float8 := 32;
   r1 integer; r2 integer;
   n1 integer; n2 integer;
+  g1 integer; g2 integer;
+  placement constant integer := 5;   -- ranked games before a player is placed in C-troop (no points lost meanwhile)
   s1 float8;  e1 float8;
   m_id uuid;
   dup  public.matches%rowtype;
@@ -172,8 +174,8 @@ begin
     end if;
   end if;
 
-  select rating into r1 from public.profiles where id = p_player1;
-  select rating into r2 from public.profiles where id = p_player2;
+  select rating, games into r1, g1 from public.profiles where id = p_player1;
+  select rating, games into r2, g2 from public.profiles where id = p_player2;
   if r1 is null or r2 is null then
     raise exception 'record_match: unknown player';
   end if;
@@ -186,6 +188,9 @@ begin
     e1 := 1 / (1 + power(10, (r2 - r1) / 400.0));
     n1 := greatest(0, round(r1 + k * (s1 - e1)));
     n2 := greatest(0, round(r2 + k * ((1 - s1) - (1 - e1))));
+    -- Unranked (placement) players cannot lose points; they can still gain them.
+    if g1 < placement then n1 := greatest(r1, n1); end if;
+    if g2 < placement then n2 := greatest(r2, n2); end if;
 
     update public.profiles
        set rating      = n1,
@@ -242,7 +247,7 @@ select id,
        draws,
        rank() over (order by rating desc) as rank
 from public.profiles
-where games > 0;
+where games >= 5;   -- only placed players (5+ ranked games) appear on the board
 
 -- ---------------------------------------------------------------------------------------------
 -- 6. Data API permissions (explicit, least privilege)

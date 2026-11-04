@@ -105,6 +105,16 @@
     return session ? session.access_token : null;
   }
 
+  /* ---------- rank tiers ---------- */
+  const PLACEMENT = 5;   // ranked games before a player is placed (no points lost until then); keep in sync with record_match()
+  const TIERS = [{ name: 'SSS', min: 1800 }, { name: 'Alpha-Wolf', min: 1500 }, { name: 'B-Player', min: 1200 }, { name: 'C-troop', min: 0 }];
+  function tier(rating, games) {
+    if (games != null && games < PLACEMENT) return 'Unranked';
+    const r = Number(rating) || 0;
+    return TIERS.find((t) => r >= t.min).name;
+  }
+  const tierLine = (p) => p.games < PLACEMENT ? 'Unranked · placement ' + p.games + '/' + PLACEMENT : tier(p.rating, p.games) + ' · ' + p.rating;
+
   /* ---------- tutorial progress (0-5; 5 unlocks ranked) ---------- */
   const TUT_KEY = 'bbk.tutorial.v1';
   const localTutorial = () => { try { const n = parseInt(localStorage.getItem(TUT_KEY), 10); return n >= 0 && n <= 5 ? n : 0; } catch { return 0; } };
@@ -243,7 +253,7 @@
       el.append(h('button', { type: 'button', class: 'bbk-chip', onclick: openProfile, 'aria-label': 'Open profile of ' + name },
         h('span', { class: 'bbk-avatar', 'aria-hidden': 'true', text: name.charAt(0).toUpperCase() }),
         h('span', { class: 'bbk-who' }, h('b', { text: name }),
-          h('small', { text: profile ? 'Rating ' + profile.rating + ' · ' + profile.games + ' ranked games' : 'Loading profile…' }))));
+          h('small', { text: profile ? tierLine(profile) : 'Loading profile…' }))));
     }
   }
   function mount(el) { if (!el) return; injectCss(); mounts.add(el); renderMount(el); }
@@ -336,6 +346,7 @@
       h('div', { class: 'bbk-who' }, h('small', { text: session.user.email || '' })),
       h('div', { class: 'bbk-h3', text: 'Display name' }), nameForm, nameMsg,
       h('div', { class: 'bbk-stats' },
+        h('div', { class: 'bbk-stat' }, h('b', { text: p.games < PLACEMENT ? 'Unranked' : tier(p.rating, p.games) }), h('small', { text: p.games < PLACEMENT ? 'Placement ' + p.games + '/' + PLACEMENT + ' · no points lost' : 'Tier' })),
         h('div', { class: 'bbk-stat' }, h('b', { text: p.rating }), h('small', { text: 'Rating' })),
         h('div', { class: 'bbk-stat' }, rankBox, h('small', { text: 'Rank' })),
         h('div', { class: 'bbk-stat' }, h('b', { text: p.peak_rating }), h('small', { text: 'Peak' })),
@@ -396,21 +407,21 @@
         if (!rows || !rows.length) { box.replaceChildren(h('div', { class: 'bbk-empty', text: 'No ranked matches have been played yet. Be the first on the board!' })); return; }
         const me = session && session.user.id;
         const table = h('table', { class: 'bbk-table' },
-          h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Player' }), h('th', { class: 'num', text: 'Rating' }), h('th', { class: 'num', text: 'W-L' }))),
+          h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Player' }), h('th', { text: 'Tier' }), h('th', { class: 'num', text: 'Rating' }), h('th', { class: 'num', text: 'W-L' }))),
           h('tbody', null, rows.map((r) => h('tr', { class: r.id === me ? 'me' : '' },
-            h('td', { text: r.rank }), h('td', { class: 'name', text: r.display_name }), h('td', { class: 'num', text: r.rating }), h('td', { class: 'num', text: r.wins + '-' + r.losses })))));
+            h('td', { text: r.rank }), h('td', { class: 'name', text: r.display_name }), h('td', { text: tier(r.rating, r.games) }), h('td', { class: 'num', text: r.rating }), h('td', { class: 'num', text: r.wins + '-' + r.losses })))));
         box.replaceChildren(table);
         let you;
         if (!me) {
-          you = h('div', { class: 'bbk-you' }, h('b', { text: 'Sign in to see your rank' }), h('small', { text: 'Ranked matches earn a place on this board.' }),
+          you = h('div', { class: 'bbk-you' }, h('b', { text: 'Sign in to see your rank' }), h('small', { text: 'Play 5 ranked matches to get placed.' }),
             h('button', { type: 'button', class: 'bbk-btn alt', onclick: () => openAuth('in'), text: 'SIGN IN' }));
         } else {
           let mine = null;
           try { const r = await api('/rest/v1/leaderboard?select=rank,rating,wins,losses&id=eq.' + encodeURIComponent(me)); mine = r && r[0]; } catch { /* shown as unranked */ }
           const name = (profile && profile.display_name) || 'You';
           you = mine
-            ? h('div', { class: 'bbk-you' }, h('span', { class: 'bbk-you-rank', text: '#' + mine.rank }), h('span', { class: 'bbk-you-name' }, h('b', { text: name + ' (you)' }), h('small', { text: mine.wins + ' wins · ' + mine.losses + ' losses' })), h('span', { class: 'bbk-you-rating', text: String(mine.rating) }))
-            : h('div', { class: 'bbk-you' }, h('b', { text: name + ' (you)' }), h('small', { text: 'Not ranked yet. Play a ranked match to get a rank.' }));
+            ? h('div', { class: 'bbk-you' }, h('span', { class: 'bbk-you-rank', text: '#' + mine.rank }), h('span', { class: 'bbk-you-name' }, h('b', { text: name + ' (you)' }), h('small', { text: tier(mine.rating, 99) + ' · ' + mine.wins + 'W ' + mine.losses + 'L' })), h('span', { class: 'bbk-you-rating', text: String(mine.rating) }))
+            : h('div', { class: 'bbk-you' }, h('b', { text: name + ' (you)' }), h('small', { text: (profile && profile.games > 0 ? 'Unranked · placement ' + profile.games + '/' + PLACEMENT : 'Unranked · play ' + PLACEMENT + ' ranked matches to get your tier') + '. You will not lose points until placed.' }));
         }
         box.append(you);
       } catch (e) {
@@ -425,6 +436,7 @@
     mount, openAuth, openProfile, openLeaderboard, signOut,
     getToken: freshToken,
     refreshProfile: loadProfile,
+    tier, placement: PLACEMENT,
     tutorial: { get: tutorialStep, set: setTutorial, total: 5 },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     get session() { return session; },
