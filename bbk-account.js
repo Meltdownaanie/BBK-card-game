@@ -201,6 +201,7 @@
 .bbk-box{width:min(460px,100%);max-height:min(90dvh,760px);overflow:auto;background:var(--felt2,#1f272b);border:1px solid var(--line,#35434a);border-radius:16px;box-shadow:0 22px 60px #000a;color:var(--ink,#eaf0f1);padding:16px 16px 18px}
 .bbk-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .bbk-head h2{margin:0;font-size:20px;letter-spacing:.04em}
+.bbk-back{min-width:0!important;padding:0 14px!important;font-size:14px!important;white-space:nowrap;margin-right:12px}
 .bbk-x{border:1px solid var(--line,#35434a);background:var(--felt3,#2a343a);color:inherit;border-radius:9px;min-width:40px;min-height:40px;font-size:16px;cursor:pointer}
 .bbk-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
 .bbk-tab{min-height:42px;border-radius:10px;border:1px solid var(--line,#35434a);background:var(--felt3,#2a343a);color:inherit;font:inherit;font-weight:800;cursor:pointer}
@@ -279,7 +280,7 @@
     overlay = h('div', { class: 'bbk-ov', role: 'dialog', 'aria-modal': 'true', 'aria-label': title,
       onmousedown: (e) => { if (e.target === overlay) closeModal(); } },
       h('div', { class: 'bbk-box' },
-        h('div', { class: 'bbk-head' }, h('h2', { text: title }), h('button', { type: 'button', class: 'bbk-x', 'aria-label': 'Close', onclick: closeModal, text: '✕' })),
+        h('div', { class: 'bbk-head' }, h('button', { type: 'button', class: 'bbk-x bbk-back', 'aria-label': 'Back', onclick: closeModal, text: '← BACK' }), h('h2', { text: title })),
         body));
     document.body.appendChild(overlay);
     document.addEventListener('keydown', onKey, true);   // capture: Escape must not reach the game's "forfeit" shortcut
