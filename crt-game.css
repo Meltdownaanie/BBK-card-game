@@ -270,3 +270,8 @@ button.discard-counter{cursor:pointer}
 .deck-stack span:nth-child(3){display:grid;place-items:center;color:var(--c-gold)!important;font-size:16px!important}
 .pile i{width:30px!important;height:42px!important}
 .pile.bump{animation:pileBump .4s steps(5)}
+
+/* pixel hand icons: bigger on cards */
+.card .symbol svg{width:clamp(30px,calc(var(--cw) * .56),52px)}
+.slot .card .symbol svg{width:clamp(30px,calc(var(--sw) * .56),54px)}
+.ghost-slot .card .symbol svg{width:clamp(16px,4vw,28px)}
