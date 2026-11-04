@@ -18,6 +18,7 @@
   function inject() { if (!document.getElementById('px-hammer')) document.body.insertAdjacentHTML('afterbegin', sprite); }
   if (document.body) inject(); else document.addEventListener('DOMContentLoaded', inject);
   window.PX = function (suit, size) {
+    if (suit === 'hammer' || suit === 'paper' || suit === 'scissors') return '<img class="px suit-img" src="./icons/' + suit + '.png?v=20261105e" width="' + (size || 24) + '" height="' + (size || 24) + '" alt="" aria-hidden="true" draggable="false">';
     return '<svg class="px" width="' + (size || 24) + '" height="' + (size || 24) + '" viewBox="0 0 8 8" aria-hidden="true"><use href="#px-' + suit + '"/></svg>';
   };
 })();
