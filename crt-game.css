@@ -185,6 +185,14 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .hand-item .card{width:clamp(58px,19vw,84px)!important}
 .hand-item{position:relative}
 @media (prefers-reduced-motion:reduce){.hand-item{transition:none}}
+
+/* top-left back button on every dialog / sub-screen */
+.top-back{display:none;align-self:flex-start;width:auto!important;padding:8px 14px!important;font-size:15px!important;margin:0 0 -4px!important}
+.dialog:has(#aiPane:not([hidden])) #dialogBack{display:inline-flex}
+#lobbyBack{display:inline-flex}
+.tutorial-modal-header,.pile-header{justify-content:flex-start!important;gap:14px}
+.tutorial-modal-header h2,.pile-header h3{margin:0}
+.tutorial-modal-header .secondary,.pile-header .secondary{width:auto;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){body::before{animation:none}.menu-btn:active,.primary:active,.secondary:active{transform:none}}
 
 .big-btn .mb-badge{font-size:11px;padding:3px 6px}.big-btn.teal,.big-btn.gold{min-height:64px}

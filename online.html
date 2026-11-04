@@ -320,7 +320,7 @@ body{padding:8px 12px 12px}
 </div>
 <div id="tutorialOverlay" class="overlay tutorial-overlay" hidden>
   <section class="dialog tutorial-dialog" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle" tabindex="-1">
-    <div class="tutorial-modal-header"><h2 id="tutorialTitle">HOW TO PLAY</h2><button id="closeTutorial" class="secondary" type="button" aria-label="Close tutorial">✕</button></div>
+    <div class="tutorial-modal-header"><button id="closeTutorial" class="secondary" type="button" aria-label="Close tutorial">← BACK</button><h2 id="tutorialTitle">HOW TO PLAY</h2></div>
     <p class="tutorial-intro">Learn the basics of BBK Card Game. Secret combinations are yours to discover.</p>
     <div class="tutorial-guide">
       <article><span class="tutorial-step">01</span><div><strong>THE GOAL</strong><p>Each player starts with 100 HP. Defeat the AI by reducing its HP to 0, or have more HP when the cards run out.</p></div></article>
@@ -336,8 +336,8 @@ body{padding:8px 12px 12px}
   </section>
 </div>
 <div id="comboCelebration" class="combo-celebration" aria-live="assertive" hidden></div>
-<div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3><button type="button" class="secondary" id="closeDiscard">Close ✕</button></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
-<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-hammer"/></svg><b>7</b></span><span class="mini paper"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-paper"/></svg><b>3</b></span><span class="mini scissors"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-scissors"/></svg><b>9</b></span></div><p id="dialogText">ONLINE 1v1 · Play with a friend</p><p id="onlineConnection" class="online-note" aria-live="polite">Connecting to server…</p>
+<div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><button type="button" class="secondary" id="closeDiscard">← BACK</button><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
+<div class="overlay" id="overlay"><div class="dialog"><button type="button" id="lobbyBack" class="secondary top-back">← BACK</button><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-hammer"/></svg><b>7</b></span><span class="mini paper"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-paper"/></svg><b>3</b></span><span class="mini scissors"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-scissors"/></svg><b>9</b></span></div><p id="dialogText">ONLINE 1v1 · Play with a friend</p><p id="onlineConnection" class="online-note" aria-live="polite">Connecting to server…</p>
 <div id="onlineJoin" class="pane">
 <div id="accountBar" class="account-bar"></div>
 <button type="button" id="onlineRanked" class="menu-btn mb-ai" disabled><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-trophy"/></svg></span><span class="mb-text"><b>RANKED MATCH</b><small>Sign in to play for rating</small></span></button>
@@ -1144,12 +1144,16 @@ $('onlineNumber').addEventListener('input',e=>e.target.value=e.target.value.repl
 $('onlineNumber').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnline()});
 $('onlineReady').onclick=()=>send({type:'ready',ready:true});
 $('onlineLeave').onclick=()=>send({type:'leave_room'});
+function lobbyBack(){
+ if(!$('onlineQueue').hidden){$('onlineQueueCancel').click();return}
+ if(!$('onlineRoom').hidden&&!$('onlineLeave').hidden){$('onlineLeave').click();return}
+ location.href='./index.html';
+}
+$('lobbyBack').addEventListener('click',lobbyBack);
 document.addEventListener('keydown',e=>{
  // Escape steps back one screen in the lobby (match forfeit keeps its own Escape handling)
  if(e.key!=='Escape'||e.defaultPrevented||$('overlay').hidden||!$('tutorialOverlay').hidden)return;
- if(!$('onlineQueue').hidden){$('onlineQueueCancel').click();return}
- if(!$('onlineRoom').hidden&&!$('onlineLeave').hidden){$('onlineLeave').click();return}
- if(!$('onlineJoin').hidden)location.href='./index.html';
+ lobbyBack();
 });
 if(window.BBK){
  BBK.mount($('accountBar'));
