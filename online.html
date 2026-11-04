@@ -282,7 +282,26 @@ body{padding:8px 12px 12px}
 .bottom-hud .healthbar{width:100%;max-width:none}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
-</style></head><body>
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style id="crt-menu-theme">
+/* CRT card-table look for the menus (game board keeps its own layout) */
+.overlay{background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px),radial-gradient(circle at 50% 30%,#2a1448,#1a0e33 70%)!important}
+.dialog{background:#241a42!important;border:0!important;border-radius:16px!important;box-shadow:0 0 0 4px #0c0614,inset 0 0 0 3px #3a2d63!important;font-family:'Silkscreen',ui-monospace,monospace}
+.dialog h1{font-family:'Pixelify Sans','Silkscreen',monospace!important;text-shadow:3px 3px 0 #0c0614}
+.menu-btn,.menu-btn.mb-ai,.menu-btn.mb-board,.menu-btn.mb-help,.menu-btn.mb-online{color:#fff7e8!important}
+.menu-btn{position:relative;font-family:'Silkscreen',ui-monospace,monospace!important;background:#3a2d63!important;border:0!important;border-radius:12px!important;box-shadow:0 0 0 3px #0c0614,0 6px 0 3px #0c0614!important;margin-bottom:8px}
+.menu-btn.mb-ai,.menu-btn.mb-board,.menu-btn.mb-help,.menu-btn.mb-online{background:#3a2d63!important}
+.menu-btn:active{transform:translateY(4px);box-shadow:0 0 0 3px #0c0614,0 2px 0 3px #0c0614!important}
+.menu-btn:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.menu-btn[disabled]{opacity:.55}
+.menu-btn b{font-size:14px!important}.menu-btn small{font-size:10px!important;font-weight:400!important}
+.mb-badge{position:absolute;right:10px;top:-8px;padding:4px 7px;border-radius:6px;background:#ffd34d;color:#1b0d22;font-size:9px;box-shadow:0 0 0 3px #0c0614}
+.mb-badge[hidden]{display:none}
+.menu-note{margin:2px 0 6px;font-size:10px;line-height:1.7;color:#cdbfe8;text-align:center}
+.menu-note[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.menu-btn:active{transform:none}}
+</style>
+</head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">ONLINE · <b id="difficultyStatus">1v1</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
 
@@ -335,6 +354,8 @@ body{padding:8px 12px 12px}
 <div id="onlineJoin" class="pane">
 <div id="accountBar" class="account-bar"></div>
 <button type="button" id="onlineRanked" class="menu-btn mb-ai" disabled><span class="mb-icon" aria-hidden="true">⚔️</span><span class="mb-text"><b>RANKED MATCH</b><small>Sign in to play for rating</small></span></button>
+<p id="onlineLock" class="online-note" hidden>🔒 Ranked unlocks after the tutorial. <a href="./tutorial.html" style="color:#ffd34d">Start the tutorial →</a></p>
+<button type="button" id="onlineRandom" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true">🎲</span><span class="mb-text"><b>RANDOM MATCH</b><small>Quick casual game · no rating</small></span></button>
 <div class="or-divider"><span>or play with a friend</span></div>
 <button type="button" id="onlineCreate" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true">➕</span><span class="mb-text"><b>CREATE ROOM</b><small>Get a code and send it to your friend</small></span></button>
 <div class="or-divider"><span>or join a friend's room</span></div>
@@ -999,8 +1020,11 @@ function syncButtons(){
  const open=sockOpen();
  $('onlineCreate').disabled=!open;$('onlineEnter').disabled=!open;
  const r=$('onlineRanked');
- r.disabled=!open||(signedIn()&&!authed);
- r.querySelector('small').textContent=!signedIn()?'Sign in to play for rating':authed?'Find an opponent near your rating':'Checking your account…';
+ const trained=!window.BBK||BBK.tutorial.get()>=5;
+ $('onlineRandom').disabled=!open;
+ r.disabled=!open||(signedIn()&&!authed)||(signedIn()&&!trained);
+ r.querySelector('small').textContent=!signedIn()?'Sign in to play for rating':!trained?'Locked · finish the tutorial first':authed?'Find an opponent near your rating':'Checking your account…';
+ $('onlineLock').hidden=!signedIn()||trained;
 }
 async function wakeServer(){
  // Free hosting sleeps when idle: ping /health first so the WebSocket is not refused while the server boots.
@@ -1020,10 +1044,11 @@ function sendAuth(){
   authed=false;syncButtons();afterAuth();
  });
 }
-function showQueue(on){
- stopQueueTimer();
+let queueMode='ranked';
+function showQueue(on,mode){
+ stopQueueTimer();if(mode)queueMode=mode;
  $('onlineJoin').hidden=on;$('onlineQueue').hidden=!on;
- if(on){queueSince=Date.now();updateQueueTimer();queueTimer=setInterval(updateQueueTimer,1000);$('dialogText').textContent='RANKED · finding an opponent'}
+ if(on){queueSince=Date.now();updateQueueTimer();queueTimer=setInterval(updateQueueTimer,1000);$('dialogText').textContent=(queueMode==='random'?'RANDOM':'RANKED')+' · finding an opponent';$('onlineQueueText').textContent=queueMode==='random'?'Searching for any opponent…':'Searching for an opponent near your rating…'}
  else $('dialogText').textContent='ONLINE 1v1 · Play with a friend';
 }
 function updateQueueTimer(){const s=Math.floor((Date.now()-queueSince)/1000);$('onlineQueueTimer').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -1058,7 +1083,7 @@ function beginReconnect(){
 }
 function onServer(m){
  switch(m.type){
-  case 'error':setConn('⚠ '+m.message);if(queuing())showQueue(false);return;
+  case 'error':setConn('⚠ '+m.message);if(queuing())showQueue(false);if(m.code==='tutorial_required')syncButtons();return;
   case 'auth_ok':
    authed=!m.guest;syncButtons();
    if(m.resumed){reconnecting=false;setConn('● Connected',true);msg('Reconnected to your match.');return}
@@ -1069,11 +1094,11 @@ function onServer(m){
    authed=false;syncButtons();setConn('⚠ '+m.message);
    if(m.invalid&&window.BBK)BBK.signOut();   // the server rejected this sign-in: drop it
    return afterAuth();
-  case 'queued':return showQueue(true);
+  case 'queued':return showQueue(true,m.mode==='random'?'random':'ranked');
   case 'queue_left':return showQueue(false);
   case 'match_found':
    stopQueueTimer();$('onlineQueue').hidden=true;$('onlineJoin').hidden=true;
-   $('dialogText').textContent='Match found! vs '+m.opponent.name+' ('+m.opponent.rating+')';
+   $('dialogText').textContent='Match found! vs '+(m.opponent&&m.opponent.name||'Opponent')+(m.opponent&&m.opponent.rating?' ('+m.opponent.rating+')':'');
    return;
   case 'rating_update':return showRating(m);
   case 'opponent_disconnected':return msg('⚠ Opponent lost connection. Waiting up to '+Math.round(m.seconds)+'s for them to return…');
@@ -1122,7 +1147,8 @@ $('onlineRanked').onclick=()=>{
  if(!signedIn()){if(window.BBK)BBK.openAuth('in');return}
  if(authed&&sockOpen())send({type:'ranked_queue'});
 };
-$('onlineQueueCancel').onclick=()=>send({type:'ranked_cancel'});
+$('onlineRandom').onclick=()=>{if(sockOpen())send({type:'random_queue'})};
+$('onlineQueueCancel').onclick=()=>send({type:queueMode==='random'?'random_cancel':'ranked_cancel'});
 $('onlineBoard').onclick=()=>{if(window.BBK)BBK.openLeaderboard()};
 $('onlineCreate').onclick=()=>send({type:'create_room'});
 $('onlineEnter').onclick=joinOnline;

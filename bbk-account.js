@@ -6,7 +6,7 @@
   const SUPABASE_URL = 'https://uqhaldjxcsqlvgyrceiu.supabase.co';
   const PUBLISHABLE_KEY = 'sb_publishable_ZBrcGYq6YxnOeCheFJzXkQ_55PG6JCa';
   const STORE_KEY = 'bbk.session.v1';
-  const PROFILE_COLS = 'id,display_name,rating,peak_rating,games,wins,losses,draws';
+  const PROFILE_COLS = 'id,display_name,rating,peak_rating,games,wins,losses,draws,tutorial_step';
 
   let session = null;   // {access_token, refresh_token, expires_at, user:{id,email}}
   let profile = null;   // row of public.profiles for the signed-in user
@@ -105,6 +105,28 @@
     return session ? session.access_token : null;
   }
 
+  /* ---------- tutorial progress (0-5; 5 unlocks ranked) ---------- */
+  const TUT_KEY = 'bbk.tutorial.v1';
+  const localTutorial = () => { try { const n = parseInt(localStorage.getItem(TUT_KEY), 10); return n >= 0 && n <= 5 ? n : 0; } catch { return 0; } };
+  const tutorialStep = () => Math.max(localTutorial(), profile ? Number(profile.tutorial_step) || 0 : 0);
+  async function pushTutorial(step) {
+    const token = await freshToken();
+    if (!token || !session) return;
+    try {
+      const rows = await api('/rest/v1/profiles?id=eq.' + encodeURIComponent(session.user.id), { method: 'PATCH', token, body: { tutorial_step: step }, prefer: 'return=representation' });
+      if (rows && rows[0] && profile) profile = Object.assign({}, profile, rows[0]);
+    } catch { /* kept locally; synced on the next sign-in */ }
+  }
+  async function setTutorial(step) {
+    step = Math.max(0, Math.min(5, Math.floor(Number(step)) || 0));
+    if (step <= tutorialStep()) return tutorialStep();
+    try { localStorage.setItem(TUT_KEY, String(step)); } catch { /* private mode: still pushed below when signed in */ }
+    if (profile) profile = Object.assign({}, profile, { tutorial_step: Math.max(step, Number(profile.tutorial_step) || 0) });
+    await pushTutorial(step);
+    emit();
+    return tutorialStep();
+  }
+
   async function loadProfile() {
     const token = await freshToken();
     if (!token || !session) { profile = null; emit(); return null; }
@@ -112,6 +134,7 @@
       const rows = await api('/rest/v1/profiles?select=' + PROFILE_COLS + '&id=eq.' + encodeURIComponent(session.user.id), { token });
       profile = (rows && rows[0]) || null;
     } catch { /* keep the old profile on a transient error */ }
+    if (profile && localTutorial() > (Number(profile.tutorial_step) || 0)) { await pushTutorial(localTutorial()); }   // progress made as a guest
     emit();
     return profile;
   }
@@ -189,6 +212,7 @@
 .bbk-table td{padding:8px 6px;border-top:1px solid var(--line,#35434a)}
 .bbk-table td.num,.bbk-table th.num{text-align:right;font-variant-numeric:tabular-nums}
 .bbk-table td.name{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bbk-you{position:sticky;bottom:0;margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border-radius:12px;border:2px solid var(--gold,#e7b94a);background:var(--felt3,#2a343a)}.bbk-you b{font-size:15px}.bbk-you small{display:block;color:var(--muted,#9aabb1);margin-top:3px}.bbk-you-rank{font-weight:900;font-size:20px;color:var(--gold,#e7b94a);min-width:52px}.bbk-you-name{flex:1;min-width:0}.bbk-you-rating{font-weight:900;font-size:18px}
 .bbk-table tr.me td{background:#483e2655;font-weight:800}
 .bbk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .bbk-list li{display:flex;justify-content:space-between;gap:8px;background:var(--felt3,#2a343a);border:1px solid var(--line,#35434a);border-radius:9px;padding:8px 10px;font-size:13px}
@@ -376,13 +400,19 @@
           h('tbody', null, rows.map((r) => h('tr', { class: r.id === me ? 'me' : '' },
             h('td', { text: r.rank }), h('td', { class: 'name', text: r.display_name }), h('td', { class: 'num', text: r.rating }), h('td', { class: 'num', text: r.wins + '-' + r.losses })))));
         box.replaceChildren(table);
-        if (me && !rows.some((r) => r.id === me)) {
-          const mine = await api('/rest/v1/leaderboard?select=rank,rating&id=eq.' + encodeURIComponent(me));
-          if (mine && mine[0]) box.append(h('p', { class: 'bbk-note', text: 'Your rank: #' + mine[0].rank + ' · rating ' + mine[0].rating }));
-          else box.append(h('p', { class: 'bbk-note', text: 'Play a ranked match to appear on the leaderboard.' }));
-        } else if (!me) {
-          box.append(h('p', { class: 'bbk-note', text: 'Sign in and play ranked matches to climb the board.' }));
+        let you;
+        if (!me) {
+          you = h('div', { class: 'bbk-you' }, h('b', { text: 'Sign in to see your rank' }), h('small', { text: 'Ranked matches earn a place on this board.' }),
+            h('button', { type: 'button', class: 'bbk-btn alt', onclick: () => openAuth('in'), text: 'SIGN IN' }));
+        } else {
+          let mine = null;
+          try { const r = await api('/rest/v1/leaderboard?select=rank,rating,wins,losses&id=eq.' + encodeURIComponent(me)); mine = r && r[0]; } catch { /* shown as unranked */ }
+          const name = (profile && profile.display_name) || 'You';
+          you = mine
+            ? h('div', { class: 'bbk-you' }, h('span', { class: 'bbk-you-rank', text: '#' + mine.rank }), h('span', { class: 'bbk-you-name' }, h('b', { text: name + ' (you)' }), h('small', { text: mine.wins + ' wins · ' + mine.losses + ' losses' })), h('span', { class: 'bbk-you-rating', text: String(mine.rating) }))
+            : h('div', { class: 'bbk-you' }, h('b', { text: name + ' (you)' }), h('small', { text: 'Not ranked yet. Play a ranked match to get a rank.' }));
         }
+        box.append(you);
       } catch (e) {
         box.replaceChildren(h('div', { class: 'bbk-empty', text: e.message }), h('button', { type: 'button', class: 'bbk-btn alt', onclick: load, text: 'TRY AGAIN' }));
       }
@@ -395,6 +425,7 @@
     mount, openAuth, openProfile, openLeaderboard, signOut,
     getToken: freshToken,
     refreshProfile: loadProfile,
+    tutorial: { get: tutorialStep, set: setTutorial, total: 5 },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     get session() { return session; },
     get profile() { return profile; }

@@ -4,7 +4,7 @@ const http=require('node:http'),crypto=require('node:crypto');
 const {WebSocketServer,WebSocket}=require('ws');
 const PORT=Number(process.env.PORT)||10000;
 const rooms=new Map(),peers=new Map();
-const userSession=new Map(),userRoom=new Map(),queue=[];   // userId -> socket, userId -> room, ranked waiting list
+const userSession=new Map(),userRoom=new Map(),queue=[],casual=[];   // userId -> socket, userId -> room, ranked waiting list
 let pendingRecords=0;
 const env=n=>(process.env[n]||'').trim();
 const SUPABASE_URL=env('SUPABASE_URL').replace(/\/+$/,''),SUPABASE_PUBLISHABLE_KEY=env('SUPABASE_PUBLISHABLE_KEY'),SUPABASE_SECRET_KEY=env('SUPABASE_SECRET_KEY');
@@ -170,9 +170,9 @@ async function verifyToken(token){
  const u=await sb('/auth/v1/user',{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
  if(u.status===401||u.status===403||u.status===400)return{invalid:true};
  if(!u.ok||!u.data||!UUID.test(u.data.id||''))throw new Error('auth lookup failed');
- const p=await sb('/rest/v1/profiles?select=id,display_name,rating&id=eq.'+u.data.id,{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
+ const p=await sb('/rest/v1/profiles?select=id,display_name,rating,tutorial_step&id=eq.'+u.data.id,{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
  if(!p.ok||!Array.isArray(p.data)||!p.data[0])throw new Error('profile lookup failed');
- return{user:{id:u.data.id,name:p.data[0].display_name,rating:p.data[0].rating}};
+ return{user:{id:u.data.id,name:p.data[0].display_name,rating:p.data[0].rating,tutorial:Number(p.data[0].tutorial_step)||0}};
 }
 function resume(ws,user){
  const room=userRoom.get(user.id);if(!room)return false;
@@ -181,7 +181,7 @@ function resume(ws,user){
  if(old&&old!==ws){old.replaced=true;peers.delete(old);send(old,{type:'error',message:'Signed in from another place'});try{old.close()}catch{}}
  if(player.grace){clearTimeout(player.grace);player.grace=null;}
  player.gone=false;player.ws=ws;peers.set(ws,{code:room.code,seat:player.seat});
- send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating,resumed:true});
+ send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating,tutorial:user.tutorial,resumed:true});
  const other=room.players.find(p=>p!==player);if(other)send(other.ws,{type:'opponent_back'});
  broadcast(room);return true;
 }
@@ -207,7 +207,7 @@ async function handleAuth(ws,msg){
  userSession.set(user.id,ws);ws.user=user;
  const info=peers.get(ws),room=info&&rooms.get(info.code);
  if(room&&!room.game){const pl=room.players.find(p=>p.ws===ws);if(pl)pl.user=user;}
- send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating});
+ send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating,tutorial:user.tutorial});
 }
 /* ---------- recording results ---------- */
 async function recordResult(room,winner,reason){
@@ -233,7 +233,28 @@ async function recordResult(room,winner,reason){
  }finally{pendingRecords--;}
 }
 /* ---------- ranked queue ---------- */
-function dequeue(ws){const i=queue.findIndex(q=>q.ws===ws);if(i<0)return false;queue.splice(i,1);return true;}
+function dequeue(ws){
+ let hit=false;
+ for(const list of [queue,casual]){const i=list.findIndex(q=>q.ws===ws);if(i>=0){list.splice(i,1);hit=true;}}
+ return hit;
+}
+// Random match: first two waiting players are paired, no rating involved (guests allowed).
+function pairCasual(){
+ while(casual.length>=2){
+  const A=casual.shift(),B=casual.shift();
+  const flip=crypto.randomInt(2)===1,[p0,p1]=flip?[B,A]:[A,B];
+  const id=roomCode(),room={code:id,players:[],game:null,timer:null,ranked:false};
+  [p0,p1].forEach((q,seat)=>{
+   room.players.push({seat,ws:q.ws,ready:true,user:q.user||null});
+   peers.set(q.ws,{code:id,seat});if(q.user)userRoom.set(q.user.id,room);
+  });
+  rooms.set(id,room);
+  const info=q=>({name:q.user?q.user.name:null,rating:q.user?q.user.rating:null});
+  send(p0.ws,{type:'match_found',code:id,mode:'random',opponent:info(p1)});
+  send(p1.ws,{type:'match_found',code:id,mode:'random',opponent:info(p0)});
+  newGame(room);
+ }
+}
 function windowFor(q,now){return 100+50*Math.floor((now-q.since)/10000);}
 function matchmake(){
  const now=Date.now();
@@ -266,7 +287,7 @@ const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');
  res.setHeader('Access-Control-Allow-Origin','*');
  const ok=req.url==='/health'||req.url==='/';
- const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length}:{error:'Not found'};
+ const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length,casual:casual.length}:{error:'Not found'};
  res.writeHead(ok?200:404);res.end(JSON.stringify(body));
 });
 const wss=new WebSocketServer({server,maxPayload:4096});
@@ -290,9 +311,18 @@ wss.on('connection',(ws,req)=>{
   if(!msg||typeof msg.type!=='string')return;
   if(msg.type==='auth'){if(!take(ws,4))return send(ws,{type:'auth_error',message:'Too many sign-in attempts. Wait a moment.'});handleAuth(ws,msg);return;}
   const info=peers.get(ws),room=info?rooms.get(info.code):null,g=room?.game;
+  if(msg.type==='random_queue'){
+   if(info){if(room?.game?.phase==='over')leave(ws);else return fail(ws,'You are already in a room');}
+   if(ws.user&&userRoom.has(ws.user.id))return fail(ws,'You already have a match in progress');
+   if(casual.some(q=>q.ws===ws)||queue.some(q=>q.ws===ws))return;
+   casual.push({ws,user:ws.user,since:Date.now()});send(ws,{type:'queued',mode:'random'});pairCasual();return;
+  }
+  if(msg.type==='random_cancel'){dequeue(ws);return send(ws,{type:'queue_left'});}
   if(msg.type==='ranked_queue'){
    if(!RANKED)return fail(ws,'Ranked matches are not available yet.');
    if(!ws.user)return fail(ws,'Sign in to play ranked.');
+   if(ws.user.tutorial<5)return fail(ws,'Finish the tutorial to unlock ranked matches.',{code:'tutorial_required'});
+   {const ci=casual.findIndex(q=>q.ws===ws);if(ci>=0)casual.splice(ci,1);}
    if(info){if(room?.game?.phase==='over')leave(ws);else return fail(ws,'You are already in a room');}
    if(userRoom.has(ws.user.id))return fail(ws,'You already have a match in progress');
    if(queue.some(q=>q.ws===ws))return;

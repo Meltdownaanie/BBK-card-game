@@ -20,6 +20,7 @@ create table public.profiles (
   wins         integer not null default 0,
   losses       integer not null default 0,
   draws        integer not null default 0,
+  tutorial_step smallint not null default 0 check (tutorial_step between 0 and 5),  -- 5 = tutorial finished, ranked unlocked
   created_at   timestamptz not null default now(),
   constraint profiles_display_name_ok
     check (char_length(display_name) between 3 and 20 and display_name = btrim(display_name)),
@@ -74,6 +75,23 @@ insert into public.profiles (id, display_name)
 select u.id, 'player_' || substr(replace(u.id::text, '-', ''), 1, 8)
 from auth.users u
 on conflict (id) do nothing;
+
+-- Tutorial progress only moves forward: a client can never reset it.
+create function private.keep_tutorial_progress()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.tutorial_step := greatest(old.tutorial_step, new.tutorial_step);
+  return new;
+end;
+$$;
+revoke execute on function private.keep_tutorial_progress() from public, anon, authenticated;
+
+create trigger profiles_keep_tutorial_progress
+  before update of tutorial_step on public.profiles
+  for each row execute function private.keep_tutorial_progress();
 
 -- ---------------------------------------------------------------------------------------------
 -- 3. Match history (written only by the game server)
@@ -234,7 +252,7 @@ revoke all on public.matches     from anon, authenticated;
 revoke all on public.leaderboard from anon, authenticated;
 
 grant select on public.profiles    to anon, authenticated;
-grant update (display_name) on public.profiles to authenticated;   -- rating etc. stay server-only
+grant update (display_name, tutorial_step) on public.profiles to authenticated;   -- rating etc. stay server-only
 grant select on public.matches     to authenticated;
 grant select on public.leaderboard to anon, authenticated;
 
