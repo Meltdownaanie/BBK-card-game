@@ -283,16 +283,16 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261104c">
+<link rel="stylesheet" href="./crt-game.css?v=20261104d">
 </head><body>
-<script src="./pixel-icons.js?v=20261104c"></script>
+<script src="./pixel-icons.js?v=20261104d"></script>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
 
  <section class="status"><div class="roundinfo">ROUND<strong id="round">1</strong></div><span class="tag modepill">ONLINE · <b id="difficultyStatus">1v1</b></span><div id="clock"><div class="time"><span id="time">1:15</span> <small id="limit">/ 75s</small></div><div class="timebar"><i id="timerFill"></i></div></div></section>
 <div id="blockAlert" class="block-alert" hidden></div>
  <div class="hud-row bottom-hud solo opp-top">
-  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · ONLINE</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><div class="discard-counter">Discard <b id="discard1">0</b></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
+  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · ONLINE</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><div class="discard-counter"><b class="deck-num" id="discard1">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
 </div>
 <section class="board" aria-label="Battle arena"><div class="columns">
  <div class="column"><div class="ai-row"><div id="slot10" class="slot" data-n="1"></div><div class="ghost-slot" id="prev10" aria-label="Opponent previous round slot 1"></div></div><div class="versus" id="vs0"><span class="pill">1 VS 1</span></div><div id="slot00" class="slot mine" data-n="1"></div></div>
@@ -300,7 +300,7 @@ body{padding:8px 12px 12px}
  <div class="column"><div class="ai-row"><div id="slot12" class="slot" data-n="3"></div><div class="ghost-slot" id="prev12" aria-label="Opponent previous round slot 3"></div></div><div class="versus" id="vs2"><span class="pill">3 VS 3</span></div><div id="slot02" class="slot mine" data-n="3"></div></div>
  </div></section>
  <div class="hud-row bottom-hud solo me-mid">
-  <section class="hud player-hud" aria-label="Player status"><div class="who"><span>PLAYER</span><strong id="hp0">100 <small>HP</small></strong><div class="healthbar" id="bar0"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck0">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><button type="button" id="openDiscard" class="discard-counter discard-open" aria-haspopup="dialog" title="View your discarded cards">🗑 Discard <b id="discard0">0</b> <span aria-hidden="true">⌕</span></button></div></section>
+  <section class="hud player-hud" aria-label="Player status"><div class="who"><span>PLAYER</span><strong id="hp0">100 <small>HP</small></strong><div class="healthbar" id="bar0"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck0">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><button type="button" id="openDiscard" class="discard-counter discard-open" aria-haspopup="dialog" title="View your discarded cards"><b class="deck-num" id="discard0">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></button></div></section>
 </div>
  <p class="message" id="message" aria-live="polite"></p>
 <section class="hand-zone" aria-label="Your hand and deck"><div class="hand-heading">YOUR HAND <span id="handCount">5 cards</span></div><div class="hand" id="hand" aria-label="Cards in your hand"></div></section>
@@ -354,7 +354,7 @@ body{padding:8px 12px 12px}
 <div id="onlineQueue" class="pane" hidden><div class="online-code" id="onlineQueueTimer" aria-hidden="true">0:00</div><p class="online-note" id="onlineQueueText" role="status">Searching for an opponent near your rating…</p><button type="button" id="onlineQueueCancel" class="secondary">⎋ BACK · CANCEL SEARCH</button></div>
 <div id="onlineRoom" class="pane" hidden><div class="online-code" id="onlineCode">—</div><p class="online-note">Send this code to your friend, or share the invite link.</p><button type="button" id="onlineInvite" class="secondary">📋 COPY INVITE LINK</button><p id="onlinePlayers" class="online-note"></p><p id="onlineRating" class="online-note" role="status" hidden></p><div class="online-controls"><button type="button" class="primary" id="onlineReady">I'M READY</button><button type="button" class="secondary" id="onlineLeave">⎋ LEAVE ROOM</button></div></div>
 <select id="aiDifficulty" hidden><option value="easy">Easy</option></select><button type="button" id="startButton" class="primary" hidden>▶ START GAME</button></div></div>
-<script src="./bbk-account.js?v=20261104c"></script>
+<script src="./bbk-account.js?v=20261104d"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
@@ -387,14 +387,61 @@ function clashMeta(a,b,result){
   if(winnerSuit==='paper'&&loserSuit==='hammer')return{type:'wrap',text:'WRAP!',burst:'🌀'};
   return {type:'plain',text:'IMPACT!',burst:result.dmg>=6?'✹':'✦'};
 }
+const FX=(()=>{
+ let cv,cx2,items=[],raf=0,last=0;const R=(a,b)=>a+Math.random()*(b-a),PK=a=>a[Math.floor(Math.random()*a.length)];
+ function init(){if(cv&&cv.isConnected)return;cv=document.createElement('canvas');cv.id='fxCanvas';cv.style.cssText='position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:1004;image-rendering:pixelated';cv.width=Math.ceil(innerWidth/3);cv.height=Math.ceil(innerHeight/3);document.body.appendChild(cv);cx2=cv.getContext('2d');cx2.imageSmoothingEnabled=false}
+ function loop(t){const dt=Math.min(.05,(t-last)/1000||.016);last=t;cx2.setTransform(1/3,0,0,1/3,0,0);cx2.clearRect(0,0,innerWidth*3,innerHeight*3);cx2.setTransform(1/3,0,0,1/3,0,0);items=items.filter(it=>it(cx2,dt)!==false);if(items.length)raf=requestAnimationFrame(loop);else{raf=0;cv.remove();cv=null}}
+ function add(fn){init();items.push(fn);if(!raf){last=performance.now();raf=requestAnimationFrame(loop)}}
+ // delayed start helper
+ const later=(d,fn)=>{let t=-d;return (c,dt)=>{t+=dt;if(t<0)return true;return fn(c,t,dt)}};
+ function particle(o){const p=Object.assign({x:0,y:0,vx:0,vy:0,g:0,life:.6,size:4,rot:0,vr:0,color:'#fff',shape:'sq',drag:0},o);let age=0;return (c,dt)=>{age+=dt;if(age>=p.life)return false;p.vx*=1-p.drag*dt;p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;const k=1-age/p.life;c.globalAlpha=Math.min(1,k*1.6);c.fillStyle=p.color;c.strokeStyle=p.color;
+  if(p.shape==='line'){c.lineWidth=p.size;c.lineCap='square';const l=Math.hypot(p.vx,p.vy)||1,len=p.len||8;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-p.vx/l*len*k-0,p.y-p.vy/l*len*k);c.stroke()}
+  else if(p.shape==='shard'){c.save();c.translate(p.x,p.y);c.rotate(p.rot);c.beginPath();c.moveTo(0,-p.size*1.6);c.lineTo(p.size*.8,p.size*.9);c.lineTo(-p.size*.8,p.size*.9);c.closePath();c.fill();c.restore()}
+  else{c.save();c.translate(p.x,p.y);c.rotate(p.rot);c.fillRect(-p.size/2,-p.size/2*(p.h||1),p.size,p.size*(p.h||1));c.restore()}
+  c.globalAlpha=1}}
+ function flash(x,y,r,life,color){let a=0;return (c,dt)=>{a+=dt;if(a>life)return false;c.globalAlpha=1-a/life;c.fillStyle=color||'#fff';c.fillRect(x-r,y-r,r*2,r*2);c.globalAlpha=1}}
+ function ring(x,y,r0,r1,life,color,w){let a=0;return (c,dt)=>{a+=dt;if(a>life)return false;const k=a/life,r=r0+(r1-r0)*k;c.globalAlpha=1-k;c.strokeStyle=color;c.lineWidth=w*(1-k*.7);c.strokeRect(x-r,y-r,r*2,r*2);c.globalAlpha=1}}
+ function bolt(x0,y0,x1,y1,jit,life,width,color,core){const pts=[[x0,y0]],n=Math.max(4,Math.round(Math.hypot(x1-x0,y1-y0)/14)),nx=-(y1-y0),ny=x1-x0,nl=Math.hypot(nx,ny)||1;for(let i=1;i<n;i++){const k=i/n,j=R(-jit,jit);pts.push([x0+(x1-x0)*k+nx/nl*j,y0+(y1-y0)*k+ny/nl*j])}pts.push([x1,y1]);let a=0;
+  return (c,dt)=>{a+=dt;if(a>life)return false;const grow=Math.min(1,a/(life*.22)),fade=a<life*.3?1:1-(a-life*.3)/(life*.7),m=Math.max(2,Math.round(pts.length*grow));c.globalAlpha=fade;c.lineJoin='miter';c.lineCap='square';
+   for(const [col,w] of [[color,width*2.6],[core,width]]){c.strokeStyle=col;c.lineWidth=w*(.6+.4*fade);c.beginPath();c.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<m;i++)c.lineTo(pts[i][0],pts[i][1]);c.stroke()}c.globalAlpha=1}}
+ function label(text,x,y,pow,color){const d=document.createElement('div');d.className='fx-label';d.textContent=text;d.style.cssText=`left:${x}px;top:${y}px;font-size:${Math.round(10+pow*3)}px;color:${color}`;document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
+ function smash(x,y,p){
+  add(flash(x,y,26+p*22,.12));add(ring(x,y,8,42+p*34,.38,'#ffd34d',7));add(ring(x,y,4,26+p*20,.3,'#fff',4));
+  const n=Math.round(12+p*14);
+  for(let i=0;i<n;i++){const a=R(0,6.283),sp=R(110,230)+p*110;add(particle({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-40,g:520,life:R(.35,.75),size:R(2,4),len:R(7,12)+p*3,color:PK(['#ffffff','#ffe066','#ffb347','#ff7a3c']),shape:'line',drag:1.2}))}
+  for(let i=0;i<2;i++){const dir=i?1:-1;add(particle({x:x+dir*4,y,vx:dir*R(60,130+p*30),vy:R(-170,-90),g:520,life:.9,size:6,h:4.5,vr:dir*R(5,10),color:'#c7ccd6'}))}
+  for(let i=0;i<Math.round(3+p*2);i++){const a=R(0,6.283),l=R(14,26+p*8);add(later(.02,bolt(x,y,x+Math.cos(a)*l,y+Math.sin(a)*l,3,.2,2,'#fff2','#fff')))}
+  label('SMASH!',x,y-64-p*6,p,'#ffd34d')
+ }
+ function cut(x,y,p){
+  const L=46+p*32,ang=R(-.9,-.45),dx=Math.cos(ang)*L,dy=Math.sin(ang)*L;
+  add(flash(x,y,60+p*30,.1,'#dff6ff'));
+  add(bolt(x-dx,y-dy,x+dx,y+dy,5+p*2,.34,2+p*.8,'#4fd8ff','#ffffff'));
+  for(let i=0;i<Math.floor(p);i++){const k=R(-.6,.6);add(later(.05,bolt(x+dx*k,y+dy*k,x+dx*k+R(-30,30),y+dy*k+R(25,50+p*10)*(Math.random()<.5?1:-1),3,.22,1.5,'#4fd8ff','#fff')))}
+  const n=Math.round(8+p*9);
+  for(let i=0;i<n;i++){const s=i%2?1:-1;add(particle({x:x+R(-18,18),y:y+R(-14,14),vx:s*R(20,110),vy:R(-90,40),g:240,life:R(.5,1),size:R(3,6),h:R(.5,1.4),vr:R(-8,8),color:PK(['#f3f1e6','#5aa9e8','#e8f4ff']),drag:.6}))}
+  for(let i=0;i<Math.round(6+p*5);i++){const a=ang+R(-.2,.2);const v=R(160,300);add(particle({x,y,vx:Math.cos(a)*v*(i%2?1:-1),vy:Math.sin(a)*v*(i%2?1:-1),life:.25,size:2,len:12,color:'#9fe9ff',shape:'line'}))}
+  label('SLASH!',x,y-62-p*6,p,'#7fe6ff')
+ }
+ function wrap(x,y,p){
+  const S0=30+p*7;
+  // paper ribbons orbit the hammer
+  let a=0;add((c,dt)=>{a+=dt;if(a>.38)return false;const k=a/.38;c.globalAlpha=1;for(let i=0;i<3;i++){const r=S0*(1.3-k*.55)+i*5,st=i*2.1+k*9;c.strokeStyle=i?'#eaf6ff':'#7fc3ff';c.lineWidth=5;c.beginPath();c.arc(x,y,r,st,st+2.4+k*2,false);c.stroke()}});
+  // ice block grows
+  let b=0;add((c,dt)=>{b+=dt;if(b>.36)return false;const k=Math.min(1,b/.3),h=S0*k;c.globalAlpha=.8*k;c.fillStyle='#bfeaff';c.fillRect(x-h,y-h*1.2,h*2,h*2.4);c.globalAlpha=k;c.fillStyle='#fff';c.fillRect(x-h,y-h*1.2,h*2,4);c.fillRect(x-h,y-h*1.2,4,h*2.4);c.fillStyle='#7fc3ff';c.fillRect(x+h-4,y-h*1.2,4,h*2.4);c.fillRect(x-h,y+h*1.2-4,h*2,4);c.globalAlpha=1});
+  // shatter
+  setTimeout(()=>{add(flash(x,y,30+p*16,.12,'#e8f8ff'));add(ring(x,y,6,40+p*30,.4,'#9fe0ff',6));
+   const n=Math.round(14+p*14);for(let i=0;i<n;i++){const a2=R(0,6.283),sp=R(90,220)+p*80;add(particle({x,y,vx:Math.cos(a2)*sp,vy:Math.sin(a2)*sp-60,g:420,life:R(.5,.95),size:R(3,6+p),shape:'shard',rot:R(0,6),vr:R(-10,10),color:PK(['#e8f8ff','#9fe0ff','#5aa9e8','#ffffff'])}))}
+   for(let i=0;i<6;i++)add(particle({x:x+R(-30,30),y:y+R(-30,30),vy:R(-30,10),life:R(.4,.8),size:3,color:'#fff'}));
+   screenJolt(2+p*1.6)},360);
+  label('FROZEN!',x,y-66-p*6,p,'#bfeaff')
+ }
+ function plain(x,y,p){add(flash(x,y,12+p*8,.1));add(ring(x,y,4,20+p*14,.3,'#ffffff',4));for(let i=0;i<Math.round(6+p*4);i++){const a2=R(0,6.283),sp=R(70,150);add(particle({x,y,vx:Math.cos(a2)*sp,vy:Math.sin(a2)*sp,life:.35,size:3,color:PK(['#fff','#ffe066'])}))}}
+ return{smash,cut,wrap,plain};
+})();
 function spawnSpecialFx(meta,cx,cy,power){
-  if(!meta||reducedMotion())return;
-  const fx=document.createElement('div');fx.className='special-fx '+('fx-'+meta.type);fx.style.left=cx+'px';fx.style.top=cy+'px';fx.style.setProperty('--pow',String(power));
-  if(meta.type==='smash')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">🔨</div><div class="fx-sub">✂️</div><div class="fx-ring"></div><div class="fx-ring2"></div>`;
-  else if(meta.type==='cut')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">✂️</div><div class="fx-sub">📄</div><div class="fx-slash"></div><div class="fx-slash2"></div>`;
-  else if(meta.type==='wrap')fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">📄</div><div class="fx-sub">✊</div><div class="fx-loop"></div><div class="fx-loop2"></div>`;
-  else fx.innerHTML=`<div class="fx-text">${meta.text}</div><div class="fx-main">${meta.burst||'✦'}</div>`;
-  document.body.appendChild(fx);setTimeout(()=>fx.remove(),820+power*70);
+  if(reducedMotion())return;
+  const t=meta?meta.type:'plain';(FX[t]||FX.plain)(cx,cy,power);
 }
 function screenJolt(power){
   if(reducedMotion())return;
@@ -425,9 +472,9 @@ async function animateClash(i,result,token,aCard,bCard){
       {transform:`translate(${paths[j].x*.46}px,${paths[j].y*.46}px) rotate(${j===0?(9+power*2):(-9-power*2)}deg) scale(${(0.88-power*.03).toFixed(2)})`,opacity:1,offset:.75},
       {transform:'translate(0,0) scale(1)',opacity:0,offset:1}],
       {duration:dur,easing:'cubic-bezier(.18,.84,.2,1)',fill:'forwards'}));
-    setTimeout(()=>{if(token!==S.token)return;const burst=document.createElement('div');burst.className='clash-burst';burst.textContent=(meta&&meta.burst)|| (result.w<0?'✦':'✹');burst.style.left=cx+'px';burst.style.top=cy+'px';burst.style.fontSize=(24+power*9)+'px';document.body.appendChild(burst);setTimeout(()=>burst.remove(),700)},Math.round(dur*.45));
-    setTimeout(()=>{if(token!==S.token)return;spawnSpecialFx(meta,cx,cy,power);if(dmg>=6)screenJolt(dmg)},Math.round(dur*.43));
+    setTimeout(()=>{if(token!==S.token)return;spawnSpecialFx(meta,cx,cy,power);if(dmg>=3)screenJolt(dmg+(meta&&meta.type!=='plain'?2:0))},Math.round(dur*.43));
     await Promise.all(anims.map(a=>a.finished.catch(()=>{})));
+    if(meta&&meta.type!=='plain')await sleep(Math.round({smash:420,cut:380,wrap:760}[meta.type]*(.7+power*.15)));
   }finally{twins.forEach(el=>el.remove());me.style.visibility='';ai.style.visibility='';}
 }
 function animateHpHit(p,dmg,before){if(dmg<=0)return;const hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');if(!hud)return;
@@ -890,7 +937,15 @@ async function endReveal(wins,outcomes){
 }
 
 function markDiscards(){for(let i=0;i<3;i++){$('slot0'+i).querySelector('.card')?.classList.toggle('discarded',S.pickIdx[0]===i);$('slot0'+i).querySelector('.card')?.classList.toggle('pick',S.canPick)}/* Do not reveal AI discard */}
-function completeDiscardSelection(timedOut){if(S.phase!=='discard')return;if(S.canPick){const options=S.slots[0].map((c,i)=>c?i:-1).filter(i=>i>=0);if(S.pickIdx[0]===null&&options.length)S.pickIdx[0]=options[Math.floor(Math.random()*options.length)];S.canPick=false}clearInterval(S.timer);markDiscards();msg(timedOut?'Discard timer expired: a random card was discarded. Moving to next round.':'Card discarded. Moving to next round.');finishRound()}
+function completeDiscardSelection(timedOut){if(S.phase!=='discard')return;if(S.canPick){const options=S.slots[0].map((c,i)=>c?i:-1).filter(i=>i>=0);if(S.pickIdx[0]===null&&options.length)S.pickIdx[0]=options[Math.floor(Math.random()*options.length)];S.canPick=false}clearInterval(S.timer);markDiscards();msg(timedOut?'Discard timer expired: a random card was discarded. Moving to next round.':'Card discarded. Moving to next round.');const tk=S.token;animateDiscards().then(()=>{if(tk===S.token)finishRound()})}
+async function animateDiscards(){
+ if(reducedMotion())return;
+ const jobs=[];
+ for(let p=0;p<2;p++){const idx=S.pickIdx[p];if(idx===null||idx===undefined)continue;const el=$('slot'+p+idx).querySelector('.card');const tgt=document.querySelector(p===0?'#openDiscard .pile':'.enemy-hud .discard-counter .pile');if(!el||!tgt)continue;
+  const {copy,rect}=flightCopy(el);el.style.visibility='hidden';const tr=tgt.getBoundingClientRect();const dx=tr.left+tr.width/2-(rect.left+rect.width/2),dy=tr.top+tr.height/2-(rect.top+rect.height/2);
+  jobs.push((async()=>{try{await copy.animate([{transform:'translate(0,0) scale(1) rotate(0)',opacity:1,offset:0},{transform:`translate(${dx*.12}px,${dy*.12-18}px) scale(1.08) rotate(${p?8:-8}deg)`,opacity:1,offset:.22},{transform:`translate(${dx}px,${dy}px) scale(.22) rotate(${p?200:-200}deg)`,opacity:.9,offset:1}],{duration:620,easing:'cubic-bezier(.5,0,.8,.4)',fill:'forwards'}).finished}catch(e){}copy.remove();tgt.classList.remove('bump');void tgt.offsetWidth;tgt.classList.add('bump');setTimeout(()=>tgt.classList.remove('bump'),400)})());}
+ await Promise.all(jobs);
+}
 function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);for(const h of S.hand)for(const c of h)c.origin='hand';for(let p=0;p<2;p++)for(let i=0;i<3;i++){const c=S.slots[p][i];if(!c)continue;if(S.pickIdx[p]===i)S.discard[p].push(c);else{c.origin='returned';S.hand[p].push(c);if(p===0)S.animateHand.add(c.id)}}
  if(exhausted()||(S.deck.every(d=>d.length===0)&&S.hand.some(h=>h.length===0))){showHpFinish();return}startRound(false)}
 function canForfeit(){return S.phase==='plan'||S.phase==='dealing'||S.phase==='reveal'||S.phase==='discard'}
