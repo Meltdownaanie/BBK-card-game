@@ -10,6 +10,7 @@ const pick=a=>a[crypto.randomInt(a.length)];
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=crypto.randomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const send=(ws,data)=>{if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data));};
 function code(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c;do{c=Array.from({length:6},()=>chars[crypto.randomInt(chars.length)]).join('')}while(rooms.has(c));return c;}
+function roomCode(){let c;do{c=String(1000+crypto.randomInt(9000))}while(rooms.has(c));return c;}
 function makeDeck(){return shuffle(suits.flatMap(suit=>Array.from({length:10},(_,n)=>({id:suit+'-'+n,suit,n}))));}
 function dealInitial(p){for(const suit of suits){const i=p.deck.findIndex(c=>c.suit===suit);p.hand.push(p.deck.splice(i,1)[0]);}p.hand=shuffle(p.hand);while(p.hand.length<5)p.hand.push(p.deck.pop());}
 function draw(p,count=1){while(count-->0&&p.deck.length)p.hand.push(p.deck.pop());}
@@ -154,6 +155,23 @@ wss.on('connection',ws=>{
       rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
     }
     if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room '+id+' is full or a match is in progress. Choose another number.'});
+    const seat=r.players.some(p=>p.seat===0)?1:0;
+    r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
+  }
+  // Simple flow: create_room gets a server-made 4-digit code; join_room enters an existing room by that code.
+  if(msg.type==='create_room'){
+    if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    if(rooms.size>=1000)return send(ws,{type:'error',message:'Server room limit reached'});
+    const id=roomCode(),r={code:id,players:[{seat:0,ws,ready:false}],game:null,timer:null};
+    rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
+  }
+  if(msg.type==='join_room'){
+    if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    const id=String(msg.code??'').trim();
+    if(!/^\d{3,4}$/.test(id))return send(ws,{type:'error',message:'Enter the 4-digit room code'});
+    const r=rooms.get(id);
+    if(!r)return send(ws,{type:'error',message:'Room '+id+' not found. Check the code or ask your friend for a new one.'});
+    if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room '+id+' is full or a match is in progress.'});
     const seat=r.players.some(p=>p.seat===0)?1:0;
     r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
   }
