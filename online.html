@@ -283,25 +283,9 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<style id="crt-menu-theme">
-/* CRT card-table look for the menus (game board keeps its own layout) */
-.overlay{background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px),radial-gradient(circle at 50% 30%,#2a1448,#1a0e33 70%)!important}
-.dialog{background:#241a42!important;border:0!important;border-radius:16px!important;box-shadow:0 0 0 4px #0c0614,inset 0 0 0 3px #3a2d63!important;font-family:'Silkscreen',ui-monospace,monospace}
-.dialog h1{font-family:'Pixelify Sans','Silkscreen',monospace!important;text-shadow:3px 3px 0 #0c0614}
-.menu-btn,.menu-btn.mb-ai,.menu-btn.mb-board,.menu-btn.mb-help,.menu-btn.mb-online{color:#fff7e8!important}
-.menu-btn{position:relative;font-family:'Silkscreen',ui-monospace,monospace!important;background:#3a2d63!important;border:0!important;border-radius:12px!important;box-shadow:0 0 0 3px #0c0614,0 6px 0 3px #0c0614!important;margin-bottom:8px}
-.menu-btn.mb-ai,.menu-btn.mb-board,.menu-btn.mb-help,.menu-btn.mb-online{background:#3a2d63!important}
-.menu-btn:active{transform:translateY(4px);box-shadow:0 0 0 3px #0c0614,0 2px 0 3px #0c0614!important}
-.menu-btn:focus-visible{outline:3px solid #fff;outline-offset:4px}
-.menu-btn[disabled]{opacity:.55}
-.menu-btn b{font-size:14px!important}.menu-btn small{font-size:10px!important;font-weight:400!important}
-.mb-badge{position:absolute;right:10px;top:-8px;padding:4px 7px;border-radius:6px;background:#ffd34d;color:#1b0d22;font-size:9px;box-shadow:0 0 0 3px #0c0614}
-.mb-badge[hidden]{display:none}
-.menu-note{margin:2px 0 6px;font-size:10px;line-height:1.7;color:#cdbfe8;text-align:center}
-.menu-note[hidden]{display:none}
-@media (prefers-reduced-motion:reduce){.menu-btn:active{transform:none}}
-</style>
+<link rel="stylesheet" href="./crt-game.css">
 </head><body>
+<script src="./pixel-icons.js"></script>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">ONLINE · <b id="difficultyStatus">1v1</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
 
@@ -350,14 +334,14 @@ body{padding:8px 12px 12px}
 </div>
 <div id="comboCelebration" class="combo-celebration" aria-live="assertive" hidden></div>
 <div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3><button type="button" class="secondary" id="closeDiscard">Close ✕</button></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
-<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems">✊ 📄 ✂️</div><p id="dialogText">ONLINE 1v1 · Play with a friend</p><p id="onlineConnection" class="online-note" aria-live="polite">Connecting to server…</p>
+<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-hammer"/></svg><b>7</b></span><span class="mini paper"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-paper"/></svg><b>3</b></span><span class="mini scissors"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-scissors"/></svg><b>9</b></span></div><p id="dialogText">ONLINE 1v1 · Play with a friend</p><p id="onlineConnection" class="online-note" aria-live="polite">Connecting to server…</p>
 <div id="onlineJoin" class="pane">
 <div id="accountBar" class="account-bar"></div>
-<button type="button" id="onlineRanked" class="menu-btn mb-ai" disabled><span class="mb-icon" aria-hidden="true">⚔️</span><span class="mb-text"><b>RANKED MATCH</b><small>Sign in to play for rating</small></span></button>
+<button type="button" id="onlineRanked" class="menu-btn mb-ai" disabled><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-trophy"/></svg></span><span class="mb-text"><b>RANKED MATCH</b><small>Sign in to play for rating</small></span></button>
 <p id="onlineLock" class="online-note" hidden>🔒 Ranked unlocks after the tutorial. <a href="./tutorial.html" style="color:#ffd34d">Start the tutorial →</a></p>
-<button type="button" id="onlineRandom" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true">🎲</span><span class="mb-text"><b>RANDOM MATCH</b><small>Quick casual game · no rating</small></span></button>
+<button type="button" id="onlineRandom" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-dice"/></svg></span><span class="mb-text"><b>RANDOM MATCH</b><small>Quick casual game · no rating</small></span></button>
 <div class="or-divider"><span>or play with a friend</span></div>
-<button type="button" id="onlineCreate" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true">➕</span><span class="mb-text"><b>CREATE ROOM</b><small>Get a code and send it to your friend</small></span></button>
+<button type="button" id="onlineCreate" class="menu-btn mb-online" disabled><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-plus"/></svg></span><span class="mb-text"><b>CREATE ROOM</b><small>Get a code and send it to your friend</small></span></button>
 <div class="or-divider"><span>or join a friend's room</span></div>
 <div class="online-controls"><input id="onlineNumber" type="text" inputmode="numeric" autocomplete="off" placeholder="CODE" aria-label="Room code"><button id="onlineEnter" type="button" class="primary" disabled>JOIN</button></div>
 <button type="button" id="showTutorialStart" class="secondary help-start">? HOW TO PLAY</button>
@@ -373,7 +357,7 @@ body{padding:8px 12px 12px}
 const $=id=>document.getElementById(id);
 const ORDER=['hammer','paper','scissors'];
 const BEATS={paper:'hammer',hammer:'scissors',scissors:'paper'};
-const SUITS={hammer:{name:'Hammer',icon:'✊'},paper:{name:'Paper',icon:'📄'},scissors:{name:'Scissors',icon:'✂️'}};
+const SUITS={hammer:{name:'Hammer',icon:PX('hammer',24)},paper:{name:'Paper',icon:PX('paper',24)},scissors:{name:'Scissors',icon:PX('scissors',24)}};
 const S={hp:[100,100],deck:[[],[]],discard:[[],[]],hand:[[],[]],slots:[[null,null,null],[null,null,null]],phase:'idle',round:0,token:0,deadline:0,duration:75,timer:null,target:null,result:null,pickIdx:[null,null],canPick:false,history:[],discardDeadline:0,discardDuration:50,dragId:null,difficulty:'easy',playerObservations:[],animateHand:new Set(),blocked:[null,null],nextBlocked:[null,null],endgameBlocked:[],nextDraws:[1,1],roundHpStart:[100,100],kiantsBonus:null};
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const reducedMotion=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -543,7 +527,7 @@ function renderPlayedTracker(){
  for(const round of S.history)for(const card of round.cards)if(card)seen.add(card.suit+':'+card.n);
  const root=$('playedGrid');if(!root)return;
  root.innerHTML=ORDER.map(suit=>{
-  const suitLabel=SUITS[suit].icon+' '+SUITS[suit].name.slice(0,1).toUpperCase();
+  const suitLabel=PX(suit,14)+' '+SUITS[suit].name.slice(0,1).toUpperCase();
   return `<div class="played-suit ${suit}" title="${SUITS[suit].name}">${suitLabel}</div>`+
    Array.from({length:10},(_,n)=>`<div class="played-cell ${suit} ${seen.has(suit+':'+n)?'revealed':''}" title="${SUITS[suit].name} ${n}: ${seen.has(suit+':'+n)?'revealed':'not yet revealed'}">${n}</div>`).join('');
  }).join('');
