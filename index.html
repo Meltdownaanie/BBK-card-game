@@ -245,6 +245,23 @@ body{padding:8px 12px 12px}
 .played-tracker-foot{font-size:9px;color:#859ba3;line-height:1.25}
 .forfeit-overlay{z-index:150;background:#090b10ed}.forfeit-dialog{border:2px solid #ad555a}.forfeit-dialog h2{color:#ffa4a6;margin:0;font-size:25px;letter-spacing:.03em}.forfeit-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.forfeit-actions button{min-height:45px;padding:9px;border-radius:9px;font-weight:900;cursor:pointer}.forfeit-confirm{background:#b33847;color:white;border:1px solid #ef7e86}.forfeit-confirm:hover{background:#d34756}
 @media(max-width:650px){.header-actions{gap:4px}.forfeit-button{padding:6px 7px;font-size:10px}.played-tracker{padding:6px}.played-grid{grid-template-columns:39px repeat(10,minmax(0,1fr));gap:2px}.played-suit{font-size:9px}.played-cell{height:22px;font-size:10px}.played-tracker-foot{font-size:8px}}
+/* V22: start menu + simple room flow. Added at the end so it never changes game rules or card animations. */
+.dialog .pane{display:flex;flex-direction:column;gap:11px;width:100%}
+.menu-btn{display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--felt3);color:var(--ink);font:inherit;text-align:left;text-decoration:none;cursor:pointer;transition:transform .12s,filter .12s}
+.menu-btn:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}
+.menu-btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.menu-btn:disabled{opacity:.5;cursor:not-allowed}
+.menu-btn .mb-icon{font-size:30px;line-height:1;flex:none;width:38px;text-align:center}
+.menu-btn b{display:block;font-size:17px;letter-spacing:.05em}
+.menu-btn small{display:block;font-size:12px;opacity:.85;margin-top:2px;line-height:1.3;font-weight:600}
+.menu-btn.mb-ai{background:var(--gold);color:#201b0b;border-color:#f3d17a}
+.menu-btn.mb-online{background:#2d876c;color:#fff;border-color:#58c4a0}
+.menu-btn.mb-help{background:#312c20;color:#f3d789;border-color:#d6b45d}
+.ai-card{display:flex;flex-direction:column;gap:9px;padding:12px;border:1px solid #6a5a2c;border-radius:14px;background:#262b25}
+.ai-card .difficulty-label{margin:0}
+.back-link{display:block;text-align:center;text-decoration:none;font-weight:800;letter-spacing:.04em}
+.or-divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+.or-divider:before,.or-divider:after{content:"";flex:1;height:1px;background:var(--line)}
 </style></head><body>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">VS AI · <b id="difficultyStatus">EASY</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
@@ -294,7 +311,18 @@ body{padding:8px 12px 12px}
 </div>
 <div id="comboCelebration" class="combo-celebration" aria-live="assertive" hidden></div>
 <div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3><button type="button" class="secondary" id="closeDiscard">Close ✕</button></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
-<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems">✊ 📄 ✂️</div><p id="dialogText">A tactical three-slot card duel against AI. Open HOW TO PLAY to learn the rules, then discover the hidden combos yourself.</p><label class="difficulty-label" for="aiDifficulty">AI DIFFICULTY</label><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b><small>Random moves</small></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b><small>Hand management</small></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b><small>Predictive strategy</small></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select><button type="button" id="showTutorialStart" class="secondary help-start">? HOW TO PLAY</button><a href="./online.html" class="primary" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:10px;background:#2d876c;color:#fff;font-weight:900;border:1px solid #58c4a0">🌐 ONLINE 1v1 · PLAY WITH A FRIEND</a><button type="button" id="startButton" class="primary">▶ START GAME</button></div></div>
+<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems">✊ 📄 ✂️</div><p id="dialogText">Choose how you want to play.</p>
+<div id="menuPane" class="pane">
+<div class="ai-card"><label class="difficulty-label" for="aiDifficulty">AI DIFFICULTY</label><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b><small>Random moves</small></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b><small>Hand management</small></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b><small>Predictive strategy</small></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+<button type="button" id="menuAI" class="menu-btn mb-ai"><span class="mb-icon" aria-hidden="true">🤖</span><span class="mb-text"><b>PLAY WITH AI</b><small>Start a solo match now</small></span></button></div>
+<a href="./online.html" id="menuOnline" class="menu-btn mb-online"><span class="mb-icon" aria-hidden="true">🌐</span><span class="mb-text"><b>MULTIPLAYER</b><small>Play 1v1 with a friend using a room code</small></span></a>
+<button type="button" id="showTutorialStart" class="menu-btn mb-help"><span class="mb-icon" aria-hidden="true">❓</span><span class="mb-text"><b>HOW TO PLAY</b><small>Learn the rules in about a minute</small></span></button>
+</div>
+<div id="aiPane" class="pane" hidden>
+<button type="button" id="startButton" class="primary">↻ PLAY AGAIN</button>
+<button type="button" id="backToMenu" class="secondary">☰ MAIN MENU · change difficulty</button>
+</div>
+</div></div>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
@@ -846,13 +874,15 @@ function confirmForfeit(){
  closeDiscardPile();renderHud();updateButton();
  // Return to the start screen and explicitly record the loss in this local session.
  S.forfeitLosses=(S.forfeitLosses||0)+1;
- showDialog('BBK CARD GAME','Match forfeited. You lose this match. Choose a difficulty to start a new game.');
+ showDialog('BBK CARD GAME','Match forfeited. You lose this match. Play again, or go back to the menu to change difficulty.');
  $('startButton').textContent='▶ START GAME';
  $('forfeitButton').hidden=true;
  msg('MATCH FORFEITED — Loss recorded locally.');
 }
 function updateForfeitButton(){$('forfeitButton').hidden=!canForfeit()||!$('overlay').hidden}
-function showDialog(title,text){$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('startButton').textContent='↻ PLAY AGAIN';$('overlay').hidden=false}
+function showPane(name){$('menuPane').hidden=name!=='menu';$('aiPane').hidden=name!=='ai'}
+function showMenu(){$('dialogTitle').innerHTML='<span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME';$('dialogText').textContent='Choose how you want to play.';$('startButton').textContent='▶ START GAME';showPane('menu');$('overlay').hidden=false;$('menuAI').focus()}
+function showDialog(title,text){$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('startButton').textContent='↻ PLAY AGAIN';showPane('ai');$('overlay').hidden=false}
 $('hand').addEventListener('click',e=>{const b=e.target.closest('button.card');if(!suppressClick&&b&&!b.disabled)onHand(b.dataset.id)});for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>onSlot(i));$('mainButton').addEventListener('click',()=>{if(S.phase==='plan'&&playedCards(0)===requiredCards(0))reveal(false);});document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{
   const d=button.dataset.difficulty;$('aiDifficulty').value=d;
   document.querySelectorAll('.difficulty-option').forEach(b=>{const chosen=b===button;b.classList.toggle('selected',chosen);b.setAttribute('aria-pressed',String(chosen))});
@@ -869,7 +899,7 @@ $('closeTutorial').addEventListener('click',closeTutorial);
 $('tutorialDone').addEventListener('click',closeTutorial);
 $('tutorialOverlay').addEventListener('click',e=>{if(e.target===$('tutorialOverlay'))closeTutorial()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('tutorialOverlay').hidden){closeTutorial();return}if(!$('forfeitOverlay').hidden){cancelForfeit();return}if(!$('pileOverlay').hidden){closeDiscardPile();return}requestForfeit();return}if(e.key==='Tab'&&!$('tutorialOverlay').hidden){const focusable=[...$('tutorialOverlay').querySelectorAll('button:not(:disabled)')];const i=focusable.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();focusable[focusable.length-1].focus()}else if(!e.shiftKey&&i===focusable.length-1){e.preventDefault();focusable[0].focus()}}});
-$('startButton').addEventListener('click',newGame);$('openDiscard').addEventListener('click',showDiscardPile);$('closeDiscard').addEventListener('click',closeDiscardPile);$('pileOverlay').addEventListener('click',e=>{if(e.target===$('pileOverlay'))closeDiscardPile()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDiscardPile()});
+$('startButton').addEventListener('click',newGame);$('menuAI').addEventListener('click',newGame);$('backToMenu').addEventListener('click',showMenu);$('openDiscard').addEventListener('click',showDiscardPile);$('closeDiscard').addEventListener('click',closeDiscardPile);$('pileOverlay').addEventListener('click',e=>{if(e.target===$('pileOverlay'))closeDiscardPile()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDiscardPile()});
 window.__rps={S,draw,initialThree,requiredCards,startRound,finishRound,reveal,showHpFinish,autoFill,newGame,play:()=>{}};
 // V15: Unified drag/drop actions for mouse and touch.
 // An action is atomic: cards cannot be duplicated or lost on an invalid drop.
