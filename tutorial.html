@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt.css">
 <style>
+:root{--w:clamp(66px,21vw,84px)}
 .lesson-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1a1332;box-shadow:0 0 0 3px var(--crt-line);width:100%;border:0;color:inherit;font-family:var(--crt-font);text-align:left}
 .lesson-row.cur{background:#3a2d63;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)}
 .lesson-row .no{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--crt-line);color:var(--crt-dim)}
@@ -18,15 +19,41 @@
 .lesson-row.lock b,.lesson-row.lock small{color:#7a6e96}
 .lesson-row[disabled]{cursor:not-allowed}
 .stack{display:flex;flex-direction:column;gap:12px}
-.cards{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.cards .crt-card{width:78px;height:104px}
-.cards .crt-card.sm{width:62px;height:86px}.cards .crt-card.sm b{font-size:16px}
-.vs{align-self:center;font-size:12px;color:var(--crt-gold)}
-.feedback{min-height:44px;font-size:11px;line-height:1.7;letter-spacing:.03em;padding:10px 12px;border-radius:10px;background:#1a1332}
-.feedback.good{background:#2f9a6e;color:var(--crt-dark)}.feedback.bad{background:#7a2a3a;color:#ffd6dc}
-.steps{display:flex;gap:6px;justify-content:center}.steps i{width:26px;height:8px;background:var(--crt-panel-in);box-shadow:0 0 0 2px var(--crt-line)}.steps i.on{background:var(--crt-gold)}
-.slots{display:flex;justify-content:center;gap:12px}.slots .crt-slot,.slots .crt-card{width:78px;height:104px}
 .row-sp{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;letter-spacing:.06em}
+.steps{display:flex;gap:6px;justify-content:center}.steps i{width:26px;height:8px;background:var(--crt-panel-in);box-shadow:0 0 0 2px var(--crt-line)}.steps i.on{background:var(--crt-gold)}
+/* guided stage */
+.stage{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.hpp{padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:10px;letter-spacing:.06em}
+.hpp .t{display:flex;justify-content:space-between}
+.hpp .crt-bar i{transition:width .4s steps(8)}
+.hpp.bot .crt-bar i{background:repeating-linear-gradient(90deg,var(--crt-coral) 0 7px,var(--crt-line) 7px 9px)}
+.hpp.me .crt-bar i{background:repeating-linear-gradient(90deg,var(--crt-teal) 0 7px,var(--crt-line) 7px 9px)}
+.row3{display:flex;justify-content:center;gap:clamp(8px,3vw,14px)}
+.row3>*{width:var(--w);height:calc(var(--w)*1.36)}
+.row3.pills>*{height:auto}
+.back{border-radius:10px;background-color:#3b2a72;background-image:conic-gradient(#4d3a8c 25%,transparent 0 50%,#4d3a8c 0 75%,transparent 0);background-size:10px 10px;box-shadow:0 0 0 3px var(--crt-line),0 6px 0 3px var(--crt-line),inset 0 0 0 4px #7a63c4}
+.pill{display:flex;align-items:center;justify-content:center;min-height:24px;padding:3px 4px;border-radius:7px;background:var(--crt-panel);color:var(--crt-mute);font-size:9px;letter-spacing:.04em;box-shadow:0 0 0 3px var(--crt-line);text-align:center}
+.pill.me{background:var(--crt-gold);color:var(--crt-dark)}.pill.bot{background:var(--crt-coral);color:var(--crt-dark)}
+.crt-card.win{box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold),0 6px 0 3px var(--crt-line),inset 0 7px 0 var(--s,#ccc)}
+.crt-card.lose{opacity:.5}
+.flip{animation:flip .25s steps(4)}@keyframes flip{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
+.crt-card svg{width:40%;height:auto}
+.hint{animation:hint 1s steps(2) infinite;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)!important}
+@keyframes hint{50%{transform:translateY(-4px)}}
+.crt-slot.hint{animation:hintring 1s steps(2) infinite;border-color:var(--crt-gold);color:var(--crt-gold)}
+@keyframes hintring{50%{background:rgba(255,211,77,.18)}}
+.hand{display:flex;justify-content:center;gap:6px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
+.hand .crt-card{width:clamp(52px,16.5vw,64px);height:clamp(72px,22.5vw,88px)}
+.hand .crt-card b{font-size:15px}
+.hand .crt-card[disabled]{opacity:.35;cursor:not-allowed}
+.coach{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--crt-panel);box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-gold);min-height:84px}
+.coach .face{flex:none;width:40px;height:40px;border-radius:50%;background:var(--crt-gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--crt-line)}
+.coach p{margin:0;font-size:11px;line-height:1.75;letter-spacing:.03em}
+.coach.ok{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #6fd3a0}.coach.bad{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #ff7a8a}
+.circle{display:flex;justify-content:center;align-items:center;gap:6px;font-size:9px;color:var(--crt-mute)}
+.circle span{display:flex;align-items:center;gap:4px}
+.banner{padding:12px;text-align:center;border-radius:12px;background:var(--crt-gold);color:var(--crt-dark);font-size:13px;letter-spacing:.06em;box-shadow:0 0 0 4px var(--crt-line);animation:hint .8s steps(2) 4}
+@media (prefers-reduced-motion:reduce){.hint,.crt-slot.hint,.flip,.banner{animation:none}}
 </style>
 </head>
 <body class="crt-page">
@@ -46,16 +73,16 @@ const app=document.getElementById('app');
 const SUIT={hammer:'HAMMER',paper:'PAPER',scissors:'SCISSORS'};
 const BEATS={hammer:'scissors',paper:'hammer',scissors:'paper'};   // key beats value
 const LESSONS=[
- {t:'THE THREE SUITS',d:'Hammer beats scissors, scissors beat paper, paper beats hammer.'},
- {t:'PLACE YOUR CARDS',d:'Fill three slots, then lock in.'},
- {t:'CLASH & DAMAGE',d:'Higher number wins. The gap is the damage.'},
- {t:'COMBOS',d:'Triple 7, 9 or 0 changes the round.'},
+ {t:'PLACE & LOCK IN',d:'Put cards in the slots and reveal.'},
+ {t:'THE CIRCLE',d:'Beat all three enemy cards.'},
+ {t:'BIG DAMAGE',d:'Deal 18+ damage in one round.'},
+ {t:'SECRET COMBO',d:'Three 7s win the match.'},
  {t:'PRACTICE MATCH',d:'Beat the training bot to finish.'}
 ];
 const step=()=>window.BBK?BBK.tutorial.get():0;
 const el=(tag,attrs,...kids)=>{const n=document.createElement(tag);for(const k in attrs||{}){if(attrs[k]==null||attrs[k]===false)continue;if(k==='class')n.className=attrs[k];else if(k==='text')n.textContent=attrs[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),attrs[k]);else n.setAttribute(k,attrs[k]);}for(const c of kids.flat())if(c!=null)n.append(c.nodeType?c:document.createTextNode(c));return n;};
 const svg=(id,w,h)=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',w);s.setAttribute('height',h);s.setAttribute('viewBox','0 0 8 8');s.setAttribute('aria-hidden','true');const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#'+id);s.append(u);return s;};
-const card=(suit,n,cls='',tag='div',attrs={})=>el(tag,Object.assign({class:'crt-card '+suit+' '+cls,'aria-label':SUIT[suit].toLowerCase()+' '+n},attrs),svg('i-'+suit,30,30),el('b',{text:String(n)}));
+const card=(suit,n,cls='',tag='div',attrs={})=>el(tag,Object.assign({type:tag==='button'?'button':undefined,class:'crt-card '+suit+' '+cls,'aria-label':SUIT[suit].toLowerCase()+' '+n},attrs),svg('i-'+suit,30,30),el('b',{text:String(n)}));
 const head=(title,backTo)=>el('div',{class:'crt-head'},el('a',{class:'crt-back','aria-label':'Back',href:backTo||'#',text:'<',onclick:backTo?undefined:(e=>{e.preventDefault();go(null)})}),el('h1',{class:'crt-title',text:title}));
 // same rules as the game server
 function clash(a,b){
@@ -63,8 +90,8 @@ function clash(a,b){
  return{w:BEATS[a.suit]===b.suit?0:1,dmg:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};
 }
 let view=null;           // null = lesson list, 1..5 = lesson
-function go(v){view=v;render();window.scrollTo(0,0);}
-async function finish(k){ if(window.BBK)await BBK.tutorial.set(k); go(null); }
+function go(v){if(stage.cancel)stage.cancel();view=v;render();window.scrollTo(0,0);}
+
 
 /* ---------- lesson list ---------- */
 function hub(){
@@ -87,101 +114,144 @@ function hub(){
  return [head('TUTORIAL','./index.html'),bar,el('div',{class:'stack'},rows),el('div',{style:'margin-top:auto'},reward)];
 }
 
-/* ---------- quiz helper (lessons 1, 3, 4) ---------- */
-function quiz(k,intro,questions,onDone){
- let qi=-1,answered=false;
- const root=el('div',{class:'stack'});
- function draw(){
-  root.replaceChildren();
-  if(qi<0){
-   root.append(el('div',{class:'crt-panel stack'},...intro),el('button',{type:'button',class:'crt-btn',text:'START QUIZ',onclick:()=>{qi=0;draw();}}));return;
-  }
-  const q=questions[qi];answered=false;
-  root.append(el('div',{class:'steps','aria-label':'Question '+(qi+1)+' of '+questions.length},questions.map((_,i)=>el('i',{class:i<=qi?'on':''}))));
-  root.append(el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:q.title}),q.view||'' ));
-  const fb=el('div',{class:'feedback',role:'status',text:'Pick an answer.'});
-  const opts=q.options.map((o,i)=>el('button',{type:'button',class:'crt-opt',onclick:ev=>{
-   if(answered)return;
-   const ok=i===q.answer;
-   if(ok){answered=true;ev.currentTarget.classList.add('good');fb.className='feedback good';fb.textContent=q.right;next.hidden=false;next.focus();opts.forEach(b=>b.disabled=true);}
-   else{ev.currentTarget.classList.add('bad');ev.currentTarget.disabled=true;fb.className='feedback bad';fb.textContent=q.hint;}
-  }},o.icon?svg(o.icon,24,24):null,o.label));
-  const next=el('button',{type:'button',class:'crt-btn',hidden:'',text:qi===questions.length-1?'FINISH LESSON':'NEXT',onclick:()=>{if(qi===questions.length-1)onDone();else{qi++;draw();}}});
-  root.append(el('div',{class:'stack'},opts),fb,next);
- }
- draw();return root;
-}
 const P=(t)=>el('p',{class:'crt-note',text:t});
-
-function lesson1(){
- const circle=el('div',{class:'cards'},card('hammer','',''),el('span',{class:'vs',text:'>'}),card('scissors','',''),el('span',{class:'vs',text:'>'}),card('paper','',''),el('span',{class:'vs',text:'>'}),card('hammer','',''));
- circle.querySelectorAll('.crt-card').forEach(c=>{c.classList.add('sm');c.querySelector('b').textContent='';});
- const mk=(s,ans)=>({title:'WHAT BEATS '+SUIT[s]+'?',view:el('div',{class:'cards'},card(s,'?','')),options:['hammer','paper','scissors'].map(x=>({label:SUIT[x],icon:'i-'+x})),answer:['hammer','paper','scissors'].indexOf(ans),
-  right:SUIT[ans]+' beats '+SUIT[s]+'.',hint:'Not that one. Follow the circle: hammer, scissors, paper, then back to hammer.'});
- return quiz(1,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'THE CIRCLE'}),circle,P('Every suit beats one and loses to another. Hammer smashes scissors. Scissors cut paper. Paper wraps hammer.')],
-  [mk('scissors','hammer'),mk('paper','scissors'),mk('hammer','paper')],()=>finish(1));
-}
-
-function lesson2(){
- const HAND=[['hammer',7],['paper',5],['scissors',9],['hammer',3],['paper',0]];
- let slots=[null,null,null],sel=null,locked=false;
- const root=el('div',{class:'stack'});
- function draw(){
-  root.replaceChildren();
-  const used=new Set(slots.filter(x=>x!==null));
-  const slotEls=slots.map((v,i)=>v===null
-   ?el('button',{type:'button',class:'crt-slot','aria-label':'Empty slot '+(i+1),text:String(i+1),onclick:()=>{if(sel===null||locked)return;slots[i]=sel;sel=null;draw();}})
-   :card(HAND[v][0],HAND[v][1],'','button',{onclick:()=>{if(locked)return;slots[i]=null;draw();},title:'Tap to take it back'}));
-  const handEls=HAND.map((h,i)=>used.has(i)?null:card(h[0],h[1],(sel===i?'sel ':'')+'sm','button',{onclick:()=>{if(locked)return;sel=sel===i?null:i;draw();}}));
-  const full=slots.every(x=>x!==null);
-  root.append(
-   el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'PLACE YOUR CARDS'}),P('Each round you put one card in each of the 3 slots. Tap a card in your hand, then tap an empty slot. Tap a placed card to take it back.')),
-   el('div',{class:'slots'},slotEls),
-   el('div',{class:'cards'},handEls),
-   el('div',{class:'feedback'+(locked?' good':''),role:'status',text:locked?'Locked in! Both players reveal at the same time, then the cards clash.':full?'All slots filled. Press LOCK IN.':'Slots filled: '+slots.filter(x=>x!==null).length+' / 3'}),
-   locked?el('button',{type:'button',class:'crt-btn',text:'FINISH LESSON',onclick:()=>finish(2)})
-        :el('button',{type:'button',class:'crt-btn',text:'LOCK IN '+slots.filter(x=>x!==null).length+' / 3',disabled:full?undefined:'',onclick:()=>{locked=true;draw();}}));
+/* ---------- guided stage: a real mini board with a coach ---------- */
+const C=(suit,n)=>({suit,n});
+const reduced=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+const wait=ms=>new Promise(r=>setTimeout(r,reduced?Math.min(ms,80):ms));
+const NAME={hammer:'Hammer',paper:'Paper',scissors:'Scissors'};
+const why=(a,b,r)=>{               // a = your card, b = bot card
+ if(r.w<0)return 'Same suit, same number: a tie, nobody takes damage.';
+ const win=r.w===0?a:b,lose=r.w===0?b:a;
+ if(a.suit===b.suit)return 'Same suit, so the higher number wins. '+(r.w===0?'Your ':'Its ')+win.n+' beats '+lose.n+': '+r.dmg+' damage.';
+ const circle=NAME[win.suit]+' beats '+NAME[lose.suit]+'.';
+ return a.n===b.n?circle+' Same number, so damage is doubled: '+r.dmg+'.':circle+' Damage is the gap, '+win.n+' − '+lose.n+' = '+r.dmg+'.';
+};
+const LV={
+ 1:{say:'Welcome! Each round you put one card in each of the 3 slots. The bot does the same in secret.',
+   opp:[C('scissors',4),C('hammer',6),C('paper',2)],faceUp:false,hand:[C('hammer',7),C('paper',5),C('scissors',9),C('hammer',3),C('paper',0)],
+   guide:[{say:'Step 1: tap the HAMMER 7 in your hand.',hand:0},{say:'Step 2: tap slot 1 to put it there.',slot:0}],
+   ready:'All 3 slots are full. Press LOCK IN. You and the bot reveal at the same time.',
+   judge:(r)=>({ok:true,say:'Round over! You won '+r.wins+' of 3 slots. Each slot is its own little fight: the winner deals damage to the loser. Win 2 of 3 to win the round.',learn:['Fill all 3 slots, then LOCK IN','Both sides reveal at the same time','Win 2 of 3 slots to win the round']})},
+ 2:{say:'The bot shows its cards. Beat ALL three! Hammer beats Scissors, Scissors beats Paper, Paper beats Hammer.',
+   opp:[C('scissors',5),C('hammer',5),C('paper',5)],faceUp:true,hand:[C('hammer',3),C('paper',8),C('scissors',6),C('hammer',9),C('paper',1)],circle:true,
+   ready:'Looks good? Press LOCK IN.',
+   judge:(r)=>r.wins===3?{ok:true,say:'PERFECT SWEEP! You won all 3 slots, which deals 5 bonus damage on top.',learn:['Hammer > Scissors > Paper > Hammer','Same suit: higher number wins','Win all 3 slots: +5 bonus damage']}
+    :{ok:false,say:(()=>{const i=r.res.findIndex(x=>x.w!==0);return 'Slot '+(i+1)+' got away from you. '+why(r.mine[i],r.opp[i],r.res[i])+' Take it back and try another card.'})()}},
+ 3:{say:'Damage is the GAP between the two numbers. Deal 18 or more damage this round. Put big numbers where they win!',
+   opp:[C('hammer',3),C('paper',2),C('scissors',4)],faceUp:true,hand:[C('paper',9),C('scissors',7),C('hammer',8),C('hammer',5),C('scissors',2)],circle:true,target:18,
+   ready:'Count the gaps in your head, then LOCK IN.',
+   judge:(r)=>r.dmgOpp>=18&&r.wins>=2?{ok:true,say:'Nice! '+r.dmgOpp+' damage'+(r.wins===3?' (including the +5 sweep bonus)':'')+'. A big number against a small one wins big.',learn:['Damage = difference between the numbers','Different suits with the same number: damage is doubled','Pick the matchups where your gap is largest']}
+    :{ok:false,say:'Only '+r.dmgOpp+' damage, you need 18. Sweeping all 3 slots adds +5. Try to win every slot, and match a high number with a low enemy card.'}},
+ 4:{say:'Secret combo! Win a round while playing THREE 7s and you win the whole match. Place the three 7s so each one beats the card above it.',
+   opp:[C('scissors',2),C('hammer',3),C('paper',1)],faceUp:true,hand:[C('hammer',7),C('paper',7),C('scissors',7),C('hammer',2),C('paper',4)],circle:true,
+   ready:'Three 7s in place. Press LOCK IN!',
+   judge:(r)=>{const sevens=r.mine.every(c=>c.n===7);
+    if(sevens&&r.wins>=2)return{ok:true,combo:true,say:'PACK JOT! Three 7s and you won the round: instant victory. The bot never saw it coming.',learn:['7-7-7 and win the round: instant victory','0-0-0 and win: one enemy slot gets sealed next round','9-9-9 is risky: lose the round and you take double damage']};
+    return{ok:false,say:sevens?'You played the 7s but lost the round. Put each 7 against the card it beats: Hammer 7 beats Scissors, Paper 7 beats Hammer, Scissors 7 beats Paper.':'You need all three 7s: HAMMER 7, PAPER 7 and SCISSORS 7.'}}}
+};
+const SWEEP=5;
+function stage(k){
+ const L=LV[k];
+ let slots,sel,phase,gi,note,tone,shown,fx,hpBot,hpMe,tries=0,token=0,banner=false;
+ const root=el('div',{class:'stage'});
+ function reset(){slots=[null,null,null];sel=null;phase='plan';gi=L.guide?0:99;note=tries>0?note:null;shown=L.faceUp?3:0;fx=[null,null,null];hpBot=100;hpMe=100;banner=false}
+ reset();
+ const placed=()=>slots.filter(x=>x!==null).length;
+ const hand=()=>L.hand.map((c,i)=>({c,i})).filter(h=>!slots.includes(h.i));
+ function coachText(){
+  if(note)return note;
+  if(gi<(L.guide||[]).length)return L.guide[gi].say;
+  if(placed()===3)return L.ready;
+  return L.say;
  }
+ function place(i,s){slots[s]=i;sel=null;if(gi<(L.guide||[]).length&&L.guide[gi].slot===s)gi++;note=null;draw();}
+ function pick(i){
+  if(phase!=='plan')return;
+  const g=(L.guide||[])[gi];
+  if(g&&g.hand!==undefined&&g.hand!==i)return;
+  sel=sel===i?null:i;
+  if(g&&g.hand===i&&sel===i)gi++;
+  draw();
+ }
+ function slotTap(s){
+  if(phase!=='plan')return;
+  const g=(L.guide||[])[gi];
+  if(slots[s]!==null){if(g)return;slots[s]=null;sel=null;note=null;draw();return;}
+  if(sel===null)return;
+  if(g&&g.slot!==undefined&&g.slot!==s)return;
+  place(sel,s);
+ }
+ async function lock(){
+  if(phase!=='plan'||placed()<3)return;
+  const my=token;phase='reveal';sel=null;note='Revealing…';draw();
+  if(!L.faceUp){for(let i=0;i<3;i++){await wait(350);if(my!==token)return;shown=i+1;draw();}}
+  const mine=slots.map(i=>L.hand[i]),res=mine.map((c,i)=>clash(c,L.opp[i]));
+  let wins=0,dmgOpp=0;
+  for(let i=0;i<3;i++){
+   await wait(750);if(my!==token)return;
+   fx[i]=res[i];
+   if(res[i].w===0){wins++;dmgOpp+=res[i].dmg;hpBot=Math.max(0,hpBot-res[i].dmg);}
+   else if(res[i].w===1)hpMe=Math.max(0,hpMe-res[i].dmg);
+   draw();
+  }
+  if(wins===3){await wait(600);if(my!==token)return;dmgOpp+=SWEEP;hpBot=Math.max(0,hpBot-SWEEP);}
+  const v=L.judge({wins,dmgOpp,res,mine,opp:L.opp});
+  if(v.ok&&v.combo){await wait(500);if(my!==token)return;hpBot=0;banner=true;}
+  await wait(500);if(my!==token)return;
+  phase=v.ok?'win':'fail';tone=v.ok?'ok':'bad';note=v.say;L._learn=v.learn;draw();
+  if(v.ok&&window.BBK)BBK.tutorial.set(k);
+ }
+ function retry(){tries++;const n=note;reset();note='Try again. '+(n||'');draw();}
+ function draw(){
+  const g=(L.guide||[])[gi];
+  const oppRow=el('div',{class:'row3'},L.opp.map((c,i)=>{
+   if(i>=shown)return el('div',{class:'back','aria-label':'Hidden enemy card'});
+   const win=fx[i]&&fx[i].w===1,lose=fx[i]&&fx[i].w===0;
+   return card(c.suit,c.n,(win?'win ':'')+(lose?'lose ':'')+(phase==='reveal'&&!L.faceUp&&i===shown-1&&!fx[0]?'flip':''));
+  }));
+  const pills=el('div',{class:'row3 pills'},[0,1,2].map(i=>{
+   const f=fx[i];
+   if(!f)return el('div',{class:'pill',text:(i+1)+' VS '+(i+1)});
+   if(f.w<0)return el('div',{class:'pill',text:'TIE'});
+   return el('div',{class:'pill '+(f.w===0?'me':'bot'),text:(f.w===0?'YOU':'BOT')+' −'+f.dmg});
+  }));
+  const slotRow=el('div',{class:'row3'},slots.map((hi,s)=>{
+   if(hi!==null){const c=L.hand[hi],f=fx[s];
+    return card(c.suit,c.n,(f&&f.w===0?'win ':'')+(f&&f.w===1?'lose ':''),'button',{onclick:()=>slotTap(s),title:'Tap to take it back','aria-label':NAME[c.suit]+' '+c.n+' in slot '+(s+1)+(phase==='plan'?', tap to take back':''),disabled:phase!=='plan'?'':undefined});}
+   const hint=phase==='plan'&&((g&&g.slot===s)||(!g&&sel!==null));
+   return el('button',{type:'button',class:'crt-slot'+(hint?' hint':''),text:String(s+1),'aria-label':'Empty slot '+(s+1),onclick:()=>slotTap(s)});
+  }));
+  const hp=(who,v,cls)=>el('div',{class:'crt-panel hpp '+cls},el('div',{class:'t'},el('span',{text:who}),el('span',{style:'color:var(--crt-mute)',text:v+' HP'})),el('div',{class:'crt-bar'},el('i',{style:'width:'+v+'%'})));
+  const handEls=hand().map(({c,i})=>{
+   const dis=phase!=='plan'||(g&&g.hand!==undefined&&g.hand!==i);
+   const isHint=phase==='plan'&&g&&g.hand===i&&sel!==i;
+   return card(c.suit,c.n,(sel===i?'sel ':'')+(isHint?'hint':''),'button',{onclick:()=>pick(i),disabled:dis?'':undefined,'aria-label':NAME[c.suit]+' '+c.n+(sel===i?', selected':'')});
+  });
+  const full=placed()===3&&phase==='plan';
+  const btn=phase==='win'?el('button',{type:'button',class:'crt-btn teal',text:k<4?'NEXT LESSON':'NEXT: PRACTICE MATCH',onclick:()=>{token++;go(k+1)}})
+   :phase==='fail'?el('button',{type:'button',class:'crt-btn coral',text:'TRY AGAIN',onclick:retry})
+   :el('button',{type:'button',class:'crt-btn'+(full?' hint':''),disabled:full?undefined:'',text:phase==='reveal'?'REVEALING…':'LOCK IN '+placed()+' / 3',onclick:lock});
+  const circle=L.circle?el('div',{class:'circle'},['hammer','scissors','paper','hammer'].map((s,i)=>[i?el('span',{text:'>'}):null,el('span',{},svg('i-'+s,16,16),NAME[s].toUpperCase())]).flat().filter(Boolean)):null;
+  const learn=(phase==='win'&&L._learn)?el('div',{class:'crt-panel stack'},el('b',{style:'font-size:11px;color:#6fd3a0',text:'YOU LEARNED'}),...L._learn.map(t=>el('p',{class:'crt-note',text:'• '+t}))):null;
+  root.replaceChildren(...[
+   hp('TRAINING BOT',hpBot,'bot'),oppRow,pills,slotRow,hp('YOU',hpMe,'me'),circle,
+   banner?el('div',{class:'banner',role:'status',text:'★ PACK JOT · INSTANT VICTORY ★'}):null,
+   el('div',{class:'coach '+(phase==='win'?'ok':phase==='fail'?'bad':''),role:'status'},el('span',{class:'face'},svg('i-hand',24,24)),el('p',{text:coachText()})),
+   learn,
+   el('div',{class:'hand','aria-label':'Your hand'},handEls),
+   btn].flat(2).filter(Boolean));
+ }
+ stage.cancel=()=>{token++};
  draw();return root;
 }
-
-function lesson3(){
- const C=(s,n)=>({suit:s,n});
- const pairs=[[C('hammer',7),C('hammer',3)],[C('paper',5),C('hammer',2)],[C('scissors',4),C('paper',4)],[C('paper',2),C('scissors',8)]];
- const why=(a,b,r)=>a.suit===b.suit?(r.w<0?'Same suit and same number is a tie.':'Same suit: the higher number wins. Damage is the gap, '+r.dmg+'.')
-  :a.n===b.n?SUIT[r.w===0?a.suit:b.suit]+' wins the circle. Same number, so damage is the number doubled: '+r.dmg+'.'
-  :SUIT[r.w===0?a.suit:b.suit]+' wins the circle, damage is the gap between the numbers: '+r.dmg+'.';
- const qs=pairs.map(([a,b])=>{
-  const r=clash(a,b),lab=(w,d)=>w<0?'Tie, no damage':(w===0?'You win':'Opponent wins')+' · '+d+' damage';
-  const correct=lab(r.w,r.dmg);
-  const cand=[correct,lab(1-r.w<0?0:1-r.w,r.dmg),lab(r.w,r.dmg+(r.dmg>3?-2:2)),lab(r.w,Math.abs(a.n-b.n)===r.dmg?a.n+b.n:Math.abs(a.n-b.n)),'Tie, no damage'];
-  const uniq=[...new Set(cand)].slice(0,4);
-  if(!uniq.includes(correct))uniq[uniq.length-1]=correct;
-  uniq.sort();
-  return{title:'WHO WINS, AND HOW MUCH DAMAGE?',view:el('div',{class:'cards'},el('div',{class:'stack',style:'align-items:center'},el('small',{text:'YOU'}),card(a.suit,a.n,'')),el('span',{class:'vs',text:'VS'}),el('div',{class:'stack',style:'align-items:center'},el('small',{text:'OPPONENT'}),card(b.suit,b.n,''))),
-   options:uniq.map(l=>({label:l})),answer:uniq.indexOf(correct),right:'Correct. '+why(a,b,r),hint:'Not quite. First check the circle if the suits differ; if they match, compare the numbers.'};
- });
- return quiz(3,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'HOW A CLASH WORKS'}),P('Different suits: the circle decides the winner. Same suit: the higher number wins. Damage is the difference between the two numbers.'),P('Same number but different suits: damage is the number times two. Same suit and same number: a tie.')],qs,()=>finish(3));
-}
-
-function lesson4(){
- const E=['The round is an instant victory','One enemy slot is sealed next round','You take double damage and the enemy draws an extra card','Nothing special happens'];
- const mk=(title,cards,ans,right)=>({title,view:el('div',{class:'cards'},cards.map(c=>card(c[0],c[1],'sm'))),options:E.map(l=>({label:l})),answer:ans,right,hint:'Not that one. Think about who wins the round and which triple it is.'});
- return quiz(4,[el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'THREE OF A KIND'}),P('Play three cards with the same number and the round can change.'),P('7-7-7 and you win the round: instant victory. 0-0-0 and you win: one enemy slot is sealed next round. 9-9-9 is risky: lose the round with it and you take double damage while the enemy draws an extra card.')],[
-  mk('YOU WIN THE ROUND WITH 7-7-7',[['hammer',7],['paper',7],['scissors',7]],0,'Pack Jot: three sevens that win the round end the match at once.'),
-  mk('YOU WIN THE ROUND WITH 0-0-0',[['hammer',0],['paper',0],['scissors',0]],1,'Zero to Hero: a random enemy slot is sealed for the next round.'),
-  mk('YOU LOSE THE ROUND WITH 9-9-9',[['hammer',9],['paper',9],['scissors',9]],2,'Kiants Giller: the big triple backfires if you lose. Double damage to you and a bonus draw for the enemy.')
- ],()=>finish(4));
-}
-
 function lesson5(){
- const s=step();
- const done=s>=5;
+ const done=step()>=5;
  return el('div',{class:'stack'},
   el('div',{class:'crt-panel stack'},el('b',{style:'font-size:12px;color:var(--crt-gold)',text:'YOUR FIRST REAL MATCH'}),
    P('Play one full match against the training bot on EASY. Win it and the tutorial is complete.'),
-   P('Tips: fill every slot, watch the circle, and save big numbers for slots where you expect to win.')),
-  done?el('div',{class:'feedback good',text:'Already complete. You can replay it any time.'}):null,
+   P('Tips: fill every slot, follow the circle, and save big numbers for slots you are sure to win.')),
+  done?el('div',{class:'crt-panel',style:'background:#2f9a6e;color:var(--crt-dark)',text:'Already complete. You can replay it any time.'}):null,
   el('a',{class:'crt-btn coral',href:'./index.html?practice=1',text:done?'PLAY AGAIN':'START PRACTICE MATCH'}));
 }
 
@@ -191,7 +261,7 @@ function render(){
  else{
   const s=step();
   if(view>s+1){view=null;body=hub();}
-  else body=[head('LESSON '+view+' / 5'),el('div',{class:'stack'},el('b',{style:'font-size:14px;letter-spacing:.06em',text:LESSONS[view-1].t}),[lesson1,lesson2,lesson3,lesson4,lesson5][view-1]())];
+  else body=[head('LESSON '+view+' / 5'),el('div',{class:'stack'},el('b',{style:'font-size:14px;letter-spacing:.06em',text:LESSONS[view-1].t}),(view===5?lesson5:()=>stage(view))())];
  }
  app.replaceChildren(...[].concat(body));
 }
