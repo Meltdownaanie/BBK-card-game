@@ -91,22 +91,22 @@ async function cut(win,lose,p,crit){
 async function portal(win,lose,p,crit){
   const l=rc(lose),w=rc(win),rx=34+p*7+(crit?10:0),ry=rx*1.3,life=.62,T0=performance.now();
   // swirling particles spiral into the portal
-  for(let i=0;i<Math.round(16+p*8);i++){const a0=R(0,TAU),r0=R(60,110+p*14),d=R(.15,.4),tl=R(.25,.4);let a=-d;add((g,dt)=>{a+=dt;if(a<0)return true;if(a>tl)return false;const k=a/tl,r=r0*(1-ease(k)),an=a0+k*5;g.save();g.globalCompositeOperation='lighter';g.fillStyle=`rgba(${PK(['120,255,170','210,255,230','60,230,120'])},${1-k*.5})`;g.beginPath();g.arc(l.x+Math.cos(an)*r,l.y+Math.sin(an)*r*1.25,2.2*(1-k*.5),0,TAU);g.fill();g.restore()})}
+  for(let i=0;i<Math.round(16+p*8);i++){const a0=R(0,TAU),r0=R(60,110+p*14),d=R(.15,.4),tl=R(.25,.4);let a=-d;add((g,dt)=>{a+=dt;if(a<0)return true;if(a>tl)return false;const k=a/tl,r=r0*(1-ease(k)),an=a0+k*5;g.save();g.globalCompositeOperation='lighter';g.fillStyle=`rgba(${PK(['110,190,255','215,238,255','60,150,240'])},${1-k*.5})`;g.beginPath();g.arc(l.x+Math.cos(an)*r,l.y+Math.sin(an)*r*1.25,2.2*(1-k*.5),0,TAU);g.fill();g.restore()})}
   add(at(0,life,(g,a,k)=>{const open=ease(Math.min(1,a/.12)),close=a>life-.14?Math.max(0,1-(a-(life-.14))/.14):1,s=open*close;if(s<=0)return;
     g.translate(l.x,l.y);
-    g.globalCompositeOperation='lighter';const q0=g.createRadialGradient(0,0,0,0,0,rx*2.1);q0.addColorStop(0,`rgba(60,255,140,${.55*s})`);q0.addColorStop(1,'rgba(60,255,140,0)');g.fillStyle=q0;g.fillRect(-rx*2.2,-rx*2.2,rx*4.4,rx*4.4);
+    g.globalCompositeOperation='lighter';const q0=g.createRadialGradient(0,0,0,0,0,rx*2.1);q0.addColorStop(0,`rgba(70,160,255,${.55*s})`);q0.addColorStop(1,'rgba(70,160,255,0)');g.fillStyle=q0;g.fillRect(-rx*2.2,-rx*2.2,rx*4.4,rx*4.4);
     g.globalCompositeOperation='source-over';g.scale(s,s);
-    const q=g.createRadialGradient(0,0,2,0,0,rx);q.addColorStop(0,'#00100a');q.addColorStop(.6,'#04552a');q.addColorStop(1,'#59ff9c');g.fillStyle=q;g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU);g.fill();
-    for(let i=0;i<4;i++){g.strokeStyle=i%2?'#d8ffe8':'#2ee27a';g.lineWidth=3;g.lineCap='round';g.beginPath();const f=.3+i*.17;g.ellipse(0,0,rx*f,ry*f,0,a*(9+i*2)*(i%2?-1:1),a*(9+i*2)*(i%2?-1:1)+1.5);g.stroke()}
-    g.strokeStyle='#e6fff0';g.lineWidth=3.2;g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU);g.stroke()}));
-  add(shock(l.x,l.y,10,rx*1.6,.28,'90,255,160',5,.02));
-  label(crit?'PORTAL!!!':'PORTAL!!',l.x,(crit?l.y+l.h*.72:l.y-l.h*.62-p*4),p,'#7dffb0',true);jolt(2+p);if(crit)critical(l.x,l.y,p);
+    const q=g.createRadialGradient(0,0,2,0,0,rx);q.addColorStop(0,'#020b1c');q.addColorStop(.6,'#0a3f8f');q.addColorStop(1,'#6fb8ff');g.fillStyle=q;g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU);g.fill();
+    for(let i=0;i<4;i++){g.strokeStyle=i%2?'#dff0ff':'#3b9bff';g.lineWidth=3;g.lineCap='round';g.beginPath();const f=.3+i*.17;g.ellipse(0,0,rx*f,ry*f,0,a*(9+i*2)*(i%2?-1:1),a*(9+i*2)*(i%2?-1:1)+1.5);g.stroke()}
+    g.strokeStyle='#eaf5ff';g.lineWidth=3.2;g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU);g.stroke()}));
+  add(shock(l.x,l.y,10,rx*1.6,.28,'110,180,255',5,.02));
+  label(crit?'WRAP!!!':'WRAP!!',l.x,(crit?l.y+l.h*.72:l.y-l.h*.62-p*4),p,'#8cc8ff',true);jolt(2+p);if(crit)critical(l.x,l.y,p);
   anim(win,[{transform:'none'},{transform:`translate(${(l.x-w.x)*.1}px,${(l.y-w.y)*.08}px) scale(1.1)`,offset:.35},{transform:'none'}],{duration:420});
   await sleep(90);
   // the hammer is dragged in, spinning and shrinking
   lose.style.position=lose.style.position||'relative';lose.style.zIndex=1005;
-  await anim(lose,[{transform:'none',opacity:1,filter:'none'},{transform:'scale(1.06) rotate(-10deg)',offset:.18,opacity:1},{transform:'translate(0,0) scale(.05) rotate(720deg)',opacity:0,filter:'brightness(2) hue-rotate(60deg)'}],{duration:300,easing:'cubic-bezier(.6,0,.9,.4)'});
-  add(glow(l.x,l.y,50+p*12,.2,'180,255,210',.9));add(shock(l.x,l.y,4,rx*1.3,.22,'200,255,225',4));
+  await anim(lose,[{transform:'none',opacity:1,filter:'none'},{transform:'scale(1.06) rotate(-10deg)',offset:.18,opacity:1},{transform:'translate(0,0) scale(.05) rotate(720deg)',opacity:0,filter:'brightness(2) hue-rotate(-20deg)'}],{duration:300,easing:'cubic-bezier(.6,0,.9,.4)'});
+  add(glow(l.x,l.y,50+p*12,.2,'190,225,255',.9));add(shock(l.x,l.y,4,rx*1.3,.22,'210,235,255',4));
   await sleep(Math.max(0,life*1000-(performance.now()-T0))-60);
 }
 const FX2={play(type,win,lose,p,crit,damage){p=Math.max(.75,Math.min(3.2,p||1));FX2._dmg=damage;return({smash,cut,portal}[type])(win,lose,p,!!crit)},critical,jolt:null};
