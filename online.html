@@ -349,10 +349,10 @@ body{padding:8px 12px 12px}
 <div class="online-controls"><input id="onlineNumber" type="text" inputmode="numeric" autocomplete="off" placeholder="CODE" aria-label="Room code"><button id="onlineEnter" type="button" class="primary" disabled>JOIN</button></div>
 <button type="button" id="showTutorialStart" class="secondary help-start">? HOW TO PLAY</button>
 <button type="button" id="onlineBoard" class="secondary help-start">🏆 LEADERBOARD</button>
-<a href="./index.html" class="secondary back-link">← MAIN MENU</a>
+<a href="./index.html" id="onlineBack" class="secondary back-link">⎋ BACK TO MENU</a>
 </div>
-<div id="onlineQueue" class="pane" hidden><div class="online-code" id="onlineQueueTimer" aria-hidden="true">0:00</div><p class="online-note" id="onlineQueueText" role="status">Searching for an opponent near your rating…</p><button type="button" id="onlineQueueCancel" class="secondary">CANCEL</button></div>
-<div id="onlineRoom" class="pane" hidden><div class="online-code" id="onlineCode">—</div><p class="online-note">Send this code to your friend, or share the invite link.</p><button type="button" id="onlineInvite" class="secondary">📋 COPY INVITE LINK</button><p id="onlinePlayers" class="online-note"></p><p id="onlineRating" class="online-note" role="status" hidden></p><div class="online-controls"><button type="button" class="primary" id="onlineReady">I'M READY</button><button type="button" class="secondary" id="onlineLeave">LEAVE ROOM</button></div></div>
+<div id="onlineQueue" class="pane" hidden><div class="online-code" id="onlineQueueTimer" aria-hidden="true">0:00</div><p class="online-note" id="onlineQueueText" role="status">Searching for an opponent near your rating…</p><button type="button" id="onlineQueueCancel" class="secondary">⎋ BACK · CANCEL SEARCH</button></div>
+<div id="onlineRoom" class="pane" hidden><div class="online-code" id="onlineCode">—</div><p class="online-note">Send this code to your friend, or share the invite link.</p><button type="button" id="onlineInvite" class="secondary">📋 COPY INVITE LINK</button><p id="onlinePlayers" class="online-note"></p><p id="onlineRating" class="online-note" role="status" hidden></p><div class="online-controls"><button type="button" class="primary" id="onlineReady">I'M READY</button><button type="button" class="secondary" id="onlineLeave">⎋ LEAVE ROOM</button></div></div>
 <select id="aiDifficulty" hidden><option value="easy">Easy</option></select><button type="button" id="startButton" class="primary" hidden>▶ START GAME</button></div></div>
 <script src="./bbk-account.js"></script>
 <script>
@@ -1144,6 +1144,13 @@ $('onlineNumber').addEventListener('input',e=>e.target.value=e.target.value.repl
 $('onlineNumber').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnline()});
 $('onlineReady').onclick=()=>send({type:'ready',ready:true});
 $('onlineLeave').onclick=()=>send({type:'leave_room'});
+document.addEventListener('keydown',e=>{
+ // Escape steps back one screen in the lobby (match forfeit keeps its own Escape handling)
+ if(e.key!=='Escape'||e.defaultPrevented||$('overlay').hidden||!$('tutorialOverlay').hidden)return;
+ if(!$('onlineQueue').hidden){$('onlineQueueCancel').click();return}
+ if(!$('onlineRoom').hidden&&!$('onlineLeave').hidden){$('onlineLeave').click();return}
+ if(!$('onlineJoin').hidden)location.href='./index.html';
+});
 if(window.BBK){
  BBK.mount($('accountBar'));
  BBK.onChange(()=>{if(sockOpen()&&!roomActive&&!queuing())sendAuth();else syncButtons()});

@@ -26,7 +26,7 @@
 .crt-btn[disabled]{--c:#6e6890;--d:#4a4568;color:#cdbfe8;cursor:not-allowed;transform:none}
 .crt-btn.coral{--c:var(--crt-coral);--d:var(--crt-coral-d)} .crt-btn.teal{--c:var(--crt-teal);--d:var(--crt-teal-d)}
 .crt-btn.lilac{--c:var(--crt-lilac);--d:var(--crt-lilac-d)} .crt-btn.mute{--c:#cdbfe8;--d:#8f84b4}
-.crt-back{width:46px;height:46px;flex:none;border:0;border-radius:10px;background:var(--crt-panel);color:var(--crt-ink);font-family:var(--crt-font);font-size:18px;box-shadow:0 0 0 3px var(--crt-line);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.crt-back{width:auto;padding:0 14px;white-space:nowrap;height:46px;flex:none;border:0;border-radius:10px;background:var(--crt-panel);color:var(--crt-ink);font-family:var(--crt-font);font-size:18px;box-shadow:0 0 0 3px var(--crt-line);cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .crt-head{display:flex;align-items:center;gap:14px}
 .crt-bar{height:16px;border-radius:6px;background:var(--crt-line);padding:3px;box-shadow:0 0 0 3px var(--crt-line)}
 .crt-bar i{display:block;height:100%;border-radius:3px;background:repeating-linear-gradient(90deg,var(--crt-gold) 0 7px,var(--crt-line) 7px 9px);transition:width .3s steps(6)}
