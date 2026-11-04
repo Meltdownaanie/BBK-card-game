@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>BBK Tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt.css">
 <style>
 :root{--w:clamp(66px,21vw,84px)}
@@ -40,14 +40,14 @@
 .crt-card.gone{opacity:.25;filter:grayscale(1);transform:translateY(8px) rotate(-6deg)}
 .flip{animation:flip .25s steps(4)}@keyframes flip{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
 .crt-card svg{width:40%;height:auto}
-.row3 .crt-card b{font-size:30px!important}
+.row3 .crt-card b{font-size:22px!important}
 .hint{animation:hint 1s steps(2) infinite;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)!important}
 @keyframes hint{50%{transform:translateY(-4px)}}
 .crt-slot.hint{animation:hintring 1s steps(2) infinite;border-color:var(--crt-gold);color:var(--crt-gold)}
 @keyframes hintring{50%{background:rgba(255,211,77,.18)}}
 .hand{display:flex;justify-content:center;gap:6px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
 .hand .crt-card{width:clamp(52px,16.5vw,64px);height:clamp(72px,22.5vw,88px)}
-.hand .crt-card b{font-size:24px!important}
+.hand .crt-card b{font-size:17px!important}
 .hand .crt-card[disabled]{opacity:.35;cursor:not-allowed}
 .coach{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--crt-panel);box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-gold);min-height:84px}
 .coach .face{flex:none;width:40px;height:40px;border-radius:50%;background:var(--crt-gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--crt-line)}
