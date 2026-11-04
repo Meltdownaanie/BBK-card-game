@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BBK clash effects demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--c-line:#0c0614}body{margin:0;min-height:100vh;background:#12394a;color:#fff7e8;font-family:'Pixelify Sans',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px;overflow-x:hidden}
+h1{font-family:'Press Start 2P',monospace;font-size:16px;margin:4px 0}
+.stage{position:relative;width:min(92vw,420px);height:300px;border-radius:14px;background:#0b2631;box-shadow:0 0 0 4px #0c0614;overflow:hidden}
+.pair{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;gap:60px}
+.c{width:64px;height:90px;border-radius:8px;display:grid;place-items:center;font:700 30px 'Press Start 2P',monospace;color:#1b0d22;box-shadow:0 0 0 3px #0c0614}
+.ham{background:#ff7a59}.sci{background:#6fd3a0}.pap{background:#5aa9e8}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font:700 16px 'Pixelify Sans',sans-serif;padding:10px 16px;border:0;border-radius:8px;background:#ffd34d;color:#1b0d22;box-shadow:0 0 0 3px #0c0614;cursor:pointer}
+label{display:flex;gap:10px;align-items:center;font-size:15px}input{width:200px}
+.fx-label{position:fixed;z-index:1006;pointer-events:none;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;text-shadow:3px 3px 0 #0c0614;animation:fxLabel .85s steps(8) both;white-space:nowrap}
+@keyframes fxLabel{0%{transform:translate(-50%,-30%) scale(.4);opacity:0}25%{transform:translate(-50%,-60%) scale(1.25);opacity:1}100%{transform:translate(-50%,-110%) scale(1);opacity:0}}
+</style></head><body>
+<h1>CLASH FX</h1>
+<div class="stage" id="stage"><div class="pair"><div class="c" id="a"></div><div class="c" id="b"></div></div></div>
+<label>Damage <input id="dmg" type="range" min="1" max="18" value="6"><b id="dv">6</b></label>
+<div class="row"><button data-t="smash">🔨 Hammer smashes Scissors</button><button data-t="cut">✂ Scissors cut Paper</button><button data-t="wrap">📄 Paper freezes Hammer</button></div>
+<script src="./fx.js"></script>
+<script>
+const $=id=>document.getElementById(id),pw=d=>Math.max(.75,Math.min(3.2,.8+d*.17));
+const cfg={smash:['ham','sci','7','2'],cut:['sci','pap','8','3'],wrap:['pap','ham','6','4']};
+FX.jolt=v=>{const p=Math.min(10,v);document.body.animate([{transform:'translate(0,0)'},{transform:`translate(${-2-p}px,1px)`},{transform:`translate(${2+p}px,-1px)`},{transform:'translate(0,0)'}],{duration:200+p*25})};
+$('dmg').oninput=e=>$('dv').textContent=e.target.value;
+document.querySelectorAll('button').forEach(b=>b.onclick=()=>{const t=b.dataset.t,[ca,cb,na,nb]=cfg[t];$('a').className='c '+ca;$('b').className='c '+cb;$('a').textContent=na;$('b').textContent=nb;
+ const r=$('stage').getBoundingClientRect();FX[t](r.left+r.width/2,r.top+r.height/2,pw(+$('dmg').value))});
+</script></body></html>
