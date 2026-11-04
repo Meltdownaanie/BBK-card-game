@@ -329,16 +329,19 @@ body{padding:8px 12px 12px}
 <div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3><button type="button" class="secondary" id="closeDiscard">Close ✕</button></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
 <div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems">✊ 📄 ✂️</div><p id="dialogText">Choose how you want to play.</p>
 <div id="menuPane" class="pane">
+<div id="accountBar" class="account-bar"></div>
 <div class="ai-card"><label class="difficulty-label" for="aiDifficulty">AI DIFFICULTY</label><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b><small>Random moves</small></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b><small>Hand management</small></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b><small>Predictive strategy</small></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
 <button type="button" id="menuAI" class="menu-btn mb-ai"><span class="mb-icon" aria-hidden="true">🤖</span><span class="mb-text"><b>PLAY WITH AI</b><small>Start a solo match now</small></span></button></div>
 <a href="./online.html" id="menuOnline" class="menu-btn mb-online"><span class="mb-icon" aria-hidden="true">🌐</span><span class="mb-text"><b>MULTIPLAYER</b><small>Play 1v1 with a friend using a room code</small></span></a>
 <button type="button" id="showTutorialStart" class="menu-btn mb-help"><span class="mb-icon" aria-hidden="true">❓</span><span class="mb-text"><b>HOW TO PLAY</b><small>Learn the rules in about a minute</small></span></button>
+<button type="button" id="menuBoard" class="menu-btn mb-board"><span class="mb-icon" aria-hidden="true">🏆</span><span class="mb-text"><b>LEADERBOARD</b><small>See the top ranked players</small></span></button>
 </div>
 <div id="aiPane" class="pane" hidden>
 <button type="button" id="startButton" class="primary">↻ PLAY AGAIN</button>
 <button type="button" id="backToMenu" class="secondary">☰ MAIN MENU · change difficulty</button>
 </div>
 </div></div>
+<script src="./bbk-account.js"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
@@ -1036,4 +1039,5 @@ document.addEventListener('pointercancel',cleanTouchDrag);
 let suppressClick=false;
 S.deck=[makeDeck(0),makeDeck(1)];for(let p=0;p<2;p++)for(let i=0;i<5;i++){draw(p);S.hand[p][S.hand[p].length-1].origin='hand'}render();renderPlayedTracker();msg('Press START GAME to begin Round 1. New players can open the tutorial below the board at any time.');
 })();
-</script></body></html>
+</script>
+<script>if(window.BBK){BBK.mount(document.getElementById('accountBar'));}document.getElementById('menuBoard').addEventListener('click',function(){if(window.BBK)BBK.openLeaderboard()});</script></body></html>

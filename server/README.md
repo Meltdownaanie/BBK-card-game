@@ -30,6 +30,22 @@ Messages (client to server):
 - In a match: `place`, `return`, `swap`, `lock`, `discard`, `forfeit`
 - Legacy: `{"type":"enter_room","code":"007"}` (3 digits, first arrival creates, second joins) is still accepted.
 
+## Accounts and ranked play (optional)
+Set these environment variables on the Render service. Without them the server still works for guests and friend rooms.
+
+| Variable | Purpose |
+| --- | --- |
+| `SUPABASE_URL` | Project URL, e.g. `https://xxxx.supabase.co` (enables sign-in) |
+| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` key, used to verify players' tokens |
+| `SUPABASE_SECRET_KEY` | `sb_secret_...` key (enables ranked + saving results). Server only, never put it in the repo or a web page |
+| `ALLOWED_ORIGINS` | Optional, comma-separated site origins allowed to connect, e.g. `https://you.github.io` |
+| `RECONNECT_MS` | Optional, seconds-in-ms a signed-in player's seat is held after a disconnect (default 60000) |
+| `RECORD_RETRY_MS` | Optional, first retry delay when saving a result fails (default 2000, doubles each try) |
+
+More client messages: `auth` (`{"type":"auth","token":"<user JWT>"}` or `token:null` for guest), `ranked_queue`, `ranked_cancel`.
+Server messages: `auth_ok`, `auth_error`, `queued`, `queue_left`, `match_found`, `rating_update`, `opponent_disconnected`, `opponent_back`.
+`/health` also reports `accounts`, `ranked` and `queue`. Database setup is in `supabase/schema.sql`.
+
 Important: room state is in memory; redeploys, restarts, and free-instance sleep lose active rooms.
 Free instances sleep after a period without traffic, so the first connection can take up to a minute;
 the client pings `/health` and retries automatically.

@@ -110,12 +110,13 @@ create policy "players read their own matches" on public.matches
 -- ---------------------------------------------------------------------------------------------
 -- K = 32 and a start rating of 1000 are starting points: tune them once you have real matches.
 create function public.record_match(
-  p_player1 uuid,
-  p_player2 uuid,
-  p_result  text,                      -- 'player1' | 'player2' | 'draw'
-  p_reason  text    default null,
-  p_rounds  integer default null,
-  p_ranked  boolean default true       -- false: store the match, leave ratings untouched
+  p_player1  uuid,
+  p_player2  uuid,
+  p_result   text,                     -- 'player1' | 'player2' | 'draw'
+  p_reason   text    default null,
+  p_rounds   integer default null,
+  p_ranked   boolean default true,     -- false: store the match, leave ratings untouched
+  p_match_id uuid    default null      -- idempotency key: sending the same id twice never counts a match twice
 )
 returns jsonb
 language plpgsql
@@ -128,6 +129,7 @@ declare
   n1 integer; n2 integer;
   s1 float8;  e1 float8;
   m_id uuid;
+  dup  public.matches%rowtype;
 begin
   if p_player1 is null or p_player2 is null or p_player1 = p_player2 then
     raise exception 'record_match: two different players are required';
@@ -138,6 +140,19 @@ begin
 
   -- Lock both rows in a fixed order so two matches finishing together cannot deadlock.
   perform 1 from public.profiles where id in (p_player1, p_player2) order by id for update;
+
+  -- A retry of a match that was already saved (for example the first reply was lost) changes nothing.
+  -- This check comes after the row locks, so two simultaneous retries cannot both get through.
+  if p_match_id is not null then
+    select * into dup from public.matches where id = p_match_id;
+    if found then
+      return jsonb_build_object(
+        'match_id', dup.id,
+        'duplicate', true,
+        'player1', jsonb_build_object('before', dup.p1_rating_before, 'after', dup.p1_rating_after),
+        'player2', jsonb_build_object('before', dup.p2_rating_before, 'after', dup.p2_rating_after));
+    end if;
+  end if;
 
   select rating into r1 from public.profiles where id = p_player1;
   select rating into r2 from public.profiles where id = p_player2;
@@ -174,10 +189,11 @@ begin
   end if;
 
   insert into public.matches
-    (player1, player2, result, reason, ranked, rounds,
+    (id, player1, player2, result, reason, ranked, rounds,
      p1_rating_before, p1_rating_after, p2_rating_before, p2_rating_after)
   values
-    (p_player1, p_player2, p_result, p_reason, p_ranked, p_rounds, r1, n1, r2, n2)
+    (coalesce(p_match_id, gen_random_uuid()), p_player1, p_player2, p_result, p_reason, p_ranked, p_rounds,
+     r1, n1, r2, n2)
   returning id into m_id;
 
   return jsonb_build_object(
@@ -188,9 +204,9 @@ end;
 $$;
 
 -- Functions are executable by everyone by default. Lock this one to the server.
-revoke execute on function public.record_match(uuid, uuid, text, text, integer, boolean)
+revoke execute on function public.record_match(uuid, uuid, text, text, integer, boolean, uuid)
   from public, anon, authenticated;
-grant execute on function public.record_match(uuid, uuid, text, text, integer, boolean)
+grant execute on function public.record_match(uuid, uuid, text, text, integer, boolean, uuid)
   to service_role;
 
 -- ---------------------------------------------------------------------------------------------
