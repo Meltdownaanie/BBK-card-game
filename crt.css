@@ -5,7 +5,7 @@
   --crt-bg:#1a0e33; --crt-panel:#241a42; --crt-panel-in:#3a2d63; --crt-ink:#fff7e8; --crt-mute:#cdbfe8; --crt-dim:#8f84b4;
   --crt-line:#0c0614; --crt-coral:#ff7a59; --crt-coral-d:#d4492b; --crt-teal:#5ad1c4; --crt-teal-d:#2f9a8e;
   --crt-gold:#ffd34d; --crt-gold-d:#d6a31a; --crt-lilac:#c9a7ff; --crt-lilac-d:#8f6ad6; --crt-dark:#1b0d22;
-  --crt-num:'Fredoka','Nunito','Arial Rounded MT Bold',system-ui,sans-serif; --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
+  --crt-num:'Press Start 2P','Pixelify Sans',monospace; --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
 }
 .crt-page{margin:0;min-height:100vh;min-height:100dvh;background:var(--crt-bg);color:var(--crt-ink);font-family:var(--crt-font);position:relative;overflow-x:hidden}
 .crt-page *{box-sizing:border-box}
@@ -46,5 +46,5 @@
 @media (prefers-reduced-motion:reduce){.crt-swirl,.crt-pulse{animation:none!important}.crt-bar i{transition:none}}
 
 .crt-card b{font-family:var(--crt-num)!important;font-weight:700;letter-spacing:0;text-shadow:none}
-.crt-card b{font-size:26px}
-.cards .crt-card.sm b{font-size:20px}
+.crt-card b{font-size:20px;font-weight:400}
+.cards .crt-card.sm b{font-size:16px}
