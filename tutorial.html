@@ -83,7 +83,7 @@ const step=()=>window.BBK?BBK.tutorial.get():0;
 const el=(tag,attrs,...kids)=>{const n=document.createElement(tag);for(const k in attrs||{}){if(attrs[k]==null||attrs[k]===false)continue;if(k==='class')n.className=attrs[k];else if(k==='text')n.textContent=attrs[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),attrs[k]);else n.setAttribute(k,attrs[k]);}for(const c of kids.flat())if(c!=null)n.append(c.nodeType?c:document.createTextNode(c));return n;};
 const svg=(id,w,h)=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',w);s.setAttribute('height',h);s.setAttribute('viewBox','0 0 8 8');s.setAttribute('aria-hidden','true');const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#'+id);s.append(u);return s;};
 const card=(suit,n,cls='',tag='div',attrs={})=>el(tag,Object.assign({type:tag==='button'?'button':undefined,class:'crt-card '+suit+' '+cls,'aria-label':SUIT[suit].toLowerCase()+' '+n},attrs),svg('i-'+suit,30,30),el('b',{text:String(n)}));
-const head=(title,backTo)=>el('div',{class:'crt-head'},el('a',{class:'crt-back','aria-label':'Back',href:backTo||'#',text:'<',onclick:backTo?undefined:(e=>{e.preventDefault();go(null)})}),el('h1',{class:'crt-title',text:title}));
+const head=(title,backTo)=>el('div',{class:'crt-head'},el('a',{class:'crt-back','aria-label':'Back',href:backTo||'#',text:'⎋ BACK',onclick:backTo?undefined:(e=>{e.preventDefault();go(null)})}),el('h1',{class:'crt-title',text:title}));
 // same rules as the game server
 function clash(a,b){
  if(a.suit===b.suit){if(a.n===b.n)return{w:-1,dmg:0};return{w:a.n>b.n?0:1,dmg:Math.abs(a.n-b.n)};}
@@ -267,6 +267,7 @@ function render(){
  app.replaceChildren(...[].concat(body));
 }
 render();
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.defaultPrevented)return;if(view===null)location.href='./index.html';else go(null)});
 if(window.BBK)BBK.onChange(()=>{if(view===null)render();});
 })();
 </script>
