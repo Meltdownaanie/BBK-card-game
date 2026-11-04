@@ -5,7 +5,7 @@
   --crt-bg:#1a0e33; --crt-panel:#241a42; --crt-panel-in:#3a2d63; --crt-ink:#fff7e8; --crt-mute:#cdbfe8; --crt-dim:#8f84b4;
   --crt-line:#0c0614; --crt-coral:#ff7a59; --crt-coral-d:#d4492b; --crt-teal:#5ad1c4; --crt-teal-d:#2f9a8e;
   --crt-gold:#ffd34d; --crt-gold-d:#d6a31a; --crt-lilac:#c9a7ff; --crt-lilac-d:#8f6ad6; --crt-dark:#1b0d22;
-  --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
+  --crt-num:'Fredoka','Nunito','Arial Rounded MT Bold',system-ui,sans-serif; --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
 }
 .crt-page{margin:0;min-height:100vh;min-height:100dvh;background:var(--crt-bg);color:var(--crt-ink);font-family:var(--crt-font);position:relative;overflow-x:hidden}
 .crt-page *{box-sizing:border-box}
@@ -14,7 +14,7 @@
   background:repeating-conic-gradient(from 0deg at 50% 50%,#2a1448 0 12deg,#3a1b60 12deg 24deg,#1f2c5a 24deg 36deg,#3a1b60 36deg 48deg);animation:crt-spin 80s linear infinite}
 @keyframes crt-spin{to{transform:rotate(360deg)}}
 .crt-vignette{position:fixed;inset:0;z-index:5;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.65)}
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.65)}
 .crt-wrap{position:relative;z-index:1;width:100%;max-width:440px;margin:0 auto;padding:24px 20px 32px;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;gap:16px}
 .crt-title{font-family:var(--crt-title);font-weight:700;font-size:28px;letter-spacing:.03em;text-shadow:3px 3px 0 var(--crt-line);margin:0}
 .crt-panel{background:var(--crt-panel);border-radius:16px;box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-panel-in);padding:14px}
@@ -44,3 +44,7 @@
 @keyframes crt-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .crt-pulse{animation:crt-pulse 1.2s steps(2) infinite}
 @media (prefers-reduced-motion:reduce){.crt-swirl,.crt-pulse{animation:none!important}.crt-bar i{transition:none}}
+
+.crt-card b{font-family:var(--crt-num)!important;font-weight:700;letter-spacing:0;text-shadow:none}
+.crt-card b{font-size:26px}
+.cards .crt-card.sm b{font-size:20px}

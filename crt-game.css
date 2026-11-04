@@ -4,6 +4,7 @@
   --c-bg:#12394a;--c-panel:#241a42;--c-panel-in:#3a2d63;--c-ink:#fff7e8;--c-mute:#cdbfe8;--c-line:#0c0614;
   --c-coral:#ff7a59;--c-teal:#5ad1c4;--c-gold:#ffd34d;--c-lilac:#c9a7ff;--c-dark:#1b0d22;
   --c-hammer:#ff7a59;--c-paper:#5aa9e8;--c-scissors:#6fd3a0;
+  --pn:'Fredoka','Nunito','Arial Rounded MT Bold',system-ui,sans-serif;
   --pf:'Pixelify Sans',ui-monospace,monospace;--pt:'Pixelify Sans','Pixelify Sans',monospace;
 }
 html{background:#07040f}
@@ -11,7 +12,7 @@ body{background:var(--c-bg)!important;color:var(--c-ink);position:relative;min-h
 body::before{content:"";position:fixed;left:-60%;top:-40%;width:220%;height:180%;z-index:-1;pointer-events:none;
   background:repeating-conic-gradient(from 0deg at 50% 50%,#12394a 0 12deg,#1a4a52 12deg 24deg,#241a52 24deg 36deg,#1a4a52 36deg 48deg);animation:crtSpin 90s linear infinite}
 body::after{content:"";position:fixed;inset:0;z-index:2000;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.6)}
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 2px,transparent 2px 4px);box-shadow:inset 0 0 90px rgba(0,0,0,.6)}
 @keyframes crtSpin{to{transform:rotate(360deg)}}
 svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 
@@ -192,3 +193,10 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .big-btn .mb-badge{font-size:11px;padding:3px 6px}.big-btn.teal,.big-btn.gold{min-height:64px}
 .message{font-size:13px!important;line-height:1.6;padding:0 4px}
 .logo{font-size:30px!important}
+
+/* digits: a clean rounded face so numbers stay readable at small sizes */
+.card .number{font-family:var(--pn)!important;font-weight:700!important;font-size:clamp(26px,8.6vw,42px)!important;letter-spacing:0!important;text-shadow:none}
+.who strong,.time,.status .roundinfo strong,.deck-num,.played-cell,.hud-row .who strong,.mini b{font-family:var(--pn)!important;font-weight:600;letter-spacing:0!important}
+.who strong{font-size:26px!important}
+.played-cell{font-size:15px!important}
+.hand-item .card .number{font-size:clamp(26px,8vw,38px)!important}

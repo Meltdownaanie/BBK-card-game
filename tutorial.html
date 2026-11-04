@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>BBK Tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt.css">
 <style>
 :root{--w:clamp(66px,21vw,84px)}
@@ -25,6 +25,7 @@
 .stage{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
 .hpp{padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.06em}
 .hpp .t{display:flex;justify-content:space-between}
+.hpp .t span:last-child{font-family:var(--crt-num)}
 .hpp .crt-bar i{transition:width .4s steps(8)}
 .hpp.bot .crt-bar i{background:repeating-linear-gradient(90deg,var(--crt-coral) 0 7px,var(--crt-line) 7px 9px)}
 .hpp.me .crt-bar i{background:repeating-linear-gradient(90deg,var(--crt-teal) 0 7px,var(--crt-line) 7px 9px)}
@@ -39,13 +40,14 @@
 .crt-card.gone{opacity:.25;filter:grayscale(1);transform:translateY(8px) rotate(-6deg)}
 .flip{animation:flip .25s steps(4)}@keyframes flip{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
 .crt-card svg{width:40%;height:auto}
+.row3 .crt-card b{font-size:30px!important}
 .hint{animation:hint 1s steps(2) infinite;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)!important}
 @keyframes hint{50%{transform:translateY(-4px)}}
 .crt-slot.hint{animation:hintring 1s steps(2) infinite;border-color:var(--crt-gold);color:var(--crt-gold)}
 @keyframes hintring{50%{background:rgba(255,211,77,.18)}}
 .hand{display:flex;justify-content:center;gap:6px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
 .hand .crt-card{width:clamp(52px,16.5vw,64px);height:clamp(72px,22.5vw,88px)}
-.hand .crt-card b{font-size:17px}
+.hand .crt-card b{font-size:24px!important}
 .hand .crt-card[disabled]{opacity:.35;cursor:not-allowed}
 .coach{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--crt-panel);box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-gold);min-height:84px}
 .coach .face{flex:none;width:40px;height:40px;border-radius:50%;background:var(--crt-gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--crt-line)}

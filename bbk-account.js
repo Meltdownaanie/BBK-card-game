@@ -190,6 +190,7 @@
   /* ---------- styles ---------- */
   const css = `
 .bbk-signin,.bbk-chip{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border-radius:12px;border:1px solid var(--line,#35434a);background:var(--felt3,#2a343a);color:var(--ink,#eaf0f1);font:inherit;text-align:left;cursor:pointer}
+.bbk-pen{margin-left:auto;flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,.12);font-size:16px}
 .bbk-signin:hover,.bbk-chip:hover{filter:brightness(1.12)}
 .bbk-signin:focus-visible,.bbk-chip:focus-visible,.bbk-ov button:focus-visible,.bbk-ov input:focus-visible{outline:2px solid var(--gold,#e7b94a);outline-offset:2px}
 .bbk-avatar{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#38d39f;color:#0d2a21;font-weight:900;font-size:16px}
@@ -250,10 +251,11 @@
         h('span', { class: 'bbk-who' }, h('b', { text: 'SIGN IN / REGISTER' }), h('small', { text: 'Save your rating and join the leaderboard' }))));
     } else {
       const name = displayName();
-      el.append(h('button', { type: 'button', class: 'bbk-chip', onclick: openProfile, 'aria-label': 'Open profile of ' + name },
+      el.append(h('button', { type: 'button', class: 'bbk-chip', onclick: () => openProfile(isDefaultName(name)), 'aria-label': 'Open profile of ' + name + ' (change name, see stats)' },
         h('span', { class: 'bbk-avatar', 'aria-hidden': 'true', text: name.charAt(0).toUpperCase() }),
         h('span', { class: 'bbk-who' }, h('b', { text: name }),
-          h('small', { text: profile ? tierLine(profile) : 'Loading profile…' }))));
+          h('small', { text: profile ? (isDefaultName(name) ? 'Tap to choose your name' : tierLine(profile)) : 'Loading profile…' })),
+        h('span', { class: 'bbk-pen', 'aria-hidden': 'true', title: 'Change name', text: '✎' })));
     }
   }
   function mount(el) { if (!el) return; injectCss(); mounts.add(el); renderMount(el); }
@@ -319,7 +321,8 @@
 
   /* ---------- profile view ---------- */
   const fmtDate = (iso) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
-  async function openProfile() {
+  const isDefaultName = (n) => /^player_[0-9a-f]{8}$/.test(n || '');
+  async function openProfile(focusName) {
     if (!session) { openAuth('in'); return; }
     await loadProfile();
     const body = openModal('Your profile');
@@ -344,7 +347,7 @@
     const rankBox = h('b', { text: '…' });
     body.append(
       h('div', { class: 'bbk-who' }, h('small', { text: session.user.email || '' })),
-      h('div', { class: 'bbk-h3', text: 'Display name' }), nameForm, nameMsg,
+      h('div', { class: 'bbk-h3', text: 'Display name · you can change it any time' }), nameForm, nameMsg,
       h('div', { class: 'bbk-stats' },
         h('div', { class: 'bbk-stat' }, h('b', { text: p.games < PLACEMENT ? 'Unranked' : tier(p.rating, p.games) }), h('small', { text: p.games < PLACEMENT ? 'Placement ' + p.games + '/' + PLACEMENT + ' · no points lost' : 'Tier' })),
         h('div', { class: 'bbk-stat' }, h('b', { text: p.rating }), h('small', { text: 'Rating' })),
@@ -353,6 +356,7 @@
         h('div', { class: 'bbk-stat' }, h('b', { text: p.wins }), h('small', { text: 'Wins' })),
         h('div', { class: 'bbk-stat' }, h('b', { text: p.losses }), h('small', { text: 'Losses' })),
         h('div', { class: 'bbk-stat' }, h('b', { text: rate }), h('small', { text: 'Win rate' }))));
+    if (focusName === true || isDefaultName(p.display_name)) setTimeout(() => { try { nameIn.focus(); nameIn.select(); } catch { /* ignore */ } }, 60);
     const hist = h('div');
     body.append(h('div', { class: 'bbk-h3', text: 'Recent ranked matches' }), hist,
       h('div', { class: 'bbk-row', style: 'margin-top:14px' },
