@@ -219,3 +219,16 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .hand-item .card-origin.new{background:var(--c-teal)!important;color:var(--c-dark)!important}
 .hand-item .card-origin.returned{background:var(--c-gold)!important;color:var(--c-dark)!important}
 .hand-item::after{content:none!important}
+
+/* in-game tutorial */
+.coach{display:flex;gap:12px;align-items:flex-start;margin:6px 0;padding:12px;border-radius:14px;background:var(--c-panel);box-shadow:0 0 0 4px var(--c-line),inset 0 0 0 3px var(--c-gold)}
+.coach.ok{box-shadow:0 0 0 4px var(--c-line),inset 0 0 0 3px #6fd3a0}.coach.bad{box-shadow:0 0 0 4px var(--c-line),inset 0 0 0 3px #ff7a8a}
+.coach-face{flex:none;width:40px;height:40px;border-radius:50%;background:var(--c-gold);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 0 3px var(--c-line)}
+.coach-body{flex:1;min-width:0}.coach-lv{font-size:12px;letter-spacing:.08em;color:var(--c-gold);margin-bottom:4px}
+.coach p{margin:0;font-size:14px;line-height:1.55}.coach ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.5;color:var(--c-mute)}
+.coach-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.coach-actions:empty{display:none}.coach-actions button{width:auto;padding:8px 14px;font-size:14px}
+.top-back-btn{width:auto!important;padding:8px 14px!important;font-size:15px!important}
+body.tut-mode #showTutorialGame,body.tut-mode #forfeitButton,body.tut-mode #message,body.tut-mode .played-tracker,body.tut-mode details.history,body.tut-mode #openDiscard{display:none!important}
+.tut-pulse{animation:tutPulse .9s steps(2) infinite;outline:4px solid var(--c-gold);outline-offset:2px;z-index:5}
+@keyframes tutPulse{50%{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.tut-pulse{animation:none}}

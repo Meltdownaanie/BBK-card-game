@@ -6,7 +6,7 @@
 <title>BBK Tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt.css?v=20261104b">
+<link rel="stylesheet" href="./crt.css?v=20261104c">
 <style>
 :root{--w:clamp(66px,21vw,84px)}
 .lesson-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1a1332;box-shadow:0 0 0 3px var(--crt-line);width:100%;border:0;color:inherit;font-family:var(--crt-font);text-align:left}
@@ -68,7 +68,7 @@
 <symbol id="i-lock" viewBox="0 0 8 8"><path fill="#7a6e96" d="M2 0h4v1H2zM2 1h1v2H2zM5 1h1v2H5zM1 3h6v5H1z"/><path fill="#1a1332" d="M3 5h2v2H3z"/></symbol>
 </svg>
 <main class="crt-wrap" id="app" aria-live="polite"></main>
-<script src="./bbk-account.js?v=20261104b"></script>
+<script src="./bbk-account.js?v=20261104c"></script>
 <script>
 (()=>{'use strict';
 const app=document.getElementById('app');
@@ -102,7 +102,7 @@ function hub(){
   el('div',{class:'crt-bar'},el('i',{style:'width:'+(s*20)+'%'})));
  const rows=LESSONS.map((L,i)=>{
   const k=i+1,state=k<=s?'done':k===s+1?'cur':'lock';
-  const b=el('button',{type:'button',class:'lesson-row '+state,onclick:()=>go(k)},
+  const b=el('button',{type:'button',class:'lesson-row '+state,onclick:()=>{location.href=k===5?'./index.html?practice=1':'./index.html?lesson='+k}},
    el('span',{class:'no'},state==='done'?svg('i-check',22,22):state==='lock'?svg('i-lock',22,22):String(k)),
    el('span',{},el('b',{text:k+' · '+L.t}),el('small',{text:L.d})),
    state==='cur'?el('span',{class:'crt-badge crt-pulse',text:s===0?'START':'NEXT'}):el('span'));
