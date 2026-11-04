@@ -21,11 +21,23 @@ function poly(g,p){g.beginPath();p.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo
 function label(text,x,y,p,color,big){const d=document.createElement('div');d.className='fx-label';d.textContent=text;d.style.cssText=`left:${x}px;top:${y}px;font-size:${Math.round((big?14:10)+p*3.2)}px;color:${color}`;document.body.appendChild(d);setTimeout(()=>d.remove(),800)}
 function jolt(v){if(FX2.jolt)FX2.jolt(v)}
 function flashScreen(rgb,a){const d=document.createElement('div');d.style.cssText=`position:fixed;inset:0;z-index:1003;pointer-events:none;background:rgba(${rgb},${a})`;document.body.appendChild(d);d.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-out'}).finished.then(()=>d.remove(),()=>d.remove())}
-function critical(x,y,p){
-  flashScreen('255,235,150',.35);
-  add(shock(x,y,6,110+p*20,.3,'255,214,80',9));add(shock(x,y,4,70+p*14,.24,'255,255,255',5,.04));
-  add(rays(x,y,16,18,120+p*20,.28,'255,225,120',3));
-  label('CRITICAL x2!',x,y-92-p*6,p,'#ffd34d',true);jolt(7+p);
+/* CRT OVERDRIVE: one dedicated critical-damage effect shared by every clash type */
+function critical(x,y,p,damage){
+  if(damage==null)damage=FX2._dmg;
+  const dmg=damage==null?Math.round((p-.8)/.17):damage,power=Math.min(1,Math.max(0,dmg/20)),duration=.42;
+  const parts=Array.from({length:22+Math.floor(power*35)},()=>({angle:R(0,TAU),speed:50+R(0,100+power*150),size:2+R(0,6),color:PK(['#ff3b98','#35f2ff','#ffd34d','#ffffff'])}));
+  jolt(5+power*6);
+    let t=0;
+  add((g,dt)=>{t+=dt;const progress=Math.min(1,t/duration),fade=1-progress,intensity=ease(progress);if(progress>=1)return false;
+    g.save();const shake=fade*power*10;g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+    if(progress<.65){for(let i=0;i<8+Math.floor(power*8);i++){const yy=y-110+Math.random()*220,xx=x-120+Math.random()*130;g.globalAlpha=fade*.7;g.fillStyle=i%2?'#ff3b98':'#35f2ff';g.fillRect(xx,yy,45+Math.random()*140,2+Math.random()*8)}}
+    g.globalAlpha=1;
+    g.save();g.strokeStyle=`rgba(53,242,255,${fade})`;g.lineWidth=6*fade+1;g.beginPath();g.ellipse(x,y,15+intensity*(70+power*90),10+intensity*(40+power*55),0,0,TAU);g.stroke();g.restore();
+    for(const q of parts){const d=q.speed*progress;g.fillStyle=q.color;g.globalAlpha=fade;g.fillRect(x+Math.cos(q.angle)*d,y+Math.sin(q.angle)*d,q.size,q.size)}
+    g.globalAlpha=1;
+    if(progress<.16){g.fillStyle=`rgba(255,245,210,${(1-progress/.16)*.5})`;g.fillRect(-20,-20,innerWidth+40,innerHeight+40)}
+    if(progress<.78){g.save();g.textAlign='center';g.textBaseline='middle';g.font='bold 25px "Press Start 2P", monospace';g.lineWidth=7;g.lineJoin='round';const ty=y-85-intensity*15;g.globalAlpha=Math.min(1,fade*2);g.strokeStyle='#080b18';g.strokeText('CRITICAL ×2',x,ty);g.fillStyle='#35f2ff';g.fillText('CRITICAL ×2',x,ty);g.restore()}
+    g.restore()});
 }
 function clone(el){const r=el.getBoundingClientRect(),cl=el.cloneNode(true);cl.removeAttribute('id');cl.style.cssText+=`;position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:1002;pointer-events:none;`;document.body.appendChild(cl);return cl}
 
@@ -41,7 +53,7 @@ async function smash(win,lose,p,crit){
   // cracks across the crushed card
   const cr=[];for(let i=0;i<6+Math.round(p*2);i++){let a=R(0,TAU),x=ix,y=iy;const pts=[[x,y]];for(let s=0;s<4;s++){a+=R(-.5,.5);x+=Math.cos(a)*R(8,15);y+=Math.sin(a)*R(8,15);pts.push([x,y])}cr.push(pts)}
   add(at(0,.34,(g,a,k)=>{g.lineCap='round';g.lineJoin='round';const f=Math.min(1,a/.06);g.globalAlpha=1-Math.max(0,(k-.6)/.4);for(const [col,wd] of [['#1b0d22',4],['#ffffff',1.6]]){g.strokeStyle=col;g.lineWidth=wd;for(const pl of cr){g.beginPath();pl.forEach((q,i)=>{if(i/(pl.length-1)<=f||i===0)i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])});g.stroke()}}}));
-  label(crit?'SMASH!!!':'SMASH!!',l.x,l.y-l.h*.62-p*4,p,'#ffb347',true);jolt(4+p*1.6);if(crit)critical(ix,iy,p);
+  label(crit?'SMASH!!!':'SMASH!!',l.x,(crit?l.y+l.h*.72:l.y-l.h*.62-p*4),p,'#ffb347',true);jolt(4+p*1.6);if(crit)critical(ix,iy,p);
   const sq=Math.min(.52,.7-p*.05);
   anim(lose,[{transform:'none',offset:0},{transform:`translate(${dx*6}px,0) scale(${sq},1.16) skewY(${-dx*5}deg)`,offset:.2},{transform:`translate(${dx*10}px,0) scale(${sq+.12},${.62}) skewY(${dx*4}deg)`,offset:.42,opacity:1},{transform:`translate(${dx*(60+p*20)}px,${-30-p*10}px) rotate(${dx*(30+p*10)}deg) scale(.55)`,opacity:0,offset:1}],{duration:360,easing:'ease-out'});
   await anim(win,[{transform:`translate(${dist}px,${dy}px) scale(${1.14+p*.03}) rotate(${dx*5}deg)`},{transform:`translate(${dist-dx*14}px,${dy}px) scale(1.04)`,offset:.5},{transform:'translate(0,0) scale(1)'}],{duration:300,easing:'ease-out'});
@@ -70,7 +82,7 @@ async function cut(win,lose,p,crit){
   const pa_=anim(A,[{transform:'none',opacity:1},{transform:`translate(${-nx*sep}px,${-ny*sep}px) rotate(${-9-p*2}deg)`,opacity:1,offset:.45},{transform:`translate(${-nx*sep*2}px,${-ny*sep*2+30}px) rotate(${-18-p*3}deg)`,opacity:0}],{duration:360,easing:'ease-out'});
   const pb_=anim(B,[{transform:'none',opacity:1},{transform:`translate(${nx*sep}px,${ny*sep}px) rotate(${9+p*2}deg)`,opacity:1,offset:.45},{transform:`translate(${nx*sep*2}px,${ny*sep*2+30}px) rotate(${18+p*3}deg)`,opacity:0}],{duration:360,easing:'ease-out'});
   for(let i=0;i<Math.round(8+p*6);i++){const t=R(0,1),px=x0+(x1-x0)*t*.8+ (l.x-(x0+x1)/2)*0+l.w*.1,py=y0+(y1-y0)*t,s=i%2?1:-1;add(frag({x:l.l+l.w*t,y:flip>0?l.t+l.h*t:l.t+l.h*(1-t),vx:nx*s*R(60,200),vy:ny*s*R(60,200)-R(20,90),g:300,drag:.8,vr:R(-10,10),rot:R(0,6),life:R(.35,.7),draw(g){g.fillStyle=PK(['#f4ecd8','#e8dcc0','#9dffc0']);const a=R(2,5);poly(g,[[-a,-a],[a,-a*.5],[a*.6,a],[-a*.8,a*.6]]);g.fill()}}))}
-  label(crit?'SLASH!!!':'SLASH!!',l.x,l.y-l.h*.62-p*4,p,'#7dffb0',true);if(crit)critical(l.x,l.y,p);
+  label(crit?'SLASH!!!':'SLASH!!',l.x,(crit?l.y+l.h*.72:l.y-l.h*.62-p*4),p,'#7dffb0',true);if(crit)critical(l.x,l.y,p);
   await anim(win,[{transform:'none'},{transform:`translate(${(l.x-w.x)*.12}px,${(l.y-w.y)*.1}px) scale(1.08)`,offset:.3},{transform:'none'}],{duration:260});
   await Promise.all([pa_,pb_]);A.remove();B.remove();
 }
@@ -88,7 +100,7 @@ async function portal(win,lose,p,crit){
     for(let i=0;i<4;i++){g.strokeStyle=i%2?'#d8ffe8':'#2ee27a';g.lineWidth=3;g.lineCap='round';g.beginPath();const f=.3+i*.17;g.ellipse(0,0,rx*f,ry*f,0,a*(9+i*2)*(i%2?-1:1),a*(9+i*2)*(i%2?-1:1)+1.5);g.stroke()}
     g.strokeStyle='#e6fff0';g.lineWidth=3.2;g.beginPath();g.ellipse(0,0,rx,ry,0,0,TAU);g.stroke()}));
   add(shock(l.x,l.y,10,rx*1.6,.28,'90,255,160',5,.02));
-  label(crit?'PORTAL!!!':'PORTAL!!',l.x,l.y-l.h*.62-p*4,p,'#7dffb0',true);jolt(2+p);if(crit)critical(l.x,l.y,p);
+  label(crit?'PORTAL!!!':'PORTAL!!',l.x,(crit?l.y+l.h*.72:l.y-l.h*.62-p*4),p,'#7dffb0',true);jolt(2+p);if(crit)critical(l.x,l.y,p);
   anim(win,[{transform:'none'},{transform:`translate(${(l.x-w.x)*.1}px,${(l.y-w.y)*.08}px) scale(1.1)`,offset:.35},{transform:'none'}],{duration:420});
   await sleep(90);
   // the hammer is dragged in, spinning and shrinking
@@ -97,6 +109,6 @@ async function portal(win,lose,p,crit){
   add(glow(l.x,l.y,50+p*12,.2,'180,255,210',.9));add(shock(l.x,l.y,4,rx*1.3,.22,'200,255,225',4));
   await sleep(Math.max(0,life*1000-(performance.now()-T0))-60);
 }
-const FX2={play(type,win,lose,p,crit){p=Math.max(.75,Math.min(3.2,p||1));return({smash,cut,portal}[type])(win,lose,p,!!crit)},jolt:null};
+const FX2={play(type,win,lose,p,crit,damage){p=Math.max(.75,Math.min(3.2,p||1));FX2._dmg=damage;return({smash,cut,portal}[type])(win,lose,p,!!crit)},critical,jolt:null};
 window.FX2=FX2;
 })();

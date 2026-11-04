@@ -34,7 +34,7 @@ let busy=false;
 async function run(t){if(busy)return;busy=true;const [a,b,na,nb]=cfg[t],crit=$('crit').checked;
  const nbx=crit?na:nb;const pair=$('pair');pair.innerHTML='';const A=card(a,na),B=card(b,nbx);pair.append(A,B);
  await new Promise(r=>setTimeout(r,60));
- const t0=performance.now();await FX2.play(t,A,B,pw(+$('dmg').value),crit);$('dv').title=Math.round(performance.now()-t0)+' ms';
+ const t0=performance.now();await FX2.play(t,A,B,pw(+$('dmg').value),crit,+$('dmg').value);$('dv').title=Math.round(performance.now()-t0)+' ms';
  await new Promise(r=>setTimeout(r,250));pair.innerHTML='';A.getAnimations&&0;pair.append(card(a,na),card(b,nbx));busy=false}
 FX2.jolt=v=>{const p=Math.min(10,v);document.body.animate([{transform:'translate(0,0)'},{transform:`translate(${-2-p}px,1px)`},{transform:`translate(${2+p}px,-1px)`},{transform:'translate(0,0)'}],{duration:180+p*20})};
 $('dmg').oninput=e=>$('dv').textContent=e.target.value;
