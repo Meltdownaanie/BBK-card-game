@@ -42,7 +42,7 @@ function critical(x,y,p,damage){
 function clone(el){const r=el.getBoundingClientRect(),cl=el.cloneNode(true);cl.removeAttribute('id');cl.style.cssText+=`;position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:1002;pointer-events:none;`;document.body.appendChild(cl);return cl}
 
 /* ---------- simple clash: both cards meet, the winner pops in its suit colour with small sparks ---------- */
-const COL={smash:['#ff7a59','255,140,100'],cut:['#6fd3a0','120,240,170'],portal:['#5aa9e8','120,190,255']};
+const COL={tie:['#fff7e8','255,255,255'],smash:['#ff7a59','255,140,100'],cut:['#6fd3a0','120,240,170'],portal:['#5aa9e8','120,190,255']};
 async function clash(type,win,lose,p,crit){
   const [hex,rgb]=COL[type],w=rc(win),l=rc(lose),vx=l.x-w.x,vy=l.y-w.y,len=Math.hypot(vx,vy)||1,ux=vx/len,uy=vy/len;
   const gap=Math.max(0,len-(Math.abs(uy)>Math.abs(ux)?l.h:l.w)*.98),mx=l.x-ux*(l.w*.5),my=l.y-uy*(l.h*.5);
@@ -52,6 +52,7 @@ async function clash(type,win,lose,p,crit){
   await Promise.all([
     anim(win,[{transform:'none'},{transform:`translate(${ux*toward}px,${uy*toward}px) scale(1.08)`}],{duration:90,easing:'cubic-bezier(.5,0,.9,.5)'}),
     anim(lose,[{transform:'none'},{transform:`translate(${-ux*Math.min(gap*.5,14)}px,${-uy*Math.min(gap*.5,14)}px)`}],{duration:90,easing:'cubic-bezier(.5,0,.9,.5)'})]);
+  const tie=type==='tie';
   // 2) impact: small sparks in the winner's colour
   const ix=(w.x+ux*toward+l.x)/2,iy=(w.y+uy*toward+l.y)/2;
   add(glow(ix,iy,34+p*10,.18,rgb,.9));
@@ -59,6 +60,7 @@ async function clash(type,win,lose,p,crit){
   for(let i=0;i<n;i++){const a=Math.atan2(uy,ux)+Math.PI+R(-1.3,1.3),sp=R(120,240)+p*50;add(spark(ix,iy,Math.cos(a)*sp,Math.sin(a)*sp-30,R(.18,.34),R(1.3,2),[ '255,255,255',rgb,rgb,rgb ]))}
   for(let i=0;i<n;i++){const a=R(0,TAU),sp=R(80,200)+p*40;add(spark(ix,iy,Math.cos(a)*sp,Math.sin(a)*sp-30,R(.16,.3),R(1.2,1.8),['255,255,255',rgb,rgb,rgb]))}
   jolt(1+p);if(crit)critical(ix,iy,p);
+  if(tie){await Promise.all([anim(win,[{transform:`translate(${ux*toward}px,${uy*toward}px) scale(1.08)`},{transform:`translate(${-ux*5}px,${-uy*5}px)`,offset:.4},{transform:'none'}],{duration:260,easing:'ease-out'}),anim(lose,[{transform:`translate(${-ux*Math.min(gap*.5,14)}px,${-uy*Math.min(gap*.5,14)}px)`},{transform:`translate(${ux*5}px,${uy*5}px)`,offset:.4},{transform:'none'}],{duration:260,easing:'ease-out'})]);return}
   const push=10+p*5;
   win.style.filter=`drop-shadow(0 0 8px ${hex}) drop-shadow(0 0 14px ${hex})`;
   const wa=anim(win,[{transform:`translate(${ux*toward}px,${uy*toward}px) scale(1.08)`},{transform:`translate(${ux*(toward+6)}px,${uy*(toward+6)}px) scale(${1.2+p*.02})`,offset:.35},{transform:`translate(${ux*(toward+4)}px,${uy*(toward+4)}px) scale(1.14)`}],{duration:260,easing:'ease-out'});
