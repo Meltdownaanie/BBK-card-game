@@ -278,26 +278,29 @@ body{padding:8px 12px 12px}
 .bottom-hud .healthbar{width:100%;max-width:none}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
-</style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt-game.css">
 </head><body>
 <script src="./pixel-icons.js"></script>
 <div class="app">
- <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><span class="tag">VS AI · <b id="difficultyStatus">EASY</b></span><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
+ <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
 
- <div id="blockAlert" class="block-alert" hidden></div>
- <section class="board" aria-label="Battle arena"><div class="columns">
+ <section class="status"><div class="roundinfo">ROUND<strong id="round">1</strong></div><span class="tag modepill">VS AI · <b id="difficultyStatus">EASY</b></span><div id="clock"><div class="time"><span id="time">1:15</span> <small id="limit">/ 75s</small></div><div class="timebar"><i id="timerFill"></i></div></div></section>
+<div id="blockAlert" class="block-alert" hidden></div>
+ <div class="hud-row bottom-hud solo opp-top">
+  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · AI</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><div class="discard-counter">Discard <b id="discard1">0</b></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
+</div>
+<section class="board" aria-label="Battle arena"><div class="columns">
  <div class="column"><div class="ai-row"><div id="slot10" class="slot" data-n="1"></div><div class="ghost-slot" id="prev10" aria-label="Opponent previous round slot 1"></div></div><div class="versus" id="vs0"><span class="pill">1 VS 1</span></div><div id="slot00" class="slot mine" data-n="1"></div></div>
  <div class="column"><div class="ai-row"><div id="slot11" class="slot" data-n="2"></div><div class="ghost-slot" id="prev11" aria-label="Opponent previous round slot 2"></div></div><div class="versus" id="vs1"><span class="pill">2 VS 2</span></div><div id="slot01" class="slot mine" data-n="2"></div></div>
  <div class="column"><div class="ai-row"><div id="slot12" class="slot" data-n="3"></div><div class="ghost-slot" id="prev12" aria-label="Opponent previous round slot 3"></div></div><div class="versus" id="vs2"><span class="pill">3 VS 3</span></div><div id="slot02" class="slot mine" data-n="3"></div></div>
  </div></section>
- <section class="status"><div class="roundinfo">ROUND<strong id="round">1</strong></div><div id="clock"><div class="time"><span id="time">1:15</span> <small id="limit">/ 75s</small></div><div class="timebar"><i id="timerFill"></i></div></div><button id="mainButton" class="primary" disabled>Waiting to start</button></section>
+ <div class="hud-row bottom-hud solo me-mid">
+  <section class="hud player-hud" aria-label="Player status"><div class="who"><span>PLAYER</span><strong id="hp0">100 <small>HP</small></strong><div class="healthbar" id="bar0"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck0">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><button type="button" id="openDiscard" class="discard-counter discard-open" aria-haspopup="dialog" title="View your discarded cards">🗑 Discard <b id="discard0">0</b> <span aria-hidden="true">⌕</span></button></div></section>
+</div>
  <p class="message" id="message" aria-live="polite"></p>
 <section class="hand-zone" aria-label="Your hand and deck"><div class="hand-heading">YOUR HAND <span id="handCount">5 cards</span></div><div class="hand" id="hand" aria-label="Cards in your hand"></div></section>
-<div class="hud-row bottom-hud">
-  <section class="hud player-hud" aria-label="Player status"><div class="who"><span>PLAYER</span><strong id="hp0">100 <small>HP</small></strong><div class="healthbar" id="bar0"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck0">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><button type="button" id="openDiscard" class="discard-counter discard-open" aria-haspopup="dialog" title="View your discarded cards">🗑 Discard <b id="discard0">0</b> <span aria-hidden="true">⌕</span></button></div></section>
-  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · AI</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span>◇</span></div><span class="deck-label">DECK</span></div><div class="discard-counter">Discard <b id="discard1">0</b></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
-</div>
+<div class="lockrow"><button id="mainButton" class="primary" disabled>Waiting to start</button></div>
  <section class="played-tracker" aria-label="Opponent revealed cards">
   <div class="played-tracker-heading"><strong>OPPONENT CARDS PLAYED</strong><span id="playedCount">0 / 30 revealed</span></div>
   <div class="played-grid" id="playedGrid" aria-live="off"></div>
@@ -330,14 +333,14 @@ body{padding:8px 12px 12px}
 </div>
 <div id="comboCelebration" class="combo-celebration" aria-live="assertive" hidden></div>
 <div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3><button type="button" class="secondary" id="closeDiscard">Close ✕</button></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
-<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME</h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-hammer"/></svg><b>7</b></span><span class="mini paper"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-paper"/></svg><b>3</b></span><span class="mini scissors"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-scissors"/></svg><b>9</b></span></div><p id="dialogText">Choose how you want to play.</p>
+<div class="overlay" id="overlay"><div class="dialog"><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-hammer"/></svg><b>7</b></span><span class="mini paper"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-paper"/></svg><b>3</b></span><span class="mini scissors"><svg class="px" width="28" height="28" viewBox="0 0 8 8"><use href="#px-scissors"/></svg><b>9</b></span></div><p id="dialogText">CARD DUEL</p>
 <div id="menuPane" class="pane">
 <div id="accountBar" class="account-bar"></div>
-<div class="ai-card"><label class="difficulty-label" for="aiDifficulty">AI DIFFICULTY</label><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b><small>Random moves</small></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b><small>Hand management</small></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b><small>Predictive strategy</small></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
-<button type="button" id="menuAI" class="menu-btn mb-ai"><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-play"/></svg></span><span class="mb-text"><b>PLAY</b><small>Vs computer · start now</small></span></button></div>
-<a href="./online.html" id="menuOnline" class="menu-btn mb-online"><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-globe"/></svg></span><span class="mb-text"><b>MULTIPLAYER</b><small>Ranked · Create room · Random match</small></span></a>
-<a href="./tutorial.html" id="menuTutorial" class="menu-btn mb-help"><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-book"/></svg></span><span class="mb-text"><b>TUTORIAL</b><small id="menuTutorialSub">Learn the rules · 0 / 5</small></span><span id="menuTutorialBadge" class="mb-badge" hidden>START HERE</span></a>
-<button type="button" id="menuBoard" class="menu-btn mb-board"><span class="mb-icon" aria-hidden="true"><svg class="px" width="32" height="32" viewBox="0 0 8 8"><use href="#px-trophy"/></svg></span><span class="mb-text"><b>LEADERBOARD</b><small>Top players and your rank</small></span></button>
+<div class="ai-card"><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+<button type="button" id="menuAI" class="big-btn coral">PLAY VS AI</button></div>
+<div class="menu-grid"><a href="./online.html" id="menuOnline" class="big-btn teal"><span>MULTIPLAYER</span><small>Ranked · Rooms</small></a>
+<a href="./tutorial.html" id="menuTutorial" class="big-btn gold"><span>TUTORIAL</span><small id="menuTutorialSub">0 / 5 lessons</small><span id="menuTutorialBadge" class="mb-badge" hidden>START HERE</span></a></div>
+<button type="button" id="menuBoard" class="menu-link"><svg class="px" width="18" height="18" viewBox="0 0 8 8" aria-hidden="true"><use href="#px-trophy"/></svg> LEADERBOARD</button>
 <p id="menuLockNote" class="menu-note" hidden>Finish the tutorial to unlock ranked matches.</p>
 </div>
 <div id="aiPane" class="pane" hidden>
@@ -905,7 +908,7 @@ function confirmForfeit(){
 }
 function updateForfeitButton(){$('forfeitButton').hidden=!canForfeit()||!$('overlay').hidden}
 function showPane(name){$('menuPane').hidden=name!=='menu';$('aiPane').hidden=name!=='ai'}
-function showMenu(){$('dialogTitle').innerHTML='<span class="h">B</span><span class="p">B</span><span class="s">K</span> CARD GAME';$('dialogText').textContent='Choose how you want to play.';$('startButton').textContent='▶ START GAME';showPane('menu');$('overlay').hidden=false;$('menuAI').focus()}
+function showMenu(){$('dialogTitle').innerHTML='<span class="h">B</span><span class="p">B</span><span class="s">K</span>';$('dialogText').textContent='CARD DUEL';$('startButton').textContent='▶ START GAME';showPane('menu');$('overlay').hidden=false;$('menuAI').focus()}
 let practice=false;
 function showDialog(title,text){
  const won=/^(🏆 )?YOU WIN/.test(title)||/^You won the round with three sevens/.test(text);
@@ -1052,7 +1055,7 @@ S.deck=[makeDeck(0),makeDeck(1)];for(let p=0;p<2;p++)for(let i=0;i<5;i++){draw(p
 function menuTutorialStatus(){
  if(!window.BBK)return;
  const n=BBK.tutorial.get();
- $('menuTutorialSub').textContent=n>=5?'Complete · replay any lesson':'Learn the rules · '+n+' / 5';
+ $('menuTutorialSub').textContent=n>=5?'Complete':n+' / 5 lessons';
  $('menuTutorialBadge').hidden=n>0;$('menuLockNote').hidden=n>=5;
 }
 menuTutorialStatus();if(window.BBK)BBK.onChange(menuTutorialStatus);

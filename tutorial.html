@@ -5,25 +5,25 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>BBK Tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./crt.css">
 <style>
 :root{--w:clamp(66px,21vw,84px)}
 .lesson-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#1a1332;box-shadow:0 0 0 3px var(--crt-line);width:100%;border:0;color:inherit;font-family:var(--crt-font);text-align:left}
 .lesson-row.cur{background:#3a2d63;box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold)}
-.lesson-row .no{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--crt-line);color:var(--crt-dim)}
+.lesson-row .no{width:44px;height:44px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--crt-line);color:var(--crt-dim)}
 .lesson-row.done .no{background:#2f9a6e;color:var(--crt-line)}
 .lesson-row.cur .no{background:var(--crt-gold);color:var(--crt-dark)}
-.lesson-row b{display:block;font-size:12px;letter-spacing:.05em}
-.lesson-row small{display:block;font-size:9px;line-height:1.6;margin-top:5px;color:#b9aedb}
+.lesson-row b{display:block;font-size:14px;letter-spacing:.05em}
+.lesson-row small{display:block;font-size:11px;line-height:1.6;margin-top:5px;color:#b9aedb}
 .lesson-row.lock b,.lesson-row.lock small{color:#7a6e96}
 .lesson-row[disabled]{cursor:not-allowed}
 .stack{display:flex;flex-direction:column;gap:12px}
-.row-sp{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;letter-spacing:.06em}
+.row-sp{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;letter-spacing:.06em}
 .steps{display:flex;gap:6px;justify-content:center}.steps i{width:26px;height:8px;background:var(--crt-panel-in);box-shadow:0 0 0 2px var(--crt-line)}.steps i.on{background:var(--crt-gold)}
 /* guided stage */
 .stage{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
-.hpp{padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:10px;letter-spacing:.06em}
+.hpp{padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:.06em}
 .hpp .t{display:flex;justify-content:space-between}
 .hpp .crt-bar i{transition:width .4s steps(8)}
 .hpp.bot .crt-bar i{background:repeating-linear-gradient(90deg,var(--crt-coral) 0 7px,var(--crt-line) 7px 9px)}
@@ -32,7 +32,7 @@
 .row3>*{width:var(--w);height:calc(var(--w)*1.36)}
 .row3.pills>*{height:auto}
 .back{border-radius:10px;background-color:#3b2a72;background-image:conic-gradient(#4d3a8c 25%,transparent 0 50%,#4d3a8c 0 75%,transparent 0);background-size:10px 10px;box-shadow:0 0 0 3px var(--crt-line),0 6px 0 3px var(--crt-line),inset 0 0 0 4px #7a63c4}
-.pill{display:flex;align-items:center;justify-content:center;min-height:24px;padding:3px 4px;border-radius:7px;background:var(--crt-panel);color:var(--crt-mute);font-size:9px;letter-spacing:.04em;box-shadow:0 0 0 3px var(--crt-line);text-align:center}
+.pill{display:flex;align-items:center;justify-content:center;min-height:24px;padding:3px 4px;border-radius:7px;background:var(--crt-panel);color:var(--crt-mute);font-size:11px;letter-spacing:.04em;box-shadow:0 0 0 3px var(--crt-line);text-align:center}
 .pill.me{background:var(--crt-gold);color:var(--crt-dark)}.pill.bot{background:var(--crt-coral);color:var(--crt-dark)}
 .crt-card.win{box-shadow:0 0 0 3px var(--crt-line),0 0 0 6px var(--crt-gold),0 6px 0 3px var(--crt-line),inset 0 7px 0 var(--s,#ccc)}
 .crt-card.lose{opacity:.5}
@@ -45,13 +45,13 @@
 @keyframes hintring{50%{background:rgba(255,211,77,.18)}}
 .hand{display:flex;justify-content:center;gap:6px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
 .hand .crt-card{width:clamp(52px,16.5vw,64px);height:clamp(72px,22.5vw,88px)}
-.hand .crt-card b{font-size:15px}
+.hand .crt-card b{font-size:17px}
 .hand .crt-card[disabled]{opacity:.35;cursor:not-allowed}
 .coach{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--crt-panel);box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px var(--crt-gold);min-height:84px}
 .coach .face{flex:none;width:40px;height:40px;border-radius:50%;background:var(--crt-gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--crt-line)}
-.coach p{margin:0;font-size:11px;line-height:1.75;letter-spacing:.03em}
+.coach p{margin:0;font-size:13px;line-height:1.75;letter-spacing:.03em}
 .coach.ok{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #6fd3a0}.coach.bad{box-shadow:0 0 0 4px var(--crt-line),inset 0 0 0 3px #ff7a8a}
-.circle{display:flex;justify-content:center;align-items:center;gap:6px;font-size:9px;color:var(--crt-mute)}
+.circle{display:flex;justify-content:center;align-items:center;gap:6px;font-size:11px;color:var(--crt-mute)}
 .circle span{display:flex;align-items:center;gap:4px}
 @media (prefers-reduced-motion:reduce){.hint,.crt-slot.hint,.flip{animation:none}}
 </style>
