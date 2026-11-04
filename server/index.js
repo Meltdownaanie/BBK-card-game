@@ -4,6 +4,15 @@ const http=require('node:http'),crypto=require('node:crypto');
 const {WebSocketServer,WebSocket}=require('ws');
 const PORT=Number(process.env.PORT)||10000;
 const rooms=new Map(),peers=new Map();
+const userSession=new Map(),userRoom=new Map(),queue=[];   // userId -> socket, userId -> room, ranked waiting list
+let pendingRecords=0;
+const env=n=>(process.env[n]||'').trim();
+const SUPABASE_URL=env('SUPABASE_URL').replace(/\/+$/,''),SUPABASE_PUBLISHABLE_KEY=env('SUPABASE_PUBLISHABLE_KEY'),SUPABASE_SECRET_KEY=env('SUPABASE_SECRET_KEY');
+const ACCOUNTS=!!(SUPABASE_URL&&SUPABASE_PUBLISHABLE_KEY),RANKED=ACCOUNTS&&!!SUPABASE_SECRET_KEY;
+const ALLOWED_ORIGINS=env('ALLOWED_ORIGINS').split(',').map(x=>x.trim().replace(/\/+$/,'')).filter(Boolean);
+const RECONNECT_MS=process.env.RECONNECT_MS===undefined?60000:Math.max(0,Number(process.env.RECONNECT_MS)||0);
+const RECORD_RETRY_MS=Math.max(10,Number(process.env.RECORD_RETRY_MS)||2000);
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const suits=['hammer','paper','scissors'],beats={hammer:'scissors',paper:'hammer',scissors:'paper'};
 const PLAN_MS=75000,DISCARD_MS=50000,REVEAL_MS=3600;
 const pick=a=>a[crypto.randomInt(a.length)];
@@ -32,18 +41,21 @@ function snapshot(room,seat){
  discardOptions:g.phase==='discard'&&g.roundWinner===seat?me.slots.map((c,i)=>c?i:null).filter(x=>x!==null):[],
  discardSelected:me.discardSelected,
  winner:g.winner===null?null:g.winner===-1?-1:g.winner===seat?'you':'opponent',
- reason:g.reason||null};
+ reason:g.reason||null,
+ names:seat===0?room.names:[room.names[1],room.names[0]],ranked:!!room.ranked};
 }
 function broadcast(room){if(!room.game){for(const p of room.players)send(p.ws,{type:'lobby',code:room.code,seat:p.seat,players:room.players.map(x=>({seat:x.seat,ready:x.ready})),canStart:room.players.length===2});return;}
  for(const p of room.players)send(p.ws,snapshot(room,p.seat));
 }
 function stopTimer(room){if(room.timer){clearTimeout(room.timer);room.timer=null;}}
 function schedule(room,ms,fn){stopTimer(room);room.timer=setTimeout(()=>{if(rooms.get(room.code)===room)fn();},ms);room.timer.unref?.();}
-function endGame(room,winner,reason){const g=room.game;if(!g||g.phase==='over')return;stopTimer(room);g.phase='over';g.deadline=0;g.winner=winner;g.reason=reason;broadcast(room);}
+function endGame(room,winner,reason){const g=room.game;if(!g||g.phase==='over')return;stopTimer(room);g.phase='over';g.deadline=0;g.winner=winner;g.reason=reason;broadcast(room);
+ if(room.ranked&&!room.recorded&&room.ids){room.recorded=true;recordResult(room,winner,reason).catch(()=>{});}}
 function newGame(room){
  stopTimer(room);
  const players=[0,1].map(()=>({hp:100,deck:makeDeck(),hand:[],slots:[null,null,null],discard:[],ready:false,locked:null,nextLocked:null,nextDraw:1,discardSelected:null}));
  players.forEach(dealInitial);
+ room.names=[0,1].map(seat=>{const pl=room.players.find(x=>x.seat===seat);return (pl&&pl.user&&pl.user.name)||null;});
  room.game={players,phase:'plan',round:1,deadline:0,blocked:[null,null],sharedBlocked:[],roundWinner:-1,history:[],lastResult:null,combo:null,winner:null,reason:null};
  startPlan(room,true);
 }
@@ -119,61 +131,209 @@ function finishDiscard(room){
  }
  g.round++;startPlan(room);
 }
-function leave(ws){
- const info=peers.get(ws);if(!info)return;peers.delete(ws);
- const room=rooms.get(info.code);if(!room)return;
- if(room.game&&room.game.phase!=='over')endGame(room,1-info.seat,'Opponent disconnected / forfeited');
- room.players=room.players.filter(p=>p.ws!==ws);
+/* ---------- accounts, ranked queue, reconnect grace ---------- */
+function removePlayer(room,player){
+ room.players=room.players.filter(p=>p!==player);
+ if(player.user&&userRoom.get(player.user.id)===room)userRoom.delete(player.user.id);
  if(!room.players.length){stopTimer(room);rooms.delete(room.code);return;}
- // Allow survivor to start new game with the next visitor.
- room.game=null;room.players.forEach(p=>p.ready=false);broadcast(room);
+ // A finished game stays on screen for the player who is still here; a lobby resets for the next visitor.
+ if(!room.game){room.players.forEach(p=>p.ready=false);}
+ broadcast(room);
 }
+function leave(ws){
+ const info=peers.get(ws);peers.delete(ws);dequeue(ws);
+ if(!info)return;
+ const room=rooms.get(info.code);if(!room)return;
+ const player=room.players.find(p=>p.ws===ws);if(!player)return;
+ const live=room.game&&room.game.phase!=='over';
+ if(live&&player.user&&RECONNECT_MS>0){
+  // Signed-in players get a grace period: their seat is held while they reconnect.
+  player.gone=true;player.ws=null;
+  const other=room.players.find(p=>p!==player);
+  if(other)send(other.ws,{type:'opponent_disconnected',seconds:Math.round(RECONNECT_MS/1000)});
+  player.grace=setTimeout(()=>{player.grace=null;if(rooms.get(room.code)!==room||!player.gone)return;endGame(room,1-player.seat,'Opponent disconnected');removePlayer(room,player);},RECONNECT_MS);
+  player.grace.unref?.();return;
+ }
+ if(live)endGame(room,1-player.seat,'Opponent disconnected / forfeited');
+ removePlayer(room,player);
+}
+function fail(ws,message,extra){send(ws,Object.assign({type:'error',message},extra));}
+async function sb(path,{method='GET',key,bearer,body}={}){
+ const headers={apikey:key,'Content-Type':'application/json'};
+ if(bearer)headers.Authorization='Bearer '+bearer;
+ const res=await fetch(SUPABASE_URL+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(8000)});
+ const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch{}
+ return{ok:res.ok,status:res.status,data};
+}
+async function verifyToken(token){
+ if(typeof token!=='string'||token.length<20||token.length>4096)return{invalid:true};
+ const u=await sb('/auth/v1/user',{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
+ if(u.status===401||u.status===403||u.status===400)return{invalid:true};
+ if(!u.ok||!u.data||!UUID.test(u.data.id||''))throw new Error('auth lookup failed');
+ const p=await sb('/rest/v1/profiles?select=id,display_name,rating&id=eq.'+u.data.id,{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
+ if(!p.ok||!Array.isArray(p.data)||!p.data[0])throw new Error('profile lookup failed');
+ return{user:{id:u.data.id,name:p.data[0].display_name,rating:p.data[0].rating}};
+}
+function resume(ws,user){
+ const room=userRoom.get(user.id);if(!room)return false;
+ const player=room.players.find(p=>p.user&&p.user.id===user.id);if(!player)return false;
+ const old=player.ws;
+ if(old&&old!==ws){old.replaced=true;peers.delete(old);send(old,{type:'error',message:'Signed in from another place'});try{old.close()}catch{}}
+ if(player.grace){clearTimeout(player.grace);player.grace=null;}
+ player.gone=false;player.ws=ws;peers.set(ws,{code:room.code,seat:player.seat});
+ send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating,resumed:true});
+ const other=room.players.find(p=>p!==player);if(other)send(other.ws,{type:'opponent_back'});
+ broadcast(room);return true;
+}
+async function handleAuth(ws,msg){
+ const seq=++ws.authSeq;
+ if(msg.token===null||msg.token===undefined){
+  if(!(peers.has(ws)&&ws.user&&userRoom.has(ws.user.id))){   // signing out mid-match keeps the seat until the match ends
+   if(ws.user&&userSession.get(ws.user.id)===ws)userSession.delete(ws.user.id);
+   ws.user=null;dequeue(ws);
+  }
+  return send(ws,{type:'auth_ok',guest:true});
+ }
+ if(!ACCOUNTS)return send(ws,{type:'auth_error',message:'Accounts are not enabled on this server yet. You can still play as a guest.'});
+ let r;
+ try{r=await verifyToken(msg.token);}
+ catch{if(seq===ws.authSeq)send(ws,{type:'auth_error',message:'Could not check your sign-in. Try again in a moment.'});return;}
+ if(seq!==ws.authSeq||ws.readyState!==WebSocket.OPEN)return;
+ if(r.invalid)return send(ws,{type:'auth_error',invalid:true,message:'Your sign-in expired. Please sign in again.'});
+ const user=r.user;
+ if(resume(ws,user)){ws.user=user;userSession.set(user.id,ws);return;}
+ const prev=userSession.get(user.id);
+ if(prev&&prev!==ws){prev.replaced=true;send(prev,{type:'error',message:'Signed in from another place'});dequeue(prev);try{prev.close()}catch{}}
+ userSession.set(user.id,ws);ws.user=user;
+ const info=peers.get(ws),room=info&&rooms.get(info.code);
+ if(room&&!room.game){const pl=room.players.find(p=>p.ws===ws);if(pl)pl.user=user;}
+ send(ws,{type:'auth_ok',guest:false,name:user.name,rating:user.rating});
+}
+/* ---------- recording results ---------- */
+async function recordResult(room,winner,reason){
+ const [a,b]=room.ids,payload={p_player1:a.id,p_player2:b.id,p_result:winner===-1?'draw':winner===0?'player1':'player2',
+  p_reason:String(reason||'').slice(0,80),p_rounds:room.game.round,p_ranked:true,p_match_id:room.matchId};
+ pendingRecords++;
+ try{
+  for(let attempt=0;attempt<8;attempt++){
+   try{
+    const r=await sb('/rest/v1/rpc/record_match',{method:'POST',key:SUPABASE_SECRET_KEY,body:payload});
+    if(r.ok&&r.data&&r.data.player1){
+     [[a,r.data.player1],[b,r.data.player2]].forEach(([u,x])=>{
+      const ws=userSession.get(u.id);if(ws&&ws.user)ws.user.rating=x.after;
+      send(ws,{type:'rating_update',before:x.before,after:x.after});
+     });return;
+    }
+    if(r.status>=400&&r.status<500&&r.status!==429)break; // a request that will never succeed
+   }catch{}
+   await new Promise(res=>{const t=setTimeout(res,Math.min(RECORD_RETRY_MS*2**attempt,5*60000));t.unref?.();});
+  }
+  [a,b].forEach(u=>send(userSession.get(u.id),{type:'rating_update',error:true}));
+  console.error('record_match failed for',room.matchId);
+ }finally{pendingRecords--;}
+}
+/* ---------- ranked queue ---------- */
+function dequeue(ws){const i=queue.findIndex(q=>q.ws===ws);if(i<0)return false;queue.splice(i,1);return true;}
+function windowFor(q,now){return 100+50*Math.floor((now-q.since)/10000);}
+function matchmake(){
+ const now=Date.now();
+ queue.sort((x,y)=>x.since-y.since);
+ for(let i=0;i<queue.length;i++){
+  for(let j=i+1;j<queue.length;j++){
+   const A=queue[i],B=queue[j];
+   if(Math.abs(A.user.rating-B.user.rating)<=Math.max(windowFor(A,now),windowFor(B,now))){
+    queue.splice(j,1);queue.splice(i,1);startRanked(A,B);return matchmake();
+   }
+  }
+ }
+}
+function startRanked(A,B){
+ const flip=crypto.randomInt(2)===1,[p0,p1]=flip?[B,A]:[A,B];
+ const id=roomCode(),room={code:id,players:[],game:null,timer:null,ranked:true,ids:[p0.user,p1.user],matchId:crypto.randomUUID()};
+ [p0,p1].forEach((q,seat)=>{
+  room.players.push({seat,ws:q.ws,ready:true,user:q.user});
+  peers.set(q.ws,{code:id,seat});userRoom.set(q.user.id,room);
+ });
+ rooms.set(id,room);
+ send(p0.ws,{type:'match_found',code:id,opponent:{name:p1.user.name,rating:p1.user.rating}});
+ send(p1.ws,{type:'match_found',code:id,opponent:{name:p0.user.name,rating:p0.user.rating}});
+ newGame(room);
+}
+const mmTimer=setInterval(()=>{if(queue.length>1)matchmake();},2000);mmTimer.unref();
+
+/* ---------- http + websocket ---------- */
 const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');
  res.setHeader('Access-Control-Allow-Origin','*');
- const body=req.url==='/health'||req.url==='/'?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size}:{error:'Not found'};
- res.writeHead(body.error?404:200);res.end(JSON.stringify(body));
+ const ok=req.url==='/health'||req.url==='/';
+ const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length}:{error:'Not found'};
+ res.writeHead(ok?200:404);res.end(JSON.stringify(body));
 });
 const wss=new WebSocketServer({server,maxPayload:4096});
-wss.on('connection',ws=>{
- ws.alive=true;ws.on('pong',()=>ws.alive=true);
+function allowed(req){
+ if(!ALLOWED_ORIGINS.length)return true;
+ const o=req&&req.headers&&req.headers.origin;
+ return !o||ALLOWED_ORIGINS.includes(o);   // non-browser clients send no Origin
+}
+function take(ws,cost){
+ const now=Date.now();ws.tokens=Math.min(40,ws.tokens+(now-ws.tokenAt)/1000*12);ws.tokenAt=now;
+ if(ws.tokens<cost)return false;ws.tokens-=cost;return true;
+}
+wss.on('connection',(ws,req)=>{
+ if(!allowed(req)){try{ws.close(1008,'Origin not allowed')}catch{}return;}
+ ws.alive=true;ws.user=null;ws.authSeq=0;ws.tokens=40;ws.tokenAt=Date.now();ws.strikes=0;
+ ws.on('pong',()=>ws.alive=true);
  send(ws,{type:'welcome',message:'Connected to BBK Card Game server'});
  ws.on('message',raw=>{
+  if(!take(ws,1)){if(++ws.strikes>50)ws.terminate();return;}
   let msg;try{msg=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Invalid message'});}
   if(!msg||typeof msg.type!=='string')return;
+  if(msg.type==='auth'){if(!take(ws,4))return send(ws,{type:'auth_error',message:'Too many sign-in attempts. Wait a moment.'});handleAuth(ws,msg);return;}
   const info=peers.get(ws),room=info?rooms.get(info.code):null,g=room?.game;
+  if(msg.type==='ranked_queue'){
+   if(!RANKED)return fail(ws,'Ranked matches are not available yet.');
+   if(!ws.user)return fail(ws,'Sign in to play ranked.');
+   if(info){if(room?.game?.phase==='over')leave(ws);else return fail(ws,'You are already in a room');}
+   if(userRoom.has(ws.user.id))return fail(ws,'You already have a match in progress');
+   if(queue.some(q=>q.ws===ws))return;
+   queue.push({ws,user:ws.user,since:Date.now()});send(ws,{type:'queued',rating:ws.user.rating});matchmake();return;
+  }
+  if(msg.type==='ranked_cancel'){dequeue(ws);return send(ws,{type:'queue_left'});}
   // Both players type the same three-digit number. First arrival creates a
   // room; second arrival joins it. Strings preserve leading zeros (e.g. 007).
   if(msg.type==='enter_room'){
     if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    if(dequeue(ws))send(ws,{type:'queue_left'});
     const id=String(msg.code??'').trim();
     if(!/^\d{3}$/.test(id))return send(ws,{type:'error',message:'Enter exactly 3 digits (000–999)'});
     let r=rooms.get(id);
     if(!r){
       if(rooms.size>=1000)return send(ws,{type:'error',message:'Server room limit reached'});
-      r={code:id,players:[{seat:0,ws,ready:false}],game:null,timer:null};
+      r={code:id,players:[{seat:0,ws,ready:false,user:ws.user}],game:null,timer:null};
       rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
     }
     if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room '+id+' is full or a match is in progress. Choose another number.'});
     const seat=r.players.some(p=>p.seat===0)?1:0;
-    r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
+    r.players.push({seat,ws,ready:false,user:ws.user});peers.set(ws,{code:id,seat});broadcast(r);return;
   }
   // Simple flow: create_room gets a server-made 4-digit code; join_room enters an existing room by that code.
   if(msg.type==='create_room'){
     if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    if(dequeue(ws))send(ws,{type:'queue_left'});
     if(rooms.size>=1000)return send(ws,{type:'error',message:'Server room limit reached'});
-    const id=roomCode(),r={code:id,players:[{seat:0,ws,ready:false}],game:null,timer:null};
+    const id=roomCode(),r={code:id,players:[{seat:0,ws,ready:false,user:ws.user}],game:null,timer:null};
     rooms.set(id,r);peers.set(ws,{code:id,seat:0});broadcast(r);return;
   }
   if(msg.type==='join_room'){
     if(info)return send(ws,{type:'error',message:'You are already in a room'});
+    if(dequeue(ws))send(ws,{type:'queue_left'});
     const id=String(msg.code??'').trim();
     if(!/^\d{3,4}$/.test(id))return send(ws,{type:'error',message:'Enter the 4-digit room code'});
     const r=rooms.get(id);
-    if(!r)return send(ws,{type:'error',message:'Room '+id+' not found. Check the code or ask your friend for a new one.'});
+    if(!r||r.ranked)return send(ws,{type:'error',message:'Room '+id+' not found. Check the code or ask your friend for a new one.'});
     if(r.players.length>=2||r.game)return send(ws,{type:'error',message:'Room '+id+' is full or a match is in progress.'});
     const seat=r.players.some(p=>p.seat===0)?1:0;
-    r.players.push({seat,ws,ready:false});peers.set(ws,{code:id,seat});broadcast(r);return;
+    r.players.push({seat,ws,ready:false,user:ws.user});peers.set(ws,{code:id,seat});broadcast(r);return;
   }
   if(msg.type==='leave_room'){leave(ws);return send(ws,{type:'room_left'});}
   if(msg.type==='ping')return send(ws,{type:'pong'});
@@ -206,7 +366,8 @@ wss.on('connection',ws=>{
     p.discardSelected=msg.slot;finishDiscard(room);return;
   }
  });
- ws.on('close',()=>leave(ws));ws.on('error',()=>leave(ws));
+ ws.on('close',()=>{if(ws.replaced){dequeue(ws);return;}leave(ws);if(ws.user&&userSession.get(ws.user.id)===ws)userSession.delete(ws.user.id);});
+ ws.on('error',()=>{});
 });
 const heartbeat=setInterval(()=>{for(const ws of wss.clients){if(!ws.alive){ws.terminate();continue;}ws.alive=false;ws.ping();}},30000);heartbeat.unref();
-server.listen(PORT,'0.0.0.0',()=>console.log('BBK authoritative online server on',PORT));
+server.listen(PORT,'0.0.0.0',()=>console.log('BBK authoritative online server on',PORT,'| accounts:',ACCOUNTS,'| ranked:',RANKED));
