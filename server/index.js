@@ -174,9 +174,9 @@ async function verifyToken(token){
  const u=await sb('/auth/v1/user',{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
  if(u.status===401||u.status===403||u.status===400)return{invalid:true};
  if(!u.ok||!u.data||!UUID.test(u.data.id||''))throw new Error('auth lookup failed');
- const p=await sb('/rest/v1/profiles?select=id,display_name,rating,tutorial_step&id=eq.'+u.data.id,{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
+ const p=await sb('/rest/v1/profiles?select=id,display_name,rating,games,tutorial_step&id=eq.'+u.data.id,{key:SUPABASE_PUBLISHABLE_KEY,bearer:token});
  if(!p.ok||!Array.isArray(p.data)||!p.data[0])throw new Error('profile lookup failed');
- return{user:{id:u.data.id,name:p.data[0].display_name,rating:p.data[0].rating,tutorial:Number(p.data[0].tutorial_step)||0}};
+ return{user:{id:u.data.id,name:p.data[0].display_name,rating:p.data[0].rating,games:Number.isFinite(Number(p.data[0].games))&&p.data[0].games!==null?Number(p.data[0].games):null,tutorial:Number(p.data[0].tutorial_step)||0}};
 }
 function resume(ws,user){
  const room=userRoom.get(user.id);if(!room)return false;
@@ -224,7 +224,7 @@ async function recordResult(room,winner,reason){
     const r=await sb('/rest/v1/rpc/record_match',{method:'POST',key:SUPABASE_SECRET_KEY,body:payload});
     if(r.ok&&r.data&&r.data.player1){
      [[a,r.data.player1],[b,r.data.player2]].forEach(([u,x])=>{
-      const ws=userSession.get(u.id);if(ws&&ws.user)ws.user.rating=x.after;
+      const ws=userSession.get(u.id);if(ws&&ws.user){ws.user.rating=x.after;if(typeof ws.user.games==='number')ws.user.games++;}
       send(ws,{type:'rating_update',before:x.before,after:x.after});
      });return;
     }
@@ -259,18 +259,27 @@ function pairCasual(){
   newGame(room);
  }
 }
-function windowFor(q,now){return 100+50*Math.floor((now-q.since)/10000);}
+/* Matchmaking keeps the tiers apart: the rating window starts at +-100, widens by 50 every 10 s, and never passes +-300 (one tier).
+   Players still in placement (no points lost) are only paired with placed players after both waited 30 s, so they are not free wins. */
+const PLACEMENT=5,MM_BASE=100,MM_STEP=50,MM_STEP_MS=10000,MM_CAP=300,MM_PLACEMENT_WAIT=30000,MM_HINT_MS=60000;
+const placing=u=>typeof u.games==='number'&&u.games<PLACEMENT;   // unknown games count as placed
+function windowFor(q,now){return Math.min(MM_CAP,MM_BASE+MM_STEP*Math.floor((now-q.since)/MM_STEP_MS));}
+function canPair(A,B,now){
+ if(Math.abs(A.user.rating-B.user.rating)>Math.max(windowFor(A,now),windowFor(B,now)))return false;
+ if(placing(A.user)!==placing(B.user)&&Math.max(now-A.since,now-B.since)<MM_PLACEMENT_WAIT)return false;
+ return true;
+}
 function matchmake(){
  const now=Date.now();
  queue.sort((x,y)=>x.since-y.since);
  for(let i=0;i<queue.length;i++){
   for(let j=i+1;j<queue.length;j++){
    const A=queue[i],B=queue[j];
-   if(Math.abs(A.user.rating-B.user.rating)<=Math.max(windowFor(A,now),windowFor(B,now))){
-    queue.splice(j,1);queue.splice(i,1);startRanked(A,B);return matchmake();
-   }
+   if(canPair(A,B,now)){queue.splice(j,1);queue.splice(i,1);startRanked(A,B);return matchmake();}
   }
  }
+ // Nobody close enough for a long time (few players online): tell the player once so they can pick another mode.
+ queue.forEach(q=>{if(!q.hinted&&now-q.since>=MM_HINT_MS){q.hinted=true;send(q.ws,{type:'queue_hint',seconds:Math.round((now-q.since)/1000)});}});
 }
 function startRanked(A,B){
  const flip=crypto.randomInt(2)===1,[p0,p1]=flip?[B,A]:[A,B];

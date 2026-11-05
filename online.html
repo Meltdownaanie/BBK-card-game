@@ -1095,6 +1095,7 @@ function onServer(m){
    return afterAuth();
   case 'queued':return showQueue(true,m.mode==='random'?'random':'ranked');
   case 'queue_left':return showQueue(false);
+  case 'queue_hint':if(queuing())$('onlineQueueText').textContent='Few players near your rank right now. Keep waiting, or cancel and play a random match or vs AI.';return;
   case 'match_found':
    stopQueueTimer();$('onlineQueue').hidden=true;$('onlineJoin').hidden=true;
    $('dialogText').textContent='Match found! vs '+(m.opponent&&m.opponent.name||'Opponent')+(m.opponent&&m.opponent.rating?' ('+m.opponent.rating+')':'');
