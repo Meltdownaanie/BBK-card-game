@@ -2,6 +2,7 @@
 /* BBK Card Game authoritative multiplayer server. No hidden opponent cards sent to clients. */
 const http=require('node:http'),crypto=require('node:crypto');
 const {WebSocketServer,WebSocket}=require('ws');
+const brain=require('./bot');
 const PORT=Number(process.env.PORT)||10000;
 const rooms=new Map(),peers=new Map();
 const userSession=new Map(),userRoom=new Map(),queue=[],casual=[];   // userId -> socket, userId -> room, ranked waiting list
@@ -50,7 +51,8 @@ function broadcast(room){if(!room.game){for(const p of room.players)send(p.ws,{t
 function stopTimer(room){if(room.timer){clearTimeout(room.timer);room.timer=null;}}
 function schedule(room,ms,fn){stopTimer(room);room.timer=setTimeout(()=>{if(rooms.get(room.code)===room)fn();},ms);room.timer.unref?.();}
 function endGame(room,winner,reason){const g=room.game;if(!g||g.phase==='over')return;stopTimer(room);g.phase='over';g.deadline=0;g.winner=winner;g.reason=reason;broadcast(room);
- if(room.ranked&&!room.recorded&&room.ids){room.recorded=true;recordResult(room,winner,reason).catch(()=>{});}}
+ if(room.ranked&&!room.recorded&&room.ids){room.recorded=true;recordResult(room,winner,reason).catch(()=>{});}
+ room.players.forEach(p=>{if(p.ws&&p.ws.bot&&p.user&&userRoom.get(p.user.id)===room)userRoom.delete(p.user.id);});}   // the bot can take a new match right away
 function newGame(room){
  stopTimer(room);
  const players=[0,1].map(()=>({hp:100,deck:makeDeck(),hand:[],slots:[null,null,null],discard:[],ready:false,locked:null,nextLocked:null,nextDraw:1,discardSelected:null}));
@@ -139,6 +141,7 @@ function finishDiscard(room){
 function removePlayer(room,player){
  room.players=room.players.filter(p=>p!==player);
  if(player.user&&userRoom.get(player.user.id)===room)userRoom.delete(player.user.id);
+ if(room.players.length&&room.players.every(p=>p.ws&&p.ws.bot)){room.players.forEach(p=>{peers.delete(p.ws);if(p.user&&userRoom.get(p.user.id)===room)userRoom.delete(p.user.id);});room.players=[];}
  if(!room.players.length){stopTimer(room);rooms.delete(room.code);return;}
  // A finished game stays on screen for the player who is still here; a lobby resets for the next visitor.
  if(!room.game){room.players.forEach(p=>p.ready=false);}
@@ -287,6 +290,12 @@ function matchmake(){
    if(canPair(A,B,now)){queue.splice(j,1);queue.splice(i,1);startRanked(A,B);return matchmake();}
   }
  }
+  // Nobody to play after BOT_WAIT_MS: a house bot (2 per rank) steps in so a new player always gets a match.
+ for(let i=0;i<queue.length;i++){
+  const q=queue[i];if(now-q.since<BOT_WAIT_MS)continue;
+  const bot=freeBotFor(q.user);if(!bot)continue;
+  queue.splice(i,1);startRanked(q,{ws:makeBotClient(bot),user:bot,since:now});return matchmake();
+ }
  // Nobody close enough for a long time (few players online): tell the player once so they can pick another mode.
  queue.forEach(q=>{if(!q.hinted&&now-q.since>=MM_HINT_MS){q.hinted=true;send(q.ws,{type:'queue_hint',seconds:Math.round((now-q.since)/1000)});}});
 }
@@ -305,14 +314,55 @@ function startRanked(A,B){
  room.intro=setTimeout(()=>{room.intro=null;if(rooms.get(id)===room&&room.players.length===2)newGame(room);},MM_INTRO_MS);
  room.intro.unref?.();
 }
-const mmTimer=setInterval(()=>{if(queue.length>1)matchmake();},2000);mmTimer.unref();
+/* ---------- house bots ---------- */
+const BOT_WAIT_MS=process.env.BOT_WAIT_MS!==undefined?Math.max(0,Number(process.env.BOT_WAIT_MS)||0):20000;
+const BOT_THINK=process.env.BOT_THINK_SCALE!==undefined?Math.max(0,Number(process.env.BOT_THINK_SCALE)||0):1;   // 1 = human-like pauses
+let bots=[];   // {id,name,rating,games,tutorial,bot:true}; a bot is busy while userRoom has it
+async function loadBots(){
+ if(!RANKED)return;
+ try{
+  const r=await sb('/rest/v1/profiles?select=id,display_name,rating&is_bot=eq.true',{key:SUPABASE_SECRET_KEY});
+  if(r.ok&&Array.isArray(r.data))bots=r.data.filter(b=>b&&b.is_bot!==false&&UUID.test(b.id||'')).map(b=>({id:b.id,name:b.display_name,rating:b.rating,games:10,tutorial:5,bot:true}));
+  console.log('house bots loaded:',bots.length);
+ }catch(e){console.error('could not load house bots');}
+}
+function freeBotFor(user){
+ const free=bots.filter(b=>!userRoom.has(b.id));
+ free.sort((a,b)=>Math.abs(a.rating-user.rating)-Math.abs(b.rating-user.rating));
+ return free[0]||null;
+}
+function makeBotClient(bot){
+ const ws={readyState:WebSocket.OPEN,bot:true,user:bot,level:brain.levelForRating(bot.rating),key:'',latest:null,timer:null,
+  send(raw){let m;try{m=JSON.parse(raw)}catch{return}if(m&&m.type==='state')botReact(ws,m);},terminate(){},close(){}};
+ return ws;
+}
+function botReact(ws,state){
+ ws.latest=state;
+ let key=null,delay=0,act=null;
+ if(state.phase==='plan'&&!state.ready){key=state.round+':plan';const lv=ws.level==='easy'?[4,12]:ws.level==='medium'?[7,18]:[9,24];delay=(lv[0]+Math.random()*(lv[1]-lv[0]))*1000;act=botPlan;}
+ else if(state.phase==='discard'&&state.discardOptions.length&&state.discardSelected===null){key=state.round+':discard';delay=(2+Math.random()*4)*1000;act=botDiscard;}
+ if(!key||key===ws.key)return;
+ ws.key=key;if(ws.timer)clearTimeout(ws.timer);
+ ws.timer=setTimeout(()=>{ws.timer=null;if(peers.has(ws))act(ws);},delay*BOT_THINK);ws.timer.unref?.();
+}
+function botPlan(ws){
+ const st=ws.latest;if(!st||st.phase!=='plan'||st.ready)return;
+ for(const m of brain.planMove(st,ws.level,clash))onMessage(ws,{type:'place',cardId:m.cardId,slot:m.slot});
+ onMessage(ws,{type:'lock'});
+}
+function botDiscard(ws){
+ const st=ws.latest;if(!st||st.phase!=='discard'||st.discardSelected!==null)return;
+ const slot=brain.discardMove(st,ws.level);if(slot!==null)onMessage(ws,{type:'discard',slot});
+}
+loadBots();
+const mmTimer=setInterval(()=>{if(queue.length)matchmake();},2000);mmTimer.unref();
 
 /* ---------- http + websocket ---------- */
 const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');
  res.setHeader('Access-Control-Allow-Origin','*');
  const ok=req.url==='/health'||req.url==='/';
- const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length,casual:casual.length}:{error:'Not found'};
+ const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length,casual:casual.length,bots:bots.length}:{error:'Not found'};
  res.writeHead(ok?200:404);res.end(JSON.stringify(body));
 });
 const wss=new WebSocketServer({server,maxPayload:4096});
@@ -325,16 +375,7 @@ function take(ws,cost){
  const now=Date.now();ws.tokens=Math.min(40,ws.tokens+(now-ws.tokenAt)/1000*12);ws.tokenAt=now;
  if(ws.tokens<cost)return false;ws.tokens-=cost;return true;
 }
-wss.on('connection',(ws,req)=>{
- if(!allowed(req)){try{ws.close(1008,'Origin not allowed')}catch{}return;}
- ws.alive=true;ws.user=null;ws.authSeq=0;ws.tokens=40;ws.tokenAt=Date.now();ws.strikes=0;
- ws.on('pong',()=>ws.alive=true);
- send(ws,{type:'welcome',message:'Connected to BBK Card Game server'});
- ws.on('message',raw=>{
-  if(!take(ws,1)){if(++ws.strikes>50)ws.terminate();return;}
-  let msg;try{msg=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Invalid message'});}
-  if(!msg||typeof msg.type!=='string')return;
-  if(msg.type==='auth'){if(!take(ws,4))return send(ws,{type:'auth_error',message:'Too many sign-in attempts. Wait a moment.'});handleAuth(ws,msg);return;}
+function onMessage(ws,msg){
   const info=peers.get(ws),room=info?rooms.get(info.code):null,g=room?.game;
   if(msg.type==='random_queue'){
    if(info){if(room?.game?.phase==='over')leave(ws);else return fail(ws,'You are already in a room');}
@@ -421,6 +462,18 @@ wss.on('connection',(ws,req)=>{
     p.discardSelected=msg.slot;
     if(g.players.every(x=>x.discardSelected!==null))finishDiscard(room);else broadcast(room);return;
   }
+}
+wss.on('connection',(ws,req)=>{
+ if(!allowed(req)){try{ws.close(1008,'Origin not allowed')}catch{}return;}
+ ws.alive=true;ws.user=null;ws.authSeq=0;ws.tokens=40;ws.tokenAt=Date.now();ws.strikes=0;
+ ws.on('pong',()=>ws.alive=true);
+ send(ws,{type:'welcome',message:'Connected to BBK Card Game server'});
+ ws.on('message',raw=>{
+  if(!take(ws,1)){if(++ws.strikes>50)ws.terminate();return;}
+  let msg;try{msg=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Invalid message'});}
+  if(!msg||typeof msg.type!=='string')return;
+  if(msg.type==='auth'){if(!take(ws,4))return send(ws,{type:'auth_error',message:'Too many sign-in attempts. Wait a moment.'});handleAuth(ws,msg);return;}
+  onMessage(ws,msg);
  });
  ws.on('close',()=>{if(ws.replaced){dequeue(ws);return;}leave(ws);if(ws.user&&userSession.get(ws.user.id)===ws)userSession.delete(ws.user.id);});
  ws.on('error',()=>{});
