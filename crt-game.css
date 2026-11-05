@@ -404,3 +404,9 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .ghost-slot .card .symbol img.suit-img,.ghost-slot .card .symbol svg{width:clamp(11px,24cqw,20px)!important;height:auto!important;max-height:calc(100% - 8px)}
 .ghost-slot .card .number{font-size:clamp(8px,19cqw,14px)!important;line-height:1;padding-top:1px}
 .board{margin:6px 0!important}
+
+/* ===== v4: LAST chip — label only when there is room for the wide pixel font; roomy padding so nothing touches the frame ===== */
+@container (max-width:139px){.ghost-slot .card::before{display:none!important}}
+.ghost-slot .card{padding:0 max(7px,9cqw)!important;overflow:hidden}
+.ghost-slot .card::before{font-size:7px;margin-right:2px;flex:none}
+.ghost-slot .card .number{flex:none}
