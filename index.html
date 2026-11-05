@@ -170,6 +170,7 @@ body{padding:8px 12px 12px}
 .difficulty-option b{font-size:13px;letter-spacing:.03em}.difficulty-option small{font-size:10px;color:var(--muted);line-height:1.25}
 .difficulty-option.selected{border:2px solid var(--gold);background:#483e26}.difficulty-option.selected small{color:#f0ddb2}
 .difficulty-option:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dmeter{display:flex;gap:3px}.dmeter i{width:12px;height:6px;background:#0c0614;border:1px solid #0c0614;opacity:.45}.difficulty-option.selected .dmeter i.on{background:#1b0d22}.dmeter i.on{background:var(--gold,#ffd34d);opacity:1}
 #difficultyStatus{color:var(--gold)}
 @media(max-width:420px){.difficulty-option{padding:7px 3px;min-height:80px}.difficulty-option small{font-size:9px}}
 
@@ -279,7 +280,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261105p">
+<link rel="stylesheet" href="./crt-game.css?v=20261105s">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -336,10 +337,10 @@ body{padding:8px 12px 12px}
 </div>
 <div id="comboCelebration" class="combo-celebration" aria-live="assertive" hidden></div>
 <div class="pile-overlay" id="pileOverlay" hidden><section class="pile-dialog" role="dialog" aria-modal="true" aria-labelledby="pileTitle"><div class="pile-header"><button type="button" class="secondary" id="closeDiscard">← BACK</button><h3 id="pileTitle">🗑 YOUR DISCARD PILE</h3></div><p>These are your permanently discarded cards. The discard pile is never reshuffled. Once all playable cards are gone, the player with more HP wins.</p><div class="pile-cards" id="discardCards"></div></section></div>
-<div class="overlay" id="overlay"><div class="dialog"><button type="button" id="dialogBack" class="secondary top-back">← MAIN MENU</button><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><img class="px suit-img" src="./icons/hammer.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>7</b></span><span class="mini paper"><img class="px suit-img" src="./icons/paper.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>3</b></span><span class="mini scissors"><img class="px suit-img" src="./icons/scissors.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>9</b></span></div><p id="dialogText">CARD DUEL</p>
+<div class="overlay" id="overlay"><div class="dialog"><button type="button" id="dialogBack" class="secondary top-back">← MAIN MENU</button><h1 id="dialogTitle"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h1><div class="emblems" aria-hidden="true"><span class="mini hammer"><img class="px suit-img" src="./icons/hammer.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>1</b></span><span class="mini paper"><img class="px suit-img" src="./icons/paper.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>8</b></span><span class="mini scissors"><img class="px suit-img" src="./icons/scissors.png?v=20261105e" width="28" height="28" alt="" draggable="false"><b>4</b></span></div><p id="dialogText">CARD DUEL</p>
 <div id="menuPane" class="pane">
 <div id="accountBar" class="account-bar"></div>
-<div class="ai-card"><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+<div class="ai-card"><div class="difficulty-options" role="group" aria-label="AI difficulty"><button type="button" class="difficulty-option selected" data-difficulty="easy" aria-pressed="true"><b>EASY</b><span class="dmeter" aria-hidden="true"><i class="on"></i><i></i><i></i></span><small>Plays at random</small></button><button type="button" class="difficulty-option" data-difficulty="medium" aria-pressed="false"><b>MEDIUM</b><span class="dmeter" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><small>Picks strong cards</small></button><button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false"><b>HARD</b><span class="dmeter" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><small>Calculates odds, reads habits</small></button></div><select id="aiDifficulty" class="screen-only" aria-label="Difficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
 <button type="button" id="menuAI" class="big-btn coral">PLAY VS AI</button></div>
 <div class="menu-grid"><a href="./online.html" id="menuOnline" class="big-btn teal"><span>MULTIPLAYER</span><small>Ranked · Rooms</small></a>
 <a href="./tutorial.html" id="menuTutorial" class="big-btn gold"><span>TUTORIAL</span><small id="menuTutorialSub">0 / 5 lessons</small><span id="menuTutorialBadge" class="mb-badge" hidden>START HERE</span></a></div>
@@ -703,18 +704,24 @@ function hardScenarios(available,amount,limit=160){
  return scenarios;
 }
 function hardRoundOutcome(arrangement,available,scenario){
- let winsAI=0,winsMe=0,damage=0;
+ let winsAI=0,winsMe=0,dealtAI=0,dealtMe=0;
  for(let j=0;j<arrangement.length;j++){
    const b=arrangement[j],a=scenario[available[j]];
    if(!a)continue;
    const r=battle(a,b);
-   if(r.w===1){winsAI++;damage+=r.dmg}
-   else if(r.w===0){winsMe++;damage-=r.dmg}
+   if(r.w===1){winsAI++;dealtAI+=r.dmg}
+   else if(r.w===0){winsMe++;dealtMe+=r.dmg}
  }
+ let damage=dealtAI-dealtMe;
  if(winsAI===3)damage+=5;
  if(winsMe===3)damage-=5;
- const won=arrangement.length===3?winsAI>=2:winsAI>winsMe;
- const lost=arrangement.length===3?winsMe>=2:winsMe>winsAI;
+ // Same round rule as roundWinner(): 2+ slot wins takes the round; one win each (third slot tied) goes to whoever dealt more damage.
+ let won,lost;
+ if(arrangement.length===3){
+   const split=winsAI===1&&winsMe===1;
+   won=winsAI>=2||(split&&dealtAI>dealtMe);
+   lost=winsMe>=2||(split&&dealtMe>dealtAI);
+ }else{won=winsAI>winsMe;lost=winsMe>winsAI}
  return {damage,won,lost,winsAI,winsMe};
 }
 function hardChooseMove(hand,available,amount){

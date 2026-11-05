@@ -461,3 +461,30 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 #onlineResult .res-title{font-size:30px}
 #onlineResult .res-rating{padding:10px}
 #onlineResult .res-links button,#onlineResult>button{min-height:42px;padding-top:8px!important;padding-bottom:8px!important}
+
+/* ===== account modals (profile, leaderboard, rank tiers, sign in) in the game's own look ===== */
+.bbk-ov{background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px),radial-gradient(circle at 50% 30%,#2a1448,#1a0e33 70%)!important;font-family:var(--pf)}
+.bbk-ov .bbk-box{background:var(--c-panel)!important;border:0!important;border-radius:16px!important;box-shadow:0 0 0 4px var(--c-line),inset 0 0 0 3px var(--c-panel-in)!important;color:var(--c-ink)!important;font-family:var(--pf)!important;padding:16px 16px 18px}
+.bbk-ov .bbk-head h2{font-family:var(--pt)!important;font-size:22px!important;color:var(--c-gold);text-shadow:3px 3px 0 var(--c-line);letter-spacing:.04em}
+.bbk-ov .bbk-back,.bbk-ov .bbk-x,.bbk-ov .bbk-btn.alt{font-family:var(--pf)!important;font-weight:700;color:var(--c-dark)!important;background:#cdbfe8!important;border:0!important;border-radius:10px!important;box-shadow:0 0 0 3px var(--c-line),0 5px 0 3px var(--c-line),0 5px 0 0 #8f84b4!important;margin-bottom:6px}
+.bbk-ov .bbk-back:active,.bbk-ov .bbk-btn.alt:active{transform:translateY(3px)}
+.bbk-ov .bbk-btn:not(.alt){font-family:var(--pf)!important;font-weight:700;letter-spacing:.03em;color:var(--c-dark)!important;background:var(--c-gold)!important;border:0!important;border-radius:12px!important;box-shadow:0 0 0 3px var(--c-line),0 6px 0 3px var(--c-line),0 6px 0 0 #d6a31a!important;margin-bottom:6px}
+.bbk-ov .bbk-btn:not(.alt):active{transform:translateY(3px)}
+.bbk-ov .bbk-h3{font-family:var(--pf);color:var(--c-gold);letter-spacing:.12em}
+.bbk-ov .bbk-form input,.bbk-ov .bbk-row input{font-family:var(--pf);background:var(--c-line)!important;color:var(--c-ink)!important;border:0!important;border-radius:10px!important;box-shadow:inset 0 0 0 3px var(--c-panel-in)}
+.bbk-ov .bbk-tab{font-family:var(--pf);background:var(--c-panel-in)!important;border:0!important;border-radius:10px;color:var(--c-ink)}
+.bbk-ov .bbk-tab[aria-selected="true"]{background:var(--c-gold)!important;color:var(--c-dark)}
+.bbk-ov .bbk-stat,.bbk-ov .bbk-wl,.bbk-ov .bbk-list li,.bbk-ov .bbk-tcard,.bbk-ov .bbk-hero{background:var(--c-panel-in)!important}
+.bbk-ov .bbk-stat,.bbk-ov .bbk-wl,.bbk-ov .bbk-list li{border:0!important;border-radius:12px!important;box-shadow:0 0 0 3px var(--c-line)}
+.bbk-ov .bbk-hero{border-width:3px;border-radius:14px;box-shadow:0 0 0 3px var(--c-line)}
+.bbk-ov .bbk-tcard{border-radius:12px;box-shadow:0 0 0 3px var(--c-line)}
+.bbk-ov .bbk-tcard.mine{box-shadow:0 0 0 3px var(--c-gold)}
+.bbk-ov .bbk-tchip{background:var(--c-panel-in)!important;box-shadow:0 0 0 2px var(--c-line)}
+.bbk-ov .bbk-hero-rating b,.bbk-ov .bbk-stat b,.bbk-ov .bbk-you-rating,.bbk-ov .bbk-you-rank{font-family:var(--pt)}
+.bbk-ov .bbk-you{background:var(--c-panel-in)!important;border:0!important;box-shadow:0 0 0 3px var(--c-gold)}
+.bbk-ov .bbk-table td{border-top:2px solid var(--c-line)!important}
+.bbk-ov .bbk-table tr.me td{background:#ffd34d26!important}
+.bbk-ov .bbk-note,.bbk-ov .bbk-empty,.bbk-ov .bbk-stat small,.bbk-ov .bbk-table th{color:var(--c-mute)!important}
+/* the account button on the menu */
+.bbk-chip,.bbk-signin{font-family:var(--pf)!important;background:var(--c-panel-in)!important;border:0!important;border-radius:12px!important;color:var(--c-ink)!important;box-shadow:0 0 0 3px var(--c-line)}
+.bbk-ov .bbk-tchip{padding:6px 2px}.bbk-ov .bbk-tchip b{font-size:10px;white-space:nowrap;letter-spacing:0}.bbk-ov .bbk-tchip small{font-size:9px;white-space:nowrap;letter-spacing:0}
