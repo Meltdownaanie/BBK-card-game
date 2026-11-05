@@ -38,7 +38,7 @@ function snapshot(room,seat){
  ready:me.ready,opponentReady:op.ready,needed:required(g,seat),nextDraw:me.nextDraw,
  yourDiscards:me.discard,history:g.history.slice(-8).map(e=>({round:e.round,cards:e.cards[1-seat],result:e.result})),
  lastResult:g.lastResult,combo:g.combo,
- discardOptions:g.phase==='discard'&&g.roundWinner===seat?me.slots.map((c,i)=>c?i:null).filter(x=>x!==null):[],
+ discardOptions:g.phase==='discard'&&picks(g,seat)&&me.discardSelected===null?me.slots.map((c,i)=>c?i:null).filter(x=>x!==null):[],
  discardSelected:me.discardSelected,
  winner:g.winner===null?null:g.winner===-1?-1:g.winner===seat?'you':'opponent',
  reason:g.reason||null,
@@ -78,11 +78,13 @@ function startPlan(room,first=false){
  g.deadline=Date.now()+PLAN_MS;broadcast(room);schedule(room,PLAN_MS,()=>resolveRound(room));
 }
 function finishByHp(room){const g=room.game;endGame(room,g.players[0].hp===g.players[1].hp?-1:g.players[0].hp>g.players[1].hp?0:1,'No playable cards remain');}
-function roundWins(g,wins){const shortened=g.sharedBlocked.length>0||g.blocked.some(x=>x!==null)||g.players.some(p=>p.slots.some(x=>!x));return shortened?(wins[0]===wins[1]?-1:wins[0]>wins[1]?0:1):wins[0]>=2?0:wins[1]>=2?1:-1;}
+function isShortened(g){return g.sharedBlocked.length>0||g.blocked.some(x=>x!==null)||g.players.some(p=>p.slots.some(x=>!x));}
+// 2+ slot wins takes the round; with one win each and a tied slot, the bigger total damage dealt wins it.
+function roundWins(g,wins,dealt){if(isShortened(g))return wins[0]===wins[1]?-1:wins[0]>wins[1]?0:1;if(wins[0]>=2)return 0;if(wins[1]>=2)return 1;if(wins[0]===1&&wins[1]===1&&dealt)return dealt[0]===dealt[1]?-1:dealt[0]>dealt[1]?0:1;return -1;}
 function resolveRound(room){
  const g=room.game;if(!g||g.phase!=='plan')return;
  stopTimer(room);g.players.forEach((p,i)=>autoFill(g,i));
- const wins=[0,0],damageTaken=[0,0],outcomes=[];
+ const wins=[0,0],damageTaken=[0,0],dealt=[0,0],outcomes=[];
  const used=[0,1,2].filter(i=>g.players[0].slots[i]||g.players[1].slots[i]);
  const left=[0,1].map(p=>used.filter(i=>g.players[p].slots[i]));
  const pairs=[];for(const i of left[0].slice())if(left[1].includes(i)){pairs.push([i,i]);left[0].splice(left[0].indexOf(i),1);left[1].splice(left[1].indexOf(i),1);}
@@ -90,9 +92,10 @@ function resolveRound(room){
  for(const [i,j] of pairs){
    const a=g.players[0].slots[i],b=g.players[1].slots[j],r=clash(a,b);
    outcomes.push({slots:[i,j],winner:r.winner,damage:r.damage});
-   if(r.winner>=0){wins[r.winner]++;const loser=1-r.winner;g.players[loser].hp-=r.damage;damageTaken[loser]+=r.damage;}
+   if(r.winner>=0){wins[r.winner]++;dealt[r.winner]+=r.damage;const loser=1-r.winner;g.players[loser].hp-=r.damage;damageTaken[loser]+=r.damage;}
  }
- const winner=roundWins(g,wins);
+ const winner=roundWins(g,wins,dealt);
+ const bothPick=winner===-1&&!isShortened(g)&&outcomes.length===3&&outcomes.every(o=>o.winner<0);
  if(wins[0]===3||wins[1]===3){const loser=wins[0]===3?1:0;g.players[loser].hp-=5;damageTaken[loser]+=5;}
  const combo=[];
  const pack=[0,1].find(i=>winner===i&&isTriple(g.players[i],7));
@@ -100,7 +103,7 @@ function resolveRound(room){
  const kiants=[0,1].find(i=>winner===1-i&&isTriple(g.players[i],9));
  if(kiants!==undefined){g.players[kiants].hp-=damageTaken[kiants];g.players[1-kiants].nextDraw=2;combo.push({kind:'kiants',owner:kiants,title:'KIANTS GILLER',description:'Double round damage and bonus draw'});}
  for(let p=0;p<2;p++)if(winner===p&&isTriple(g.players[p],0)){const target=1-p,slot=crypto.randomInt(3);g.players[target].nextLocked=slot;combo.push({kind:'zero',owner:p,title:'ZERO TO HERO CALL',description:'One enemy slot sealed next round',slot});}
- g.roundWinner=winner;
+ g.roundWinner=winner;g.bothPick=bothPick;
  g.lastResult={round:g.round,wins,damageTaken,slots:g.players.map(p=>p.slots),outcomes,roundWinner:winner,fullSweep:wins.includes(3)};
  g.history.push({round:g.round,cards:g.players.map(p=>p.slots.map(c=>c?{suit:c.suit,n:c.n}:null)),result:{wins,damageTaken}});
  g.combo=combo;g.phase='reveal';g.deadline=Date.now()+REVEAL_MS;broadcast(room);
@@ -116,11 +119,12 @@ function resolveRound(room){
 function startDiscard(room){
  const g=room.game;if(!g||g.phase!=='reveal')return;
  g.phase='discard';g.deadline=Date.now()+DISCARD_MS;
- g.players.forEach((p,i)=>{p.discardSelected=null;if(g.roundWinner!==i)p.discardSelected=chooseDiscardIndex(p);});
+ g.players.forEach((p,i)=>{p.discardSelected=null;if(!picks(g,i))p.discardSelected=chooseDiscardIndex(p);});
  broadcast(room);
- if(g.roundWinner===-1||g.players[g.roundWinner].discardSelected!==null)return finishDiscard(room);
+ if(g.players.every(p=>p.discardSelected!==null))return finishDiscard(room);
  schedule(room,DISCARD_MS,()=>finishDiscard(room));
 }
+function picks(g,i){return g.roundWinner===i||!!g.bothPick;}
 function chooseDiscardIndex(p){const list=p.slots.map((c,i)=>c?i:null).filter(x=>x!==null);return list.length?pick(list):null;}
 function finishDiscard(room){
  const g=room.game;if(!g||g.phase!=='discard')return;
@@ -391,9 +395,10 @@ wss.on('connection',(ws,req)=>{
     p.ready=true;broadcast(room);
     if(g.players.every(x=>x.ready))resolveRound(room);return;
   }
-  if(msg.type==='discard'&&g.phase==='discard'&&g.roundWinner===info.seat){
-    if(!Number.isInteger(msg.slot)||!p.slots[msg.slot])return;
-    p.discardSelected=msg.slot;finishDiscard(room);return;
+  if(msg.type==='discard'&&g.phase==='discard'&&picks(g,info.seat)){
+    if(p.discardSelected!==null||!Number.isInteger(msg.slot)||!p.slots[msg.slot])return;
+    p.discardSelected=msg.slot;
+    if(g.players.every(x=>x.discardSelected!==null))finishDiscard(room);else broadcast(room);return;
   }
  });
  ws.on('close',()=>{if(ws.replaced){dequeue(ws);return;}leave(ws);if(ws.user&&userSession.get(ws.user.id)===ws)userSession.delete(ws.user.id);});

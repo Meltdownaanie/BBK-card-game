@@ -327,7 +327,7 @@ body{padding:8px 12px 12px}
       <article><span class="tutorial-step">03</span><div><strong>PLACE YOUR CARDS</strong><p>Drag a card from your hand into a numbered slot. Drag it back to your hand, move it between slots or swap two placed cards before confirming your turn.</p></div></article>
       <article><span class="tutorial-step">04</span><div><strong>SUIT ADVANTAGE</strong><p>📄 Paper beats ✊ Hammer · ✊ Hammer beats ✂️ Scissors · ✂️ Scissors beats 📄 Paper.</p></div></article>
       <article><span class="tutorial-step">05</span><div><strong>DAMAGE</strong><p>Damage equals the difference between the two card numbers. The higher number wins a same-suit clash. When different suits share a number, the winning suit deals twice that number.</p></div></article>
-      <article><span class="tutorial-step">06</span><div><strong>WINNING A ROUND</strong><p>Win at least two of the three slots to win the round. Win all three to inflict five bonus damage. In endgame rounds with fewer slots, win more slots than the opponent.</p></div></article>
+      <article><span class="tutorial-step">06</span><div><strong>WINNING A ROUND</strong><p>Win at least two of the three slots to win the round. Win all three to inflict five bonus damage. If you win one slot, lose one and tie one, whoever dealt more total damage wins the round; if all three slots tie, both players choose a card to discard. In endgame rounds with fewer slots, win more slots than the opponent.</p></div></article>
       <article><span class="tutorial-step">07</span><div><strong>DISCARD & DRAW</strong><p>The round winner chooses one played card to discard. The loser discards one at random. Remaining played cards return to hand; normally each player draws one card next round.</p></div></article>
       <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. Missing cards are placed automatically. Discard selection has a 50-second limit. When cards run low, some slots lock; discarded cards never return.</p></div></article>
     </div>
@@ -518,7 +518,8 @@ function configureEndgameBlocks(){
  // (Usually only one player is affected, so conflicts are unlikely.)
 }
 function playedCards(p){return S.slots[p].filter(Boolean).length}
-function roundWinner(wins){const shortened=S.endgameBlocked.length>0||S.blocked.some(v=>v!==null)||S.slots.some(slots=>slots.some(c=>!c));if(shortened)return wins[0]===wins[1]?-1:(wins[0]>wins[1]?0:1);return wins[0]>=2?0:wins[1]>=2?1:-1}
+function isShortened(){return S.endgameBlocked.length>0||S.blocked.some(v=>v!==null)||S.slots.some(slots=>slots.some(c=>!c))}
+function roundWinner(wins,outcomes){if(isShortened())return wins[0]===wins[1]?-1:(wins[0]>wins[1]?0:1);if(wins[0]>=2)return 0;if(wins[1]>=2)return 1;if(wins[0]===1&&wins[1]===1&&outcomes){const d=[0,1].map(p=>outcomes.filter(o=>o.w===p).reduce((t,o)=>t+o.dmg,0));return d[0]===d[1]?-1:d[0]>d[1]?0:1}return -1}
 function isTriple(p,n){return S.slots[p].every(c=>c&&c.n===n)}
 function blockText(){const labels=[];if(S.endgameBlocked.length)labels.push(`FINAL ROUND: Both players have locked slots ${S.endgameBlocked.map(i=>i+1).join(', ')}`);for(let p=0;p<2;p++)if(S.blocked[p]!==null&&!S.endgameBlocked.includes(S.blocked[p]))labels.push(`${p===0?'YOU':'AI'} has slot ${S.blocked[p]+1} locked`);return labels.join(' · ')}
 function hpAlertClass(hp){if(hp<=5)return 'hp-c5';if(hp<=10)return 'hp-c10';if(hp<=15)return 'hp-c15';if(hp<=25)return 'hp-c25';if(hp<=50)return 'hp-c50';if(hp<=70)return 'hp-c70';return 'hp-c100'}
@@ -843,7 +844,7 @@ async function endReveal(wins,outcomes){
   S.history.push({round:S.round,cards:S.slots[1].map(c=>c?{suit:c.suit,n:c.n}:null),playerCards:S.slots[0].map(c=>c?{suit:c.suit,n:c.n}:null)});
   S.playerObservations.push(S.slots[0].map(c=>c?{suit:c.suit,n:c.n}:null));
   renderHistory();renderPreviousRound();
-  const winner=roundWinner(wins),fullSweep=wins[0]===3||wins[1]===3;
+  const winner=roundWinner(wins,outcomes),fullSweep=wins[0]===3||wins[1]===3;
   if(fullSweep){const loser=wins[0]===3?1:0,before=S.hp[loser];S.hp[loser]-=5;renderHud();animateHpHit(loser,5,before);msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');await sleep(reducedMotion()?100:650);}
   // Secret victory combo wins the match; risky combo doubles round damage and grants an extra draw.
   const packWinner=[0,1].find(p=>winner===p&&isTriple(p,7));
@@ -876,16 +877,18 @@ async function endReveal(wins,outcomes){
     if(!await celebrateCombo('zero',winner,`${winner===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token))return;
   }
   if(TUT.on&&TUT.judge(wins,winner))return;
-  S.phase='discard';S.result={wins,winner,outcomes};S.pickIdx=[null,null];S.canPick=winner===0;
+  const bothPick=winner===-1&&!isShortened()&&outcomes.length===3&&outcomes.every(o=>o.w<0);
+  S.phase='discard';S.result={wins,winner,outcomes,bothPick};S.pickIdx=[null,null];S.canPick=winner===0||bothPick;
   const aiOptions=S.slots[1].map((c,i)=>c?i:-1).filter(i=>i>=0);
   const playerOptions=S.slots[0].map((c,i)=>c?i:-1).filter(i=>i>=0);
   // The winner chooses a secret discard; losing/tied players discard randomly.
-  if(aiOptions.length)S.pickIdx[1]=winner===1?aiDiscardIndex():aiOptions[Math.floor(Math.random()*aiOptions.length)];
+  if(aiOptions.length)S.pickIdx[1]=(winner===1||bothPick)?aiDiscardIndex():aiOptions[Math.floor(Math.random()*aiOptions.length)];
   if(!S.canPick&&playerOptions.length)S.pickIdx[0]=playerOptions[Math.floor(Math.random()*playerOptions.length)];
   S.discardDeadline=Date.now()+S.discardDuration*1000;clearInterval(S.timer);S.timer=setInterval(tick,150);$('clock').classList.remove('urgent');
   markDiscards();
   const bonus=(fullSweep?' Perfect sweep: +5 bonus damage!':'')+(kiantsText?' '+kiantsText:'');
-  if(S.canPick)msg(`You won the round ${wins[0]}–${wins[1]}.${bonus} ${zeroText} Choose one of your played cards to discard within 50 seconds.`);
+  if(bothPick)msg(`All 3 slots tied.${zeroText} Both players choose a card to discard. Choose one of your played cards within 50 seconds.`);
+  else if(S.canPick)msg(`You won the round ${wins[0]}–${wins[1]}.${bonus} ${zeroText} Choose one of your played cards to discard within 50 seconds.`);
   else if(winner===1)msg(`AI won the round.${bonus} ${zeroText} Your discard is chosen at random. The AI discard stays hidden.`);
   else msg(`Round tied.${zeroText} Both players discard one random card; the AI discard remains hidden.`);
   updateButton();if(S.canPick)tick();else completeDiscardSelection(false);
