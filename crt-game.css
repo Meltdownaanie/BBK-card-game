@@ -279,3 +279,80 @@ img.suit-img{display:block;image-rendering:auto;object-fit:contain}
 .card .symbol img.suit-img{width:clamp(34px,calc(var(--cw) * .62),56px);height:auto;aspect-ratio:1}
 .slot .card .symbol img.suit-img{width:clamp(34px,calc(var(--sw) * .62),58px)}
 .ghost-slot .card .symbol img.suit-img{width:clamp(18px,4.4vw,30px)}
+
+/* ===== ONE-SCREEN FIT: the whole match (HUDs, board, hand, button, tracker) fits one viewport on desktop and mobile ===== */
+:root{--gw:clamp(24px,6.5vw,50px);--fixed:398px}
+body{--sw:max(38px,min(calc((100dvh - var(--fixed)) / 3 * .714),calc((100vw - 22px) / 3 - var(--gw) - 10px),112px));--cw:var(--sw)}
+html,body{height:100%;overflow:hidden}
+body{height:100dvh;min-height:0!important;overflow:hidden;display:flex;flex-direction:column;
+ padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important}
+.app{flex:1 1 auto;min-height:0;width:100%;max-width:1180px;margin:0 auto;display:flex!important;flex-direction:column;gap:clamp(2px,.7dvh,6px)!important}
+.app>*{flex:0 0 auto;margin:0!important;min-width:0}
+.top{min-height:0!important}.logo{font-size:clamp(16px,3.2dvh,26px)!important}
+.top .secondary,.top .tutorial-open,.forfeit-button{padding:4px 8px!important;font-size:11px!important;min-height:0!important}
+/* round / mode / clock in one slim row */
+.status{min-height:0!important;align-items:center!important}
+.status .roundinfo,.status .modepill{padding:3px 10px!important;min-height:0!important;font-size:11px!important}
+.status .roundinfo strong,.status .time{font-size:12px!important}.status .time small{font-size:10px!important}
+.status #clock{flex-direction:row!important;align-items:center;gap:6px!important;min-width:0!important;padding:3px 10px!important}
+.status .timebar{width:54px;height:6px!important}
+/* slim HUDs: name, HP and bar on one line, piles on the right */
+.hud-row.solo .hud{display:flex!important;align-items:center;gap:8px!important;padding:4px 10px!important;height:auto!important;min-height:0!important}
+.hud-row.solo .who{flex:1 1 auto;display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start!important;gap:8px!important;min-width:0}
+.hud-row.solo .who span{font-size:9px!important;white-space:nowrap}
+.hud-row.solo .who strong{font-size:14px!important;white-space:nowrap;margin:0}.hud-row.solo .who strong small{font-size:10px!important}
+.hud-row.solo .healthbar,.bottom-hud .healthbar{flex:1 1 auto;width:auto!important;min-width:40px;height:12px!important;margin:0!important;padding:2px!important}
+.hud-row.solo .resource-info{flex:0 0 auto!important;width:auto!important;gap:8px!important}
+.hud-row.solo .deck-counter,.hud-row.solo .discard-counter{display:flex;flex-direction:row;align-items:center;gap:4px;min-width:0!important;flex:none!important;padding:0!important;font-size:8px}
+.hud-row.solo .deck-label{font-size:8px!important}.hud-row.solo .deck-num{font-size:9px!important}
+.hud-row.solo .deck-stack{width:20px!important;height:26px!important;margin:0 4px 0 0!important}
+.hud-row.solo .deck-stack span,.hud-row.solo .pile i{width:17px!important;height:24px!important}
+.hud-row.solo .pile{height:26px!important;width:20px!important;margin:0!important}
+.hud-row.solo .discard-open{padding:0!important;background:none!important;border:0!important}
+.hud-row.solo .discard-counter .deck-label,.hud-row.solo .deck-counter .deck-label{display:none}
+/* board takes the leftover height; slots are sized from the viewport (--sw) */
+.board{flex:1 1 auto!important;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(2px,.6dvh,6px) 4px!important}
+.columns{width:100%;margin:0 auto!important;gap:clamp(2px,1vw,12px)!important}
+.column{gap:clamp(2px,.5dvh,5px)!important}.ai-row{gap:4px!important}
+.ghost-slot{width:var(--gw)!important}
+.versus{min-height:0!important}.versus .pill{font-size:8px!important;padding:3px 6px!important}
+.message{min-height:0!important;line-height:1.25!important;font-size:12px!important;padding:0 4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.message:empty{display:none}
+/* hand, button */
+.hand-zone{flex:0 0 auto}
+.hand{padding:clamp(14px,2.6dvh,22px) 0 clamp(8px,2dvh,18px)!important}
+.hand-item .card{width:var(--cw)!important}
+.hand-item{margin:0 min(-4px,calc((100vw - 16px - 7 * var(--cw)) / 14))!important}
+.hand-item .card-origin{top:-16px!important;font-size:10px!important;padding:1px 5px!important}
+.lockrow .primary{min-height:clamp(32px,5.6dvh,48px)!important;font-size:clamp(13px,2.2dvh,17px)!important;padding:4px 10px!important}
+/* opponent tracker: compact, no footnote */
+.played-tracker{padding:4px 8px!important;gap:2px!important;margin:0!important}
+.played-tracker-heading{font-size:9px!important}
+.played-grid{gap:2px!important;grid-template-columns:22px repeat(10,minmax(0,1fr))!important}
+.played-cell{height:clamp(12px,2.2dvh,18px)!important;font-size:9px!important}
+.played-tracker-foot{display:none!important}
+.played-suit{display:flex!important;align-items:center;justify-content:center;font-size:0!important;line-height:1;white-space:nowrap}.played-suit img,.played-suit svg{width:14px;height:14px}
+@media(max-height:560px){.played-tracker{display:none}}
+/* tutorial coach: compact and scrollable instead of pushing the page */
+.coach{padding:6px 10px!important;gap:8px!important;max-height:26dvh;overflow:auto}
+.coach-face{width:28px!important;height:28px!important;font-size:16px!important}
+.coach p{font-size:12px!important;line-height:1.35!important}.coach ul{font-size:11px!important;margin:3px 0 0!important;line-height:1.3!important}
+.coach-actions{margin-top:5px!important}.coach-actions button{padding:4px 10px!important;font-size:12px!important}
+.coach-lv{font-size:10px!important;margin-bottom:1px!important}
+
+@media(max-width:430px){.status .time small{display:none}.status .modepill,.status .roundinfo{white-space:nowrap;letter-spacing:0!important;padding:3px 7px!important}.status #clock{padding:3px 7px!important}.status .timebar{width:40px}}
+
+body:has(#blockAlert:not([hidden])){--fixed:432px}
+.block-alert{font-size:11px!important;padding:3px 8px!important;line-height:1.2!important;max-height:2.6em;overflow:hidden}
+/* tutorial: tracker and message are hidden, the coach panel takes their place */
+body.tut-mode{--fixed:430px}
+body.tut-mode .coach{max-height:min(20dvh,124px)}
+/* landscape phones / very short windows: header buttons share the status row */
+@media(max-height:520px){
+ body{--fixed:292px}
+ body{--sw:max(24px,min(calc((100dvh - var(--fixed)) / 3 * .714),calc((100vw - 22px) / 3 - var(--gw) - 10px),112px))}
+ .top{position:absolute;top:4px;right:max(6px,env(safe-area-inset-right));z-index:6}
+ .top .logo{display:none}
+ .status{padding-right:190px!important}.status .modepill{display:none!important}
+ .hand{padding:14px 0 14px!important}
+}

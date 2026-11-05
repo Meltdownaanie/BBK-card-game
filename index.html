@@ -279,7 +279,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261105i">
+<link rel="stylesheet" href="./crt-game.css?v=20261105j">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -309,7 +309,7 @@ body{padding:8px 12px 12px}
   <div class="played-grid" id="playedGrid" aria-live="off"></div>
   <div class="played-tracker-foot">Highlighted = revealed at least once · A revealed card may still be in the opponent's hand.</div>
  </section>
-</div><details class="history" aria-label="Opponent card history"><summary>🃏 View opponent round history</summary><p>Cards revealed by the AI last round appear faintly beside its slots. Discards remain secret.</p><div id="previousRound" hidden></div><div class="history-separator">ROUND HISTORY</div><div id="historyContent"><p>No rounds played yet.</p></div></details></div>
+</div></div>
 </div>
 <div id="forfeitOverlay" class="overlay forfeit-overlay" hidden>
  <section class="dialog forfeit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="forfeitTitle" aria-describedby="forfeitText">
@@ -537,8 +537,8 @@ function renderPlayedTracker(){
  }).join('');
  $('playedCount').textContent=seen.size+' / 30 revealed';
 }
-function renderHistory(){renderPlayedTracker();const root=$('historyContent');if(!S.history.length){root.innerHTML='<p>No rounds played yet.</p>';return}root.innerHTML=[...S.history].reverse().map(h=>`<div class="history-round"><strong>Round ${h.round}</strong><div class="history-cards">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}: ${SUITS[c.suit].icon} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div></div>`).join('')}
-function renderPreviousRound(){const root=$('previousRound');const h=[...S.history].reverse().find(r=>r.round<S.round);if(!h){root.innerHTML='<p>No previous round.</p>';return}root.innerHTML=`<strong>Round ${h.round}</strong><div class="history-cards" style="margin-top:8px">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}<br>${SUITS[c.suit].icon} ${SUITS[c.suit].name} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div>`}
+function renderHistory(){renderPlayedTracker();const root=$('historyContent');if(!root)return;if(!S.history.length){root.innerHTML='<p>No rounds played yet.</p>';return}root.innerHTML=[...S.history].reverse().map(h=>`<div class="history-round"><strong>Round ${h.round}</strong><div class="history-cards">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}: ${SUITS[c.suit].icon} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div></div>`).join('')}
+function renderPreviousRound(){const root=$('previousRound');if(!root)return;const h=[...S.history].reverse().find(r=>r.round<S.round);if(!h){root.innerHTML='<p>No previous round.</p>';return}root.innerHTML=`<strong>Round ${h.round}</strong><div class="history-cards" style="margin-top:8px">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}<br>${SUITS[c.suit].icon} ${SUITS[c.suit].name} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div>`}
 function renderHand(){const h=[...S.hand[0]].sort((a,b)=>ORDER.indexOf(a.suit)-ORDER.indexOf(b.suit)||a.n-b.n);const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};$('hand').innerHTML=h.map(c=>{const [label,cls]=origins[c.origin]||origins.hand;const animate=S.animateHand.has(c.id)?(cls==='new'?' card-drawn':' card-returned'):'';return `<div class="hand-item${animate}"><span class="card-origin ${cls}">${label}</span>${cardHTML(c)}</div>`}).join('');S.animateHand.clear();$('hand').querySelectorAll('button').forEach(b=>{b.disabled=S.phase!=='plan';b.draggable=S.phase==='plan'});$('handCount').textContent=h.length+' cards'}
 function msg(s){$('message').textContent=s}
 function updateButton(){updateForfeitButton();const b=$('mainButton');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':`Place ${need-n} more`;b.disabled=n<need}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
@@ -807,7 +807,7 @@ async function startRound(first=false){
  configureEndgameBlocks();if(TUT.on)TUT.setOpp();else aiPlay();S.duration=roundTime();S.deadline=Date.now()+S.duration*1000;S.phase='plan';
  $('clock').classList.remove('urgent');if(!TUT.on)S.timer=setInterval(tick,150);render();if(!TUT.on)tick();
  if(requiredCards(0)===0){autoFill();reveal(true);return}
- msg(blockText()?`${blockText()}. Both sides can see locked slots. Play only into open slots.`:'Drag cards into any slot, drag them back to your hand, or swap cards between slots. You can also tap to place or return cards.');
+ msg(blockText()?`${blockText()}. Both sides can see locked slots. Play only into open slots.`:'');
 }
 function tick(){if(S.phase==='discard'){const left=Math.max(0,(S.discardDeadline-Date.now())/1000),sec=Math.ceil(left);$('time').textContent=fmt(sec);$('limit').textContent='/ 50s to discard';$('timerFill').style.width=(left/S.discardDuration*100)+'%';$('clock').classList.toggle('urgent',sec<=5);if(left<=0)completeDiscardSelection(true);return}if(S.phase!=='plan')return;const left=Math.max(0,(S.deadline-Date.now())/1000),sec=Math.ceil(left);$('time').textContent=fmt(sec);$('timerFill').style.width=(left/S.duration*100)+'%';$('clock').classList.toggle('urgent',sec<=10);if(left<=0){autoFill();reveal(true)}}
 function autoFill(){for(let i=0;i<3;i++)if(!isBlocked(0,i)&&!S.slots[0][i]&&S.hand[0].length){const k=Math.floor(Math.random()*S.hand[0].length);S.slots[0][i]=S.hand[0].splice(k,1)[0]}}
