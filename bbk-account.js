@@ -275,7 +275,7 @@
 .bbk-wllab{display:flex;gap:14px;justify-content:center;margin-top:7px;font-size:13px;font-weight:800}
 .bbk-wllab .w{color:#6fd3a0}.bbk-wllab .l{color:#ff9b93}.bbk-wllab .d{color:#e6c15a}
 .bbk-table{table-layout:fixed}
-.bbk-table th:nth-child(1){width:30px}.bbk-table th:nth-child(3){width:92px}.bbk-table th:nth-child(4){width:50px}.bbk-table th:nth-child(5){width:46px}
+.bbk-table th:nth-child(1){width:30px}.bbk-table th:nth-child(3){width:92px}.bbk-table th:nth-child(4){width:50px}.bbk-table th:nth-child(5){width:58px}.bbk-table td.num{white-space:nowrap}
 .bbk-table td{padding:8px 4px}.bbk-table td .bbk-tier{font-size:10px;padding:2px 6px}
 .bbk-table td.name{max-width:none}
 `;
