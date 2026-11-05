@@ -834,7 +834,7 @@ async function reveal(timeout=false){
   if(a&&b&&mi===ai)await animateClash(mi,result,tok,a,b);else await sleep(160);
   if(tok!==S.token)return;
   const versus=$('vs'+mi);versus.className='versus '+(result.w===0?'me':result.w===1?'ai':'tie');
-  versus.innerHTML=`<span class="pill">${!a||!b?'Locked/Empty':result.w<0?'Tie':(result.w===0?'You':'AI')+' deals '+result.dmg}</span>`;
+  versus.innerHTML=`<span class="pill">${!a||!b?'Locked/Empty':result.w<0?'Tie':(result.w===0?'Deals ':'Received ')+result.dmg}</span>`;
   if(result.w===0){wins[0]++;const before=S.hp[1];S.hp[1]-=result.dmg;renderHud();animateHpHit(1,result.dmg,before);$('slot0'+mi).querySelector('.card')?.classList.add('win');$('slot1'+ai).querySelector('.card')?.classList.add('lose')}
   else if(result.w===1){wins[1]++;const before=S.hp[0];S.hp[0]-=result.dmg;renderHud();animateHpHit(0,result.dmg,before);$('slot1'+ai).querySelector('.card')?.classList.add('win');$('slot0'+mi).querySelector('.card')?.classList.add('lose')}
   await sleep(reducedMotion()?120:350);if(tok!==S.token)return;
@@ -968,7 +968,7 @@ async function revealOnline(m){
    if(a&&b&&own===other)await animateClash(own,r,token,a,b);else await sleep(reducedMotion()?0:160);
    if(token!==S.token)break;
    const vs=$('vs'+own);vs.className='versus '+(w===0?'me':w===1?'ai':'tie');
-   vs.innerHTML='<span class="pill">'+(w<0?'Tie':(w===0?'You':'Opponent')+' deals '+e.damage)+'</span>';
+   vs.innerHTML='<span class="pill">'+(w<0?'Tie':(w===0?'Deals ':'Received ')+e.damage)+'</span>';
    if(w>=0&&e.damage>0){const loser=1-w,before=S.hp[loser];S.hp[loser]-=e.damage;renderHud();animateHpHit(loser,e.damage,before)}
    $('slot0'+own).querySelector('.card')?.classList.toggle('win',w===0);
    $('slot1'+other).querySelector('.card')?.classList.toggle('win',w===1);
