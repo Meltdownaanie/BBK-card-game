@@ -5,7 +5,9 @@
  function el(s){return document.querySelector(s)}
  function overflow(){
   var app=el('.app'),b=el('.board');if(!app||!b)return 0;
-  return Math.max(0,app.scrollHeight-app.clientHeight,b.scrollHeight-b.clientHeight);
+  var br=b.getBoundingClientRect(),c=b.querySelector('.columns'),cr=c?c.getBoundingClientRect():null,M=10;
+  var inner=cr?Math.max(0,cr.bottom-(br.bottom-M),(br.top+M)-cr.top):0;
+  return Math.max(0,app.scrollHeight-app.clientHeight,b.scrollHeight-b.clientHeight,inner);
  }
  function limits(){
   var w=window.innerWidth,desktop=w>=980&&w/window.innerHeight>=1.25,b=el('.board');

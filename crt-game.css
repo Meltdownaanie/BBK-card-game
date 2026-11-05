@@ -382,7 +382,7 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .ghost-slot .card .symbol img.suit-img,.ghost-slot .card .symbol svg{width:clamp(13px,2.9dvh,20px)!important;height:auto!important}
 .ghost-slot .card .number{order:2;font-family:var(--pn)!important;font-size:clamp(10px,2.4dvh,14px)!important;color:#fff7e8!important;line-height:1}
 .ghost-slot .card::before{content:'LAST';order:0;font-family:var(--pn);font-size:7px;color:var(--c-mute);letter-spacing:0}
-@container (max-width:66px){.ghost-slot .card::before{display:none}}
+@container (max-width:99px){.ghost-slot .card::before{display:none}}
 .ghost-slot-label{display:none!important}
 
 /* ===== v2: big desktop cards, opponent tracker moves to a right sidebar ===== */
@@ -398,3 +398,9 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
  .card .number{font-size:clamp(22px,calc(var(--sw) * .32),50px)!important}
  .card .symbol img.suit-img,.slot .card .symbol img.suit-img{width:clamp(34px,calc(var(--sw) * .6),92px)!important}
 }
+
+/* ===== v3: LAST chips scale with the slot width (glyphs never touch the frame); board keeps clear air above the player bar ===== */
+.ghost-slot .card{padding:0 max(5px,7cqw)!important;gap:max(3px,4cqw)!important;border-width:2px!important}
+.ghost-slot .card .symbol img.suit-img,.ghost-slot .card .symbol svg{width:clamp(11px,24cqw,20px)!important;height:auto!important;max-height:calc(100% - 8px)}
+.ghost-slot .card .number{font-size:clamp(8px,19cqw,14px)!important;line-height:1;padding-top:1px}
+.board{margin:6px 0!important}
