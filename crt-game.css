@@ -410,3 +410,54 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .ghost-slot .card{padding:0 max(7px,9cqw)!important;overflow:hidden}
 .ghost-slot .card::before{font-size:7px;margin-right:2px;flex:none}
 .ghost-slot .card .number{flex:none}
+
+/* ===== ranked: "match found" intro + result screen + tier colours ===== */
+[data-tier="C-troop"]{--tc:#a99bd9}[data-tier="B-Player"]{--tc:#5aa9e8}[data-tier="Alpha-Wolf"]{--tc:#ff7a59}[data-tier="SSS"]{--tc:#e6c15a}[data-tier="Unranked"]{--tc:#c9bfe6}
+.tier-pill{display:inline-block;align-self:center;padding:3px 9px;border-radius:7px;border:2px solid var(--tc,#c9bfe6);color:var(--tc,#c9bfe6);font-size:12px;font-weight:700;white-space:nowrap}
+.tier-pill:empty{display:none}
+.found-title{font-family:var(--pt);font-size:22px;text-align:center;color:var(--c-gold);text-shadow:3px 3px 0 var(--c-line);letter-spacing:.06em}
+.found-row{display:flex;align-items:stretch;gap:8px}
+.found-card{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:12px;background:var(--c-panel-in);box-shadow:0 0 0 3px var(--c-line)}
+.found-card small{font-size:11px;letter-spacing:.14em;color:var(--c-mute)}
+.found-card b{font-size:17px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.found-card em{font-style:normal;font-family:var(--pt);font-size:20px}
+.found-card.opp{box-shadow:0 0 0 3px var(--c-coral)}
+.found-vs{align-self:center;font-family:var(--pt);font-size:16px;color:var(--c-mute)}
+#foundCount{text-align:center;margin:0}
+.found-bar{height:14px;border-radius:7px;background:var(--c-line);overflow:hidden;padding:2px}
+.found-bar i{display:block;height:100%;width:0;border-radius:5px;background:var(--c-gold)}
+.found-bar i.run{width:100%;animation:foundFill linear forwards}
+@keyframes foundFill{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.found-bar i.run{animation:none}}
+.res-title{font-family:var(--pt);font-size:34px;text-align:center;text-shadow:3px 3px 0 var(--c-line);letter-spacing:.05em}
+.res-title[data-r="win"]{color:var(--c-scissors)}.res-title[data-r="loss"]{color:var(--c-coral)}.res-title[data-r="draw"]{color:var(--c-gold)}
+#resReason{text-align:center;margin:0}
+.res-vs{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--c-panel-in);box-shadow:0 0 0 3px var(--c-line)}
+.res-vs>div{flex:1;min-width:0}.res-vs>div.r{text-align:right}
+.res-vs small{display:block;font-size:11px;letter-spacing:.14em;color:var(--c-mute)}
+.res-vs b{display:block;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-vs em{font-style:normal;font-size:13px;color:var(--c-mute)}
+.res-vs i{font-style:normal;font-family:var(--pt);color:var(--c-mute)}
+.res-rating{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--c-panel-in);box-shadow:0 0 0 3px var(--c-line)}
+.res-rating>small{font-size:11px;letter-spacing:.14em;color:var(--c-mute)}
+.res-rating .online-note{margin:0}
+.res-nums{display:flex;align-items:center;justify-content:center;gap:12px;font-family:var(--pt);font-size:20px;flex-wrap:wrap}
+.res-nums span{color:var(--c-mute)}.res-nums b{font-size:30px}
+.res-delta{padding:3px 10px;border-radius:7px;color:var(--c-dark)!important;font-size:18px}
+.res-delta[data-s="up"]{background:var(--c-scissors)}.res-delta[data-s="down"]{background:var(--c-coral)}.res-delta[data-s="flat"]{background:var(--c-gold)}
+.res-banner{margin:0;text-align:center;font-weight:700;font-size:15px;padding:6px 8px;border-radius:8px;border:2px solid var(--c-gold);color:var(--c-gold)}
+.res-banner[data-t="up"]{border-color:var(--c-scissors);color:var(--c-scissors)}.res-banner[data-t="down"]{border-color:var(--c-coral);color:var(--c-coral)}
+.res-pips{display:flex;gap:6px;justify-content:center}.res-pips i{width:34px;height:14px;border-radius:4px;background:var(--c-line)}.res-pips i.on{background:var(--c-scissors)}
+.res-labels{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--c-mute)}
+.res-bar{height:16px;border-radius:8px;background:var(--c-line);overflow:hidden;padding:2px;margin:4px 0}
+.res-bar i{display:block;height:100%;width:0;border-radius:6px;background:var(--c-paper);transition:width .6s ease}
+@media (prefers-reduced-motion:reduce){.res-bar i{transition:none}}
+.res-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* compact dialog while the ranked intro / result is shown: no logo, no emblems, no back arrow, so it fits a phone screen */
+.dialog:has(#onlineResult:not([hidden])),.dialog:has(#onlineFound:not([hidden])){padding:16px 16px 14px!important;gap:8px!important}
+.dialog:has(#onlineResult:not([hidden])) :is(h1,.emblems,.top-back,#dialogText),.dialog:has(#onlineFound:not([hidden])) :is(h1,.emblems,.top-back,#dialogText){display:none!important}
+#onlineResult{gap:8px!important}
+#onlineResult .res-title{font-size:30px}
+#onlineResult .res-rating{padding:10px}
+#onlineResult .res-links button,#onlineResult>button{min-height:42px;padding-top:8px!important;padding-bottom:8px!important}

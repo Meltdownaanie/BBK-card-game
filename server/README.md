@@ -45,7 +45,7 @@ Set these environment variables on the Render service. Without them the server s
 More client messages: `auth` (`{"type":"auth","token":"<user JWT>"}` or `token:null` for guest), `ranked_queue`, `ranked_cancel`, `random_queue`, `random_cancel`.
 
 `ranked_queue` requires `profiles.tutorial_step >= 5` (otherwise `error` with `code:'tutorial_required'`). `random_queue` is an unranked quick match open to guests.
-Server messages: `auth_ok`, `auth_error`, `queued`, `queue_left`, `match_found`, `rating_update`, `queue_hint`, `opponent_disconnected`, `opponent_back`.
+Server messages: `auth_ok`, `auth_error`, `queued`, `queue_left`, `match_found`, `rating_update`, `queue_hint`, `match_cancelled`, `opponent_disconnected`, `opponent_back`.
 `/health` also reports `accounts`, `ranked`, `queue` and `casual`. Database setup is in `supabase/schema.sql`.
 
 Important: room state is in memory; redeploys, restarts, and free-instance sleep lose active rooms.
@@ -57,3 +57,4 @@ New players are **Unranked** for their first 5 ranked games: wins add points, lo
 
 ### Ranked matchmaking
 The rating window starts at ±100, widens by 50 every 10 s waited and is capped at ±300 (one tier), so a player never meets someone more than a tier away. Players still in placement are paired with placed players only after a 30 s wait (they cannot lose points, so they are not free wins); two placement players pair normally. After 60 s without a match the server sends one `queue_hint` so the client can suggest a random match or vs AI. Constants: `MM_*` in `server/index.js`.
+After a ranked pair is found the server sends `match_found` (with `opponent`, `me` and `startsIn`) and starts the game `MM_INTRO_MS` later (default 3500 ms) so both players can see who they face; if one leaves during that time the other gets `match_cancelled` and nothing is recorded.

@@ -113,6 +113,14 @@
     const r = Number(rating) || 0;
     return TIERS.find((t) => r >= t.min).name;
   }
+  const TIER_INFO = {
+    'C-troop': { cls: 'c', range: '0 – 1199', text: 'Where every journey starts. You land here after placement (rating starts at 1000).' },
+    'B-Player': { cls: 'b', range: '1200 – 1499', text: 'You win more than you lose against steady opponents.' },
+    'Alpha-Wolf': { cls: 'a', range: '1500 – 1799', text: 'Top players. Every mistake is punished.' },
+    'SSS': { cls: 's', range: '1800 +', text: 'The best of BBK. There is no upper limit.' }
+  };
+  const tierCls = (name) => (TIER_INFO[name] ? TIER_INFO[name].cls : 'u');
+  const tierPill = (name) => h('span', { class: 'bbk-tier t-' + tierCls(name), text: name });
   const tierLine = (p) => p.games < PLACEMENT ? 'Unranked · placement ' + p.games + '/' + PLACEMENT : tier(p.rating, p.games) + ' · ' + p.rating;
 
   /* ---------- tutorial progress (0-5; 5 unlocks ranked) ---------- */
@@ -230,6 +238,46 @@
 .bbk-list li{display:flex;justify-content:space-between;gap:8px;background:var(--felt3,#2a343a);border:1px solid var(--line,#35434a);border-radius:9px;padding:8px 10px;font-size:13px}
 .bbk-win{color:#6fdc9b;font-weight:800}.bbk-loss{color:#ff9b93;font-weight:800}.bbk-draw{color:#e7b94a;font-weight:800}
 .bbk-empty{color:var(--muted,#9aabb1);text-align:center;padding:18px 6px;font-size:14px}
+.bbk-legend{margin-bottom:10px}
+.bbk-tchips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.bbk-tchip{border:2px solid var(--tc);border-radius:8px;padding:5px 4px;text-align:center;background:var(--felt3,#2a343a)}
+.bbk-tchip b{display:block;font-size:11px;color:var(--tc);line-height:1.2}.bbk-tchip small{font-size:10px;color:var(--muted,#9aabb1)}
+.bbk-how{width:100%;min-height:40px;font-size:13px}
+.t-c{--tc:#a99bd9}.t-b{--tc:#5aa9e8}.t-a{--tc:#ff7a59}.t-s{--tc:#e6c15a}.t-u{--tc:#c9bfe6}
+.bbk-tier{display:inline-block;padding:2px 8px;border-radius:6px;border:2px solid var(--tc);color:var(--tc);font-size:11px;font-weight:900;white-space:nowrap}
+.bbk-table tbody tr{box-shadow:inset 4px 0 0 var(--tc)}
+.bbk-table td.rk{font-weight:900;font-variant-numeric:tabular-nums;width:34px}
+.bbk-table tr.pod1 td.rk{color:#e6c15a}.bbk-table tr.pod2 td.rk{color:#d9dde2}.bbk-table tr.pod3 td.rk{color:#d99a66}
+.bbk-table td.num:nth-child(4){font-weight:900}
+.bbk-tiers{display:flex;flex-direction:column;gap:8px}
+.bbk-tcard{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:10px;border:2px solid var(--tc);background:var(--felt3,#2a343a)}
+.bbk-tcard.mine{box-shadow:0 0 0 3px var(--gold,#e7b94a)}
+.bbk-tbadge{flex:none;width:40px;height:40px;border-radius:8px;background:var(--tc);color:#1a1030;font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center}
+.bbk-tinfo b{font-size:16px;color:var(--tc)}.bbk-tinfo small{display:block;color:var(--muted,#9aabb1);font-size:12px;margin-top:2px}.bbk-tinfo p{margin:6px 0 0;font-size:13px;line-height:1.4}
+.bbk-rules{margin:0;padding-left:18px;font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:6px}
+.bbk-hero{border:2px solid var(--tc);border-radius:12px;background:var(--felt3,#2a343a);padding:12px;margin:10px 0}
+.bbk-hero-top{display:flex;align-items:center;gap:12px}
+.bbk-tbadge.big{width:52px;height:52px;font-size:24px;border-radius:10px}
+.bbk-hero-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.bbk-hero-tier{font-size:18px;color:var(--tc)}.bbk-hero-name{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bbk-hero-rank{color:var(--muted,#9aabb1);font-size:12px}
+.bbk-hero-rating{text-align:right;display:flex;flex-direction:column;line-height:1.1}
+.bbk-hero-rating b{font-size:30px;font-variant-numeric:tabular-nums}.bbk-hero-rating small{font-size:10px;letter-spacing:.14em;color:var(--muted,#9aabb1)}
+.bbk-hero-rating .peak{letter-spacing:.02em;font-size:12px;margin-top:3px;color:var(--ink,#eaf0f1)}
+.bbk-prog{margin-top:12px}.bbk-prog p{margin:6px 0 0;font-size:12px;color:var(--muted,#9aabb1);text-align:center;line-height:1.4}
+.bbk-prog-lab{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800}.bbk-prog-lab span:first-child{color:var(--tc)}.bbk-prog-lab span:last-child{color:var(--muted,#9aabb1)}
+.bbk-bar{height:12px;border-radius:6px;background:#0007;overflow:hidden;margin-top:5px}.bbk-bar i{display:block;height:100%;border-radius:6px;background:var(--tc)}
+.bbk-pips{display:flex;gap:6px}.bbk-pips i{flex:1;height:12px;border-radius:4px;background:#0007}.bbk-pips i.on{background:#6fd3a0}
+.bbk-ps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 4px}
+.bbk-wl{grid-column:1 / -1;background:var(--felt3,#2a343a);border:1px solid var(--line,#35434a);border-radius:10px;padding:10px}
+.bbk-wlbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#0007;gap:2px}
+.bbk-wlbar .w{background:#6fd3a0}.bbk-wlbar .d{background:#e6c15a}.bbk-wlbar .l{background:#ff7a59}.bbk-wlbar .e{background:#0007}
+.bbk-wllab{display:flex;gap:14px;justify-content:center;margin-top:7px;font-size:13px;font-weight:800}
+.bbk-wllab .w{color:#6fd3a0}.bbk-wllab .l{color:#ff9b93}.bbk-wllab .d{color:#e6c15a}
+.bbk-table{table-layout:fixed}
+.bbk-table th:nth-child(1){width:30px}.bbk-table th:nth-child(3){width:92px}.bbk-table th:nth-child(4){width:50px}.bbk-table th:nth-child(5){width:46px}
+.bbk-table td{padding:8px 4px}.bbk-table td .bbk-tier{font-size:10px;padding:2px 6px}
+.bbk-table td.name{max-width:none}
 `;
   function injectCss() {
     if (document.getElementById('bbk-account-css')) return;
@@ -344,26 +392,48 @@
         catch (e) { nameMsg.textContent = e.message; }
         finally { save.disabled = false; }
       } }, nameIn, save);
+    const placing = p.games < PLACEMENT;
+    const tn = placing ? 'Unranked' : tier(p.rating, p.games);
     const rate = p.games ? Math.round((p.wins / p.games) * 100) + '%' : '—';
-    const rankBox = h('b', { text: '…' });
+    const rankLine = h('small', { class: 'bbk-hero-rank', text: placing ? 'Not on the leaderboard yet' : 'Leaderboard rank …' });
+    let progress;
+    if (placing) {
+      progress = h('div', { class: 'bbk-prog' },
+        h('div', { class: 'bbk-pips', 'aria-hidden': 'true' }, Array.from({ length: PLACEMENT }, (_, i) => h('i', { class: i < p.games ? 'on' : '' }))),
+        h('p', { text: 'Placement ' + p.games + ' / ' + PLACEMENT + ' · no points are lost. ' + (PLACEMENT - p.games) + ' more ranked ' + (PLACEMENT - p.games === 1 ? 'match' : 'matches') + ' to get your tier.' }));
+    } else {
+      const cur = TIERS.find((t) => p.rating >= t.min), next = TIERS[TIERS.indexOf(cur) - 1];
+      const pct = next ? Math.max(2, Math.min(100, Math.round(((p.rating - cur.min) / (next.min - cur.min)) * 100))) : 100;
+      progress = h('div', { class: 'bbk-prog' },
+        h('div', { class: 'bbk-prog-lab' }, h('span', { text: cur.name + ' ' + cur.min }), h('span', { text: next ? next.name + ' ' + next.min : 'Top tier' })),
+        h('div', { class: 'bbk-bar' }, h('i', { style: 'width:' + pct + '%' })),
+        h('p', { text: next ? (next.min - p.rating) + ' points to ' + next.name : 'No limit above SSS.' }));
+    }
+    const total = (p.wins || 0) + (p.losses || 0) + (p.draws || 0);
+    const seg = (n, c) => (total && n ? h('i', { class: c, style: 'flex:' + n }) : null);
+    const hero = h('div', { class: 'bbk-hero t-' + tierCls(tn) },
+      h('div', { class: 'bbk-hero-top' },
+        h('span', { class: 'bbk-tbadge big', 'aria-hidden': 'true', text: placing ? '?' : (tn === 'SSS' ? 'S' : tn[0]) }),
+        h('div', { class: 'bbk-hero-id' }, h('b', { class: 'bbk-hero-tier', text: tn }), h('span', { class: 'bbk-hero-name', text: p.display_name }), rankLine),
+        h('div', { class: 'bbk-hero-rating' }, h('b', { text: p.rating }), h('small', { text: 'ELO' }), h('small', { class: 'peak', text: 'Peak ' + p.peak_rating }))),
+      progress);
+    const stats = h('div', { class: 'bbk-ps' },
+      h('div', { class: 'bbk-stat' }, h('b', { text: p.games }), h('small', { text: 'Ranked matches' })),
+      h('div', { class: 'bbk-stat' }, h('b', { text: rate }), h('small', { text: 'Win rate' })),
+      h('div', { class: 'bbk-wl' },
+        h('div', { class: 'bbk-wlbar', role: 'img', 'aria-label': p.wins + ' wins, ' + p.losses + ' losses, ' + p.draws + ' draws' }, total ? [seg(p.wins, 'w'), seg(p.draws, 'd'), seg(p.losses, 'l')] : h('i', { class: 'e', style: 'flex:1' })),
+        h('div', { class: 'bbk-wllab' }, h('span', { class: 'w', text: p.wins + ' W' }), h('span', { class: 'l', text: p.losses + ' L' }), p.draws ? h('span', { class: 'd', text: p.draws + ' D' }) : null)));
     body.append(
       h('div', { class: 'bbk-who' }, h('small', { text: session.user.email || '' })),
-      h('div', { class: 'bbk-h3', text: 'Display name · you can change it any time' }), nameForm, nameMsg,
-      h('div', { class: 'bbk-stats' },
-        h('div', { class: 'bbk-stat' }, h('b', { text: p.games < PLACEMENT ? 'Unranked' : tier(p.rating, p.games) }), h('small', { text: p.games < PLACEMENT ? 'Placement ' + p.games + '/' + PLACEMENT + ' · no points lost' : 'Tier' })),
-        h('div', { class: 'bbk-stat' }, h('b', { text: p.rating }), h('small', { text: 'Rating' })),
-        h('div', { class: 'bbk-stat' }, rankBox, h('small', { text: 'Rank' })),
-        h('div', { class: 'bbk-stat' }, h('b', { text: p.peak_rating }), h('small', { text: 'Peak' })),
-        h('div', { class: 'bbk-stat' }, h('b', { text: p.wins }), h('small', { text: 'Wins' })),
-        h('div', { class: 'bbk-stat' }, h('b', { text: p.losses }), h('small', { text: 'Losses' })),
-        h('div', { class: 'bbk-stat' }, h('b', { text: rate }), h('small', { text: 'Win rate' }))));
+      hero, stats,
+      h('div', { class: 'bbk-h3', text: 'Display name · you can change it any time' }), nameForm, nameMsg);
     if (focusName === true || isDefaultName(p.display_name)) setTimeout(() => { try { nameIn.focus(); nameIn.select(); } catch { /* ignore */ } }, 60);
     const hist = h('div');
     body.append(h('div', { class: 'bbk-h3', text: 'Recent ranked matches' }), hist,
       h('div', { class: 'bbk-row', style: 'margin-top:14px' },
         h('button', { type: 'button', class: 'bbk-btn alt', onclick: openLeaderboard, text: '🏆 LEADERBOARD' }),
         h('button', { type: 'button', class: 'bbk-btn alt', onclick: async () => { closeModal(); await signOut(); }, text: 'SIGN OUT' })));
-    myRank().then((r) => { rankBox.textContent = r ? '#' + r : '—'; }, () => { rankBox.textContent = '—'; });
+    myRank().then((r) => { rankLine.textContent = r ? 'Leaderboard #' + r : 'Not on the leaderboard yet'; }, () => { rankLine.textContent = 'Leaderboard rank unavailable'; });
     loadHistory(hist);
   }
   async function myRank() {
@@ -400,22 +470,42 @@
     } catch (e) { box.replaceChildren(h('div', { class: 'bbk-empty', text: e.message })); }
   }
 
+  /* ---------- rank explanation ---------- */
+  function openRanks() {
+    const body = openModal('Rank tiers');
+    const mineName = profile && profile.games >= PLACEMENT ? tier(profile.rating, profile.games) : null;
+    body.append(
+      h('div', { class: 'bbk-tiers' }, ['SSS', 'Alpha-Wolf', 'B-Player', 'C-troop'].map((n) => h('div', { class: 'bbk-tcard t-' + tierCls(n) + (n === mineName ? ' mine' : '') },
+        h('span', { class: 'bbk-tbadge', text: n === 'SSS' ? 'S' : n[0] }),
+        h('div', { class: 'bbk-tinfo' }, h('b', { text: n + (n === mineName ? ' · you' : '') }), h('small', { text: TIER_INFO[n].range + ' rating' }), h('p', { text: TIER_INFO[n].text }))))),
+      h('div', { class: 'bbk-h3', text: 'How it works' }),
+      h('ul', { class: 'bbk-rules' },
+        h('li', { text: 'Unranked: your first ' + PLACEMENT + ' ranked matches are placement. Wins add points, losses never subtract. After that you get your tier.' }),
+        h('li', { text: 'Rating starts at 1000. Beating a stronger player earns more; losing to a weaker one costs more. Against an equal opponent a match moves about 16 points.' }),
+        h('li', { text: 'Your tier always follows your current rating, so it can go up or down.' }),
+        h('li', { text: 'Matchmaking looks for opponents within 100 points and widens the search while you wait, up to 300 points (one tier). Players still in placement are matched with each other first.' }),
+        h('li', { text: 'Only placed players appear on the leaderboard.' })));
+  }
+
   /* ---------- leaderboard view ---------- */
   async function openLeaderboard() {
     const body = openModal('🏆 Leaderboard');
+    const legend = () => h('div', { class: 'bbk-legend' },
+      h('div', { class: 'bbk-tchips' }, ['SSS', 'Alpha-Wolf', 'B-Player', 'C-troop'].map((n) => h('span', { class: 'bbk-tchip t-' + tierCls(n) }, h('b', { text: n }), h('small', { text: TIER_INFO[n].range })))),
+      h('button', { type: 'button', class: 'bbk-btn alt bbk-how', onclick: openRanks, text: 'ℹ HOW RANKS WORK' }));
     const box = h('div', null, h('div', { class: 'bbk-empty', text: 'Loading…' }));
     body.append(box);
     async function load() {
       box.replaceChildren(h('div', { class: 'bbk-empty', text: 'Loading…' }));
       try {
         const rows = await api('/rest/v1/leaderboard?select=id,display_name,rating,games,wins,losses,rank&order=rank.asc,display_name.asc&limit=50');
-        if (!rows || !rows.length) { box.replaceChildren(h('div', { class: 'bbk-empty', text: 'No ranked matches have been played yet. Be the first on the board!' })); return; }
+        if (!rows || !rows.length) { box.replaceChildren(legend(), h('div', { class: 'bbk-empty', text: 'No ranked matches have been played yet. Be the first on the board!' })); return; }
         const me = session && session.user.id;
         const table = h('table', { class: 'bbk-table' },
           h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Player' }), h('th', { text: 'Tier' }), h('th', { class: 'num', text: 'Rating' }), h('th', { class: 'num', text: 'W-L' }))),
-          h('tbody', null, rows.map((r) => h('tr', { class: r.id === me ? 'me' : '' },
-            h('td', { text: r.rank }), h('td', { class: 'name', text: r.display_name }), h('td', { text: tier(r.rating, r.games) }), h('td', { class: 'num', text: r.rating }), h('td', { class: 'num', text: r.wins + '-' + r.losses })))));
-        box.replaceChildren(table);
+          h('tbody', null, rows.map((r) => { const tn = tier(r.rating, r.games); return h('tr', { class: (r.id === me ? 'me ' : '') + 't-' + tierCls(tn) + (r.rank <= 3 ? ' podium pod' + r.rank : '') },
+            h('td', { class: 'rk', text: r.rank }), h('td', { class: 'name', text: r.display_name }), h('td', null, tierPill(tn)), h('td', { class: 'num', text: r.rating }), h('td', { class: 'num', text: r.wins + '-' + r.losses })); })));
+        box.replaceChildren(legend(), table);
         let you;
         if (!me) {
           you = h('div', { class: 'bbk-you' }, h('b', { text: 'Sign in to see your rank' }), h('small', { text: 'Play 5 ranked matches to get placed.' }),
@@ -438,10 +528,10 @@
 
   /* ---------- public API ---------- */
   window.BBK = {
-    mount, openAuth, openProfile, openLeaderboard, signOut,
+    mount, openAuth, openProfile, openLeaderboard, openRanks, signOut,
     getToken: freshToken,
     refreshProfile: loadProfile,
-    tier, placement: PLACEMENT,
+    tier, placement: PLACEMENT, tiers: TIERS.map((t) => ({ name: t.name, min: t.min })),
     tutorial: { get: tutorialStep, set: setTutorial, total: 5 },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     get session() { return session; },

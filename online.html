@@ -283,7 +283,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261105n">
+<link rel="stylesheet" href="./crt-game.css?v=20261105p">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -354,9 +354,35 @@ body{padding:8px 12px 12px}
 <a href="./index.html" id="onlineBack" class="secondary back-link">⎋ BACK TO MENU</a>
 </div>
 <div id="onlineQueue" class="pane" hidden><div class="online-code" id="onlineQueueTimer" aria-hidden="true">0:00</div><p class="online-note" id="onlineQueueText" role="status">Searching for an opponent near your rating…</p><button type="button" id="onlineQueueCancel" class="secondary">⎋ BACK · CANCEL SEARCH</button></div>
+<div id="onlineFound" class="pane found" hidden>
+<div class="found-title">MATCH FOUND</div>
+<div class="found-row">
+<div class="found-card"><small>YOU</small><b id="foundMe">You</b><span id="foundMeTier" class="tier-pill"></span><em id="foundMeRating"></em></div>
+<div class="found-vs">VS</div>
+<div class="found-card opp"><small>OPPONENT</small><b id="foundOpp">Opponent</b><span id="foundOppTier" class="tier-pill"></span><em id="foundOppRating"></em></div>
+</div>
+<p id="foundCount" class="online-note" role="status">Starting in 3…</p>
+<div class="found-bar"><i id="foundFill"></i></div>
+</div>
+<div id="onlineResult" class="pane result" hidden>
+<div id="resTitle" class="res-title" data-r="draw">RESULT</div>
+<p id="resReason" class="online-note"></p>
+<div class="res-vs"><div><small>YOU</small><b id="resMe"></b></div><i>VS</i><div class="r"><small>OPPONENT</small><b id="resOpp"></b><em id="resOppRating"></em></div></div>
+<div class="res-rating">
+<small>RATING</small>
+<p id="resStatus" class="online-note" role="status">Updating rating…</p>
+<div id="resNums" class="res-nums" hidden><span id="resBefore"></span><span aria-hidden="true">→</span><b id="resAfter"></b><span id="resDelta" class="res-delta"></span></div>
+<p id="resBanner" class="res-banner" hidden></p>
+<div id="resPips" class="res-pips" hidden></div>
+<div id="resProg" class="res-prog" hidden><div class="res-labels"><span id="resFrom"></span><span id="resTo"></span></div><div class="res-bar"><i id="resFill"></i></div><p id="resNote" class="online-note"></p></div>
+</div>
+<button type="button" id="resAgain" class="primary">FIND NEW MATCH</button>
+<div class="res-links"><button type="button" id="resBoard" class="secondary">🏆 LEADERBOARD</button><button type="button" id="resRanks" class="secondary">ℹ RANKS</button></div>
+<button type="button" id="resLeave" class="secondary">⎋ BACK TO MENU</button>
+</div>
 <div id="onlineRoom" class="pane" hidden><div class="online-code" id="onlineCode">—</div><p class="online-note">Send this code to your friend, or share the invite link.</p><button type="button" id="onlineInvite" class="secondary">📋 COPY INVITE LINK</button><p id="onlinePlayers" class="online-note"></p><p id="onlineRating" class="online-note" role="status" hidden></p><div class="online-controls"><button type="button" class="primary" id="onlineReady">I'M READY</button><button type="button" class="secondary" id="onlineLeave">⎋ LEAVE ROOM</button></div></div>
 <select id="aiDifficulty" hidden><option value="easy">Easy</option></select><button type="button" id="startButton" class="primary" hidden>▶ START GAME</button></div></div>
-<script src="./bbk-account.js?v=20261105c"></script>
+<script src="./bbk-account.js?v=20261105g"></script>
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
@@ -989,8 +1015,71 @@ async function receive(m){
  if(everPlayed&&m.phase==='plan'&&S.round!==m.round)return nextRound(m);
  apply(m);
 }
+let lastMatch=null,pendingRating=null,resultShown=false,foundTimer=null;
+const tierOf=(rating,games)=>window.BBK?BBK.tier(rating,games):'';
+const tierAttr=(el,name)=>{el.textContent=name;el.dataset.tier=name};
+function hideFoundCountdown(){clearInterval(foundTimer);foundTimer=null}
+function showFound(m){
+ stopQueueTimer();hideFoundCountdown();setConn('● Connected',true);
+ lastMatch={me:m.me||null,opp:m.opponent||null};pendingRating=null;resultShown=false;
+ const opp=m.opponent||{};
+ if(!(m.startsIn>0)||m.mode==='random'){   // no intro (random match): keep the short text and let the game start
+  $('onlineQueue').hidden=true;$('onlineJoin').hidden=true;
+  $('dialogText').textContent='Match found! vs '+(opp.name||'Opponent')+(opp.rating?' ('+opp.rating+')':'');return;
+ }
+ const me=m.me||{};
+ $('onlineQueue').hidden=true;$('onlineJoin').hidden=true;$('onlineRoom').hidden=true;$('onlineResult').hidden=true;$('onlineFound').hidden=false;
+ $('dialogText').textContent='RANKED · MATCH FOUND';
+ $('foundMe').textContent=me.name||(window.BBK&&BBK.profile&&BBK.profile.display_name)||'You';
+ tierAttr($('foundMeTier'),tierOf(me.rating,me.games));$('foundMeRating').textContent=me.rating!=null?String(me.rating):'';
+ $('foundOpp').textContent=opp.name||'Opponent';
+ tierAttr($('foundOppTier'),tierOf(opp.rating,opp.games));$('foundOppRating').textContent=opp.rating!=null?String(opp.rating):'';
+ $('foundFill').style.animationDuration=m.startsIn+'ms';
+ const f=$('foundFill');f.classList.remove('run');void f.offsetWidth;f.classList.add('run');
+ const end=Date.now()+m.startsIn,tick=()=>{const s=Math.max(0,Math.ceil((end-Date.now())/1000));$('foundCount').textContent=s>0?'Starting in '+s+'…':'Starting…'};
+ tick();foundTimer=setInterval(tick,250);
+}
+function showResult(m){
+ hideFoundCountdown();resultShown=true;
+ $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineFound').hidden=true;$('onlineRoom').hidden=true;$('onlineResult').hidden=false;
+ $('dialogText').textContent='RANKED · MATCH RESULT';
+ const w=m.winner,t=$('resTitle');t.textContent=w==='you'?'VICTORY':w==='opponent'?'DEFEAT':'DRAW';t.dataset.r=w==='you'?'win':w==='opponent'?'loss':'draw';
+ $('resReason').textContent=(m.reason||'Match finished')+' · '+Math.max(0,m.hp[0])+' / '+Math.max(0,m.hp[1])+' HP';
+ const names=m.names||[],opp=lastMatch&&lastMatch.opp||{};
+ $('resMe').textContent=names[0]||'You';$('resOpp').textContent=names[1]||opp.name||'Opponent';
+ $('resOppRating').textContent=opp.rating!=null?tierOf(opp.rating,opp.games)+' · '+opp.rating:'';
+ paintRating();
+}
+function paintRating(){
+ const r=pendingRating,nums=$('resNums'),status=$('resStatus');
+ ['resBanner','resPips','resProg'].forEach(i=>$(i).hidden=true);
+ if(!r){nums.hidden=true;status.hidden=false;status.textContent='Updating rating…';return}
+ if(r.error){nums.hidden=true;status.hidden=false;status.textContent='Your result could not be saved right now. We keep retrying; check your profile later.';return}
+ const d=r.after-r.before;status.hidden=true;nums.hidden=false;
+ $('resBefore').textContent=r.before;$('resAfter').textContent=r.after;
+ const dl=$('resDelta');dl.textContent=(d>0?'+':'')+d;dl.dataset.s=d>0?'up':d<0?'down':'flat';
+ if(window.BBK)BBK.refreshProfile().then(p=>{if(p&&resultShown)paintProgress(r,p)});
+}
+function paintProgress(r,p){
+ const PL=BBK.placement,tiers=BBK.tiers;   // tiers: highest first
+ if(p.games<PL){
+  const pips=$('resPips');pips.replaceChildren();
+  for(let i=0;i<PL;i++){const b=document.createElement('i');if(i<p.games)b.className='on';pips.appendChild(b)}
+  pips.hidden=false;$('resProg').hidden=false;$('resFrom').textContent='Placement '+p.games+' / '+PL;$('resTo').textContent='';
+  $('resFill').style.width=Math.round(p.games/PL*100)+'%';
+  $('resNote').textContent='No points are lost during placement. '+(PL-p.games)+' more ranked '+(PL-p.games===1?'match':'matches')+' to get your tier.';return;
+ }
+ const cur=tiers.find(t=>r.after>=t.min),idx=tiers.indexOf(cur),next=tiers[idx-1];
+ $('resProg').hidden=false;$('resFrom').textContent=cur.name+' '+cur.min;
+ if(next){$('resTo').textContent=next.name+' '+next.min;$('resFill').style.width=Math.max(2,Math.min(100,Math.round((r.after-cur.min)/(next.min-cur.min)*100)))+'%';$('resNote').textContent=(next.min-r.after)+' points to '+next.name}
+ else{$('resTo').textContent='';$('resFill').style.width='100%';$('resNote').textContent='Top tier. There is no limit above SSS.'}
+ const wasPlaced=p.games-1>=PL,bt=tiers.find(t=>r.before>=t.min),b=$('resBanner');
+ if(!wasPlaced){b.textContent='Placement complete! You are '+cur.name;b.dataset.t='up';b.hidden=false}
+ else if(bt!==cur){const up=cur.min>bt.min;b.textContent=(up?'Promoted to ':'Dropped to ')+cur.name;b.dataset.t=up?'up':'down';b.hidden=false}
+}
 function endMatch(m){
- $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineRoom').hidden=false;
+ if(m.ranked&&m.winner!==undefined)return showResult(m);
+ $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineFound').hidden=true;$('onlineResult').hidden=true;$('onlineRoom').hidden=false;
  $('dialogTitle').textContent=m.winner==='you'?'🏆 YOU WIN':m.winner==='opponent'?'YOU LOSE':'DRAW';
  $('dialogText').textContent=(m.reason||'Match finished')+' · '+Math.max(0,m.hp[0])+' / '+Math.max(0,m.hp[1])+' HP';
  $('onlinePlayers').textContent='Match finished. Leave the room to start a new match.';
@@ -998,7 +1087,7 @@ function endMatch(m){
 }
 function lobby(m){
  S.token++;clearInterval(S.timer);S.timer=null;state=null;busy=false;queued=null;roundRevealed=0;everPlayed=false;
- $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineRoom').hidden=false;$('onlineReady').hidden=false;
+ $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineFound').hidden=true;$('onlineResult').hidden=true;$('onlineRoom').hidden=false;$('onlineReady').hidden=false;
  $('onlineCode').textContent=m.code;$('onlineReady').disabled=m.players.length<2;
  const me=m.players.find(p=>p.seat===m.seat),other=m.players.find(p=>p.seat!==m.seat);
  $('onlineReady').textContent=me?.ready?'✓ READY':"I'M READY";
@@ -1032,6 +1121,7 @@ async function wakeServer(){
  clearTimeout(timer);
 }
 function afterAuth(){
+ try{if(sessionStorage.getItem('bbk.requeue')==='1'&&authed&&sockOpen()&&window.BBK&&BBK.session){sessionStorage.removeItem('bbk.requeue');send({type:'ranked_queue'});return}}catch{}
  if(inviteRoom.length>=3&&!joinedByLink&&!reconnecting&&sockOpen()){joinedByLink=true;$('onlineNumber').value=inviteRoom;send({type:'join_room',code:inviteRoom})}
 }
 function sendAuth(){
@@ -1046,7 +1136,7 @@ function sendAuth(){
 let queueMode='ranked';
 function showQueue(on,mode){
  stopQueueTimer();if(mode)queueMode=mode;
- $('onlineJoin').hidden=on;$('onlineQueue').hidden=!on;
+ $('onlineFound').hidden=true;$('onlineResult').hidden=true;$('onlineJoin').hidden=on;$('onlineQueue').hidden=!on;
  if(on){queueSince=Date.now();updateQueueTimer();queueTimer=setInterval(updateQueueTimer,1000);$('dialogText').textContent=(queueMode==='random'?'RANDOM':'RANKED')+' · finding an opponent';$('onlineQueueText').textContent=queueMode==='random'?'Searching for any opponent…':'Searching for an opponent near your rating…'}
  else $('dialogText').textContent='ONLINE 1v1 · Play with a friend';
 }
@@ -1068,7 +1158,7 @@ function showRating(m){
 }
 function giveUp(){
  reconnecting=false;S.token++;clearInterval(S.timer);S.timer=null;busy=false;queued=null;
- $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineRoom').hidden=false;
+ $('overlay').hidden=false;$('onlineJoin').hidden=true;$('onlineQueue').hidden=true;$('onlineFound').hidden=true;$('onlineResult').hidden=true;$('onlineRoom').hidden=false;
  $('onlineReady').hidden=true;$('onlineInvite').hidden=true;$('onlineRating').hidden=true;
  $('dialogTitle').textContent='MATCH ENDED';
  $('dialogText').textContent='The connection was lost for too long, so the match was forfeited.';
@@ -1096,11 +1186,9 @@ function onServer(m){
   case 'queued':return showQueue(true,m.mode==='random'?'random':'ranked');
   case 'queue_left':return showQueue(false);
   case 'queue_hint':if(queuing())$('onlineQueueText').textContent='Few players near your rank right now. Keep waiting, or cancel and play a random match or vs AI.';return;
-  case 'match_found':
-   stopQueueTimer();$('onlineQueue').hidden=true;$('onlineJoin').hidden=true;
-   $('dialogText').textContent='Match found! vs '+(m.opponent&&m.opponent.name||'Opponent')+(m.opponent&&m.opponent.rating?' ('+m.opponent.rating+')':'');
-   return;
-  case 'rating_update':return showRating(m);
+  case 'match_found':return showFound(m);
+  case 'match_cancelled':hideFoundCountdown();$('onlineFound').hidden=true;$('onlineJoin').hidden=false;$('dialogText').textContent='ONLINE 1v1 · Play with a friend';setConn('⚠ '+m.message);return;
+  case 'rating_update':pendingRating=m;if(resultShown)paintRating();else showRating(m);return;
   case 'opponent_disconnected':return msg('⚠ Opponent lost connection. Waiting up to '+Math.round(m.seconds)+'s for them to return…');
   case 'opponent_back':return msg('Opponent is back.');
   case 'lobby':roomActive=true;return lobby(m);
@@ -1157,6 +1245,11 @@ $('onlineNumber').addEventListener('input',e=>e.target.value=e.target.value.repl
 $('onlineNumber').addEventListener('keydown',e=>{if(e.key==='Enter')joinOnline()});
 $('onlineReady').onclick=()=>send({type:'ready',ready:true});
 $('onlineLeave').onclick=()=>send({type:'leave_room'});
+$('resBoard').onclick=()=>{if(window.BBK)BBK.openLeaderboard()};
+$('resRanks').onclick=()=>{if(window.BBK)BBK.openRanks()};
+$('resLeave').onclick=()=>send({type:'leave_room'});
+$('resAgain').onclick=()=>{try{sessionStorage.setItem('bbk.requeue','1')}catch{}send({type:'leave_room'})};
+
 function lobbyBack(){
  if(!$('onlineQueue').hidden){$('onlineQueueCancel').click();return}
  if(!$('onlineRoom').hidden&&!$('onlineLeave').hidden){$('onlineLeave').click();return}
