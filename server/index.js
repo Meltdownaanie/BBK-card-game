@@ -150,6 +150,14 @@ function leave(ws){
  const room=rooms.get(info.code);if(!room)return;
  const player=room.players.find(p=>p.ws===ws);if(!player)return;
  const live=room.game&&room.game.phase!=='over';
+ if(room.intro){   // 'match found' screen: nothing started yet, so nothing is lost; the other player simply searches again
+  clearTimeout(room.intro);room.intro=null;
+  room.players.forEach(q=>{
+   if(q!==player&&q.ws){peers.delete(q.ws);send(q.ws,{type:'match_cancelled',message:'Your opponent left before the match started.'});}
+   if(q.user&&userRoom.get(q.user.id)===room)userRoom.delete(q.user.id);
+  });
+  rooms.delete(room.code);return;
+ }
  if(live&&player.user&&RECONNECT_MS>0){
   // Signed-in players get a grace period: their seat is held while they reconnect.
   player.gone=true;player.ws=null;
@@ -261,6 +269,7 @@ function pairCasual(){
 }
 /* Matchmaking keeps the tiers apart: the rating window starts at +-100, widens by 50 every 10 s, and never passes +-300 (one tier).
    Players still in placement (no points lost) are only paired with placed players after both waited 30 s, so they are not free wins. */
+const MM_INTRO_MS=process.env.MM_INTRO_MS!==undefined?Math.max(0,Number(process.env.MM_INTRO_MS)||0):3500;   // 'match found' screen before a ranked game starts
 const PLACEMENT=5,MM_BASE=100,MM_STEP=50,MM_STEP_MS=10000,MM_CAP=300,MM_PLACEMENT_WAIT=30000,MM_HINT_MS=60000;
 const placing=u=>typeof u.games==='number'&&u.games<PLACEMENT;   // unknown games count as placed
 function windowFor(q,now){return Math.min(MM_CAP,MM_BASE+MM_STEP*Math.floor((now-q.since)/MM_STEP_MS));}
@@ -289,9 +298,12 @@ function startRanked(A,B){
   peers.set(q.ws,{code:id,seat});userRoom.set(q.user.id,room);
  });
  rooms.set(id,room);
- send(p0.ws,{type:'match_found',code:id,opponent:{name:p1.user.name,rating:p1.user.rating}});
- send(p1.ws,{type:'match_found',code:id,opponent:{name:p0.user.name,rating:p0.user.rating}});
- newGame(room);
+ const pub=u=>({name:u.name,rating:u.rating,games:typeof u.games==='number'?u.games:null});
+ send(p0.ws,{type:'match_found',code:id,opponent:pub(p1.user),me:pub(p0.user),startsIn:MM_INTRO_MS});
+ send(p1.ws,{type:'match_found',code:id,opponent:pub(p0.user),me:pub(p1.user),startsIn:MM_INTRO_MS});
+ // Both players see who they will face first; the game (and its timers) starts when the intro ends.
+ room.intro=setTimeout(()=>{room.intro=null;if(rooms.get(id)===room&&room.players.length===2)newGame(room);},MM_INTRO_MS);
+ room.intro.unref?.();
 }
 const mmTimer=setInterval(()=>{if(queue.length>1)matchmake();},2000);mmTimer.unref();
 
