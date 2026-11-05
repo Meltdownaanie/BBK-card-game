@@ -87,7 +87,6 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .bottom-hud .hud{height:auto!important;border:0!important}
 .player-hud,.enemy-hud{border-width:0!important}
 .deck-stack span{border-color:#7a63c4!important;background:#3b2a72!important;border-radius:3px}
-.deck-stack span:nth-child(3){color:var(--c-gold)!important}
 .deck-num{color:var(--c-gold)!important}.deck-label,.discard-counter{color:var(--c-mute)!important}.discard-counter b{color:var(--c-ink)!important}
 
 /* buttons */
@@ -267,7 +266,6 @@ button.discard-counter{cursor:pointer}
 .deck-stack span:nth-child(2),.pile i:nth-child(2){left:2px!important;top:-2px!important;transform:none!important}
 .deck-stack span:nth-child(3),.pile i:nth-child(3){left:4px!important;top:-4px!important;transform:none!important;background-color:#3b2a72!important}
 .pile i:nth-child(3){box-shadow:0 0 0 2px var(--c-line),inset 0 0 0 3px #7a63c4!important}
-.deck-stack span:nth-child(3){display:grid;place-items:center;color:var(--c-gold)!important;font-size:16px!important}
 .pile i{width:30px!important;height:42px!important}
 .pile.bump{animation:pileBump .4s steps(5)}
 
