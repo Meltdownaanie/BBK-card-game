@@ -372,3 +372,29 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .versus .pill{position:relative;z-index:3;white-space:nowrap}
 /* the touch-drag ghost must float above the layout; it is appended to <body> and must never take part in it */
 .drag-ghost{position:fixed!important;z-index:99!important;pointer-events:none!important;margin:0!important;transform:none!important}
+
+/* ===== v2: opponent's last-round cards as readable chips above each AI slot ===== */
+.ai-row{flex-direction:column!important;align-items:center!important;gap:clamp(2px,.5dvh,4px)!important}
+.ghost-slot{order:-1;width:var(--sw)!important;height:clamp(20px,3.6dvh,28px)!important;aspect-ratio:auto!important;display:flex!important;align-items:center;justify-content:center;border:0!important;background:none!important;padding:0!important;overflow:visible;container-type:inline-size}
+.ghost-slot:not(:has(.card)){visibility:hidden}
+.ghost-slot .card{position:static!important;width:100%!important;height:100%!important;min-width:0;aspect-ratio:auto!important;flex-direction:row!important;gap:6px!important;justify-content:center!important;align-items:center!important;padding:0 6px!important;border-radius:7px!important;opacity:1!important;background:#241a42!important;border:2px solid var(--sc)!important;box-shadow:0 0 0 2px var(--c-line)!important;color:#fff7e8!important;overflow:hidden}
+.ghost-slot .card .symbol{order:1;width:auto!important;display:flex;flex:none}
+.ghost-slot .card .symbol img.suit-img,.ghost-slot .card .symbol svg{width:clamp(13px,2.9dvh,20px)!important;height:auto!important}
+.ghost-slot .card .number{order:2;font-family:var(--pn)!important;font-size:clamp(10px,2.4dvh,14px)!important;color:#fff7e8!important;line-height:1}
+.ghost-slot .card::before{content:'LAST';order:0;font-family:var(--pn);font-size:7px;color:var(--c-mute);letter-spacing:0}
+@container (max-width:66px){.ghost-slot .card::before{display:none}}
+.ghost-slot-label{display:none!important}
+
+/* ===== v2: big desktop cards, opponent tracker moves to a right sidebar ===== */
+@media(min-width:980px) and (min-aspect-ratio:5/4) and (min-height:520px){
+ :root{--side:clamp(178px,15vw,236px)}
+ .app{position:relative;max-width:1560px!important;padding-right:calc(var(--side) + 12px)}
+ .top{position:absolute!important;top:0;right:0;width:var(--side);justify-content:space-between}
+ .top .tutorial-open{font-size:0!important;padding:4px 9px!important}.top .tutorial-open::before{content:'?';font-size:13px}
+ .played-tracker{position:absolute!important;right:0;top:44px;bottom:0;width:var(--side);display:flex!important;flex-direction:column;padding:8px!important;gap:6px!important}
+ .played-tracker-heading{flex-direction:column;align-items:flex-start;gap:2px;font-size:10px!important}
+ .played-grid{flex:1;min-height:0;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(11,minmax(0,1fr));grid-auto-flow:column;gap:3px!important}
+ .played-grid{align-items:stretch!important}.played-cell{height:auto!important;font-size:11px!important}
+ .card .number{font-size:clamp(22px,calc(var(--sw) * .32),50px)!important}
+ .card .symbol img.suit-img,.slot .card .symbol img.suit-img{width:clamp(34px,calc(var(--sw) * .6),92px)!important}
+}
