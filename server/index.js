@@ -3,6 +3,7 @@
 const http=require('node:http'),crypto=require('node:crypto');
 const {WebSocketServer,WebSocket}=require('ws');
 const brain=require('./bot');
+const botNames=require('./bot-names');
 const PORT=Number(process.env.PORT)||10000;
 const rooms=new Map(),peers=new Map();
 const userSession=new Map(),userRoom=new Map(),queue=[],casual=[];   // userId -> socket, userId -> room, ranked waiting list
@@ -364,7 +365,20 @@ function botDiscard(ws){
  const st=ws.latest;if(!st||st.phase!=='discard'||st.discardSelected!==null)return;
  const slot=brain.discardMove(st,ws.level);if(slot!==null)onMessage(ws,{type:'discard',slot});
 }
-loadBots();
+/* Bots wear ordinary-looking names and get a new one regularly (never while in a match). */
+const BOT_RENAME_MS=process.env.BOT_RENAME_HOURS!==undefined?Math.max(0,Number(process.env.BOT_RENAME_HOURS)||0)*3600000:12*3600000;
+async function renameBots(){
+ for(const bot of bots){
+  if(userRoom.has(bot.id))continue;
+  for(let attempt=0;attempt<6;attempt++){
+   const name=botNames.pick(bots.map(b=>b.name));
+   let r;try{r=await sb('/rest/v1/profiles?id=eq.'+bot.id,{method:'PATCH',key:SUPABASE_SECRET_KEY,body:{display_name:name}})}catch{break}
+   if(r.ok){bot.name=name;break}
+   if(r.status!==409)break;   // 409: a real player already uses that name, try another
+  }
+ }
+}
+loadBots().then(()=>{if(bots.length&&RANKED){renameBots().catch(()=>{});if(BOT_RENAME_MS>0){const t=setInterval(()=>renameBots().catch(()=>{}),BOT_RENAME_MS);t.unref?.();}}});
 const mmTimer=setInterval(()=>{if(queue.length)matchmake();},2000);mmTimer.unref();
 
 /* ---------- http + websocket ---------- */
