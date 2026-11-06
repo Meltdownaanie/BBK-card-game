@@ -289,7 +289,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261107a">
+<link rel="stylesheet" href="./crt-game.css?v=20261107b">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -515,6 +515,28 @@ async function celebrateCombo(kind,player,description,token){
  return token===S.token;
 }
 
+// MESS UP!!! animation: the picked card lifts out of the hand, flies back into its deck, then the deck is shuffled.
+async function animateMessUp(side,card,token){
+ if(reducedMotion())return;
+ const deck=document.querySelector((side===0?'.player-hud':'.enemy-hud')+' .deck-stack');if(!deck)return;
+ let src=side===0&&card?[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id):null,temp=null,hidden=null;
+ if(!src){
+  const anchor=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();
+  temp=document.createElement('div');temp.style.cssText=`position:fixed;left:${anchor.left+anchor.width/2-34}px;top:${anchor.top+(side===0?-10:anchor.height/2-45)}px;width:68px;height:94px;visibility:hidden;`;
+  temp.innerHTML=side===0&&card?cardHTML(card):'<div class="mu-back"></div>';
+  const inner=temp.firstElementChild;if(inner){inner.style.width='68px';inner.style.height='94px'}
+  document.body.appendChild(temp);src=inner||temp;
+ }else hidden=src;
+ const {copy,rect}=flightCopy(src);if(hidden)hidden.style.visibility='hidden';if(temp)temp.remove();
+ const dr=deck.getBoundingClientRect(),dx=dr.left+dr.width/2-(rect.left+rect.width/2),dy=dr.top+dr.height/2-(rect.top+rect.height/2);
+ copy.classList.add('mu-flight');
+ try{
+  await copy.animate([{transform:'translate(0,0) scale(1)',offset:0},{transform:'translate(0,-28px) scale(1.2) rotate(-4deg)',offset:.45},{transform:'translate(0,-28px) scale(1.2) rotate(4deg)',offset:.62},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${side?-180:180}deg)`,offset:1}],{duration:900,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).finished;
+ }catch(e){}
+ copy.remove();if(token!==S.token)return;
+ const tag=document.createElement('div');tag.className='mu-tag';tag.textContent='SHUFFLE';tag.style.left=(dr.left+dr.width/2)+'px';tag.style.top=(dr.top-8)+'px';document.body.appendChild(tag);
+ deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
+}
 async function flashCombo(kind,token){
  const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
  document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
@@ -990,7 +1012,14 @@ async function nextRound(m){
  const retained=m.hand.filter(c=>old.has(c.id)).map(c=>({...c,origin:slots.has(c.id)?'returned':'hand'}));
  const fresh=m.hand.filter(c=>!old.has(c.id));state=m;prime(m,retained);S.phase='dealing';S.deck[0]=Array(m.deck[0]+fresh.length).fill(null);
  S.animateHand=new Set(retained.filter(c=>c.origin==='returned').map(c=>c.id));
- const token=++S.token;$('hand').closest('.hand-zone').classList.add('is-dealing');paint();msg('Drawing cards for the next round…');
+ const token=++S.token;$('hand').closest('.hand-zone').classList.add('is-dealing');paint();
+ try{
+  for(const h of m.messUpHit||[]){   // MESS UP!!!: one card goes back into a deck, which is then shuffled
+   msg(h.mine?'MESS UP!!! One of your cards is shuffled back into your deck…':'MESS UP!!! One of the opponent’s cards is shuffled back into their deck…');
+   await animateMessUp(h.mine?0:1,h.card,token);if(token!==S.token)break;
+  }
+ }catch(e){console.error(e)}
+ msg('Drawing cards for the next round…');
  try{for(const c of fresh){if(token!==S.token)break;const card={...c,origin:'new'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:90)}}
  finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;await receive(latest)}
 }
