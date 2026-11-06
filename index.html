@@ -286,7 +286,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261107a">
+<link rel="stylesheet" href="./crt-game.css?v=20261107b">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -488,6 +488,28 @@ async function celebrateCombo(kind,player,description,token){
  return token===S.token;
 }
 
+// MESS UP!!! animation: the picked card lifts out of the hand, flies back into its deck, then the deck is shuffled.
+async function animateMessUp(side,card,token){
+ if(reducedMotion())return;
+ const deck=document.querySelector((side===0?'.player-hud':'.enemy-hud')+' .deck-stack');if(!deck)return;
+ let src=side===0&&card?[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id):null,temp=null,hidden=null;
+ if(!src){
+  const anchor=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();
+  temp=document.createElement('div');temp.style.cssText=`position:fixed;left:${anchor.left+anchor.width/2-34}px;top:${anchor.top+(side===0?-10:anchor.height/2-45)}px;width:68px;height:94px;visibility:hidden;`;
+  temp.innerHTML=side===0&&card?cardHTML(card):'<div class="mu-back"></div>';
+  const inner=temp.firstElementChild;if(inner){inner.style.width='68px';inner.style.height='94px'}
+  document.body.appendChild(temp);src=inner||temp;
+ }else hidden=src;
+ const {copy,rect}=flightCopy(src);if(hidden)hidden.style.visibility='hidden';if(temp)temp.remove();
+ const dr=deck.getBoundingClientRect(),dx=dr.left+dr.width/2-(rect.left+rect.width/2),dy=dr.top+dr.height/2-(rect.top+rect.height/2);
+ copy.classList.add('mu-flight');
+ try{
+  await copy.animate([{transform:'translate(0,0) scale(1)',offset:0},{transform:'translate(0,-28px) scale(1.2) rotate(-4deg)',offset:.45},{transform:'translate(0,-28px) scale(1.2) rotate(4deg)',offset:.62},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${side?-180:180}deg)`,offset:1}],{duration:900,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'}).finished;
+ }catch(e){}
+ copy.remove();if(token!==S.token)return;
+ const tag=document.createElement('div');tag.className='mu-tag';tag.textContent='SHUFFLE';tag.style.left=(dr.left+dr.width/2)+'px';tag.style.top=(dr.top-8)+'px';document.body.appendChild(tag);
+ deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
+}
 // Short word on the board for CHARGE!!! / MESS UP!!!; resolves when it is gone. Returns false if the match was reset meanwhile.
 async function flashCombo(kind,token){
  const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
@@ -728,8 +750,16 @@ async function animateDiscards(){
 }
 function isChargeLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n+1&&s[2].n===s[1].n+1}
 function isMessUpLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n-1&&s[2].n===s[1].n-1&&s[0].suit===s[1].suit&&s[1].suit===s[2].suit}
-function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);for(const h of S.hand)for(const c of h)c.origin='hand';for(let p=0;p<2;p++)for(let i=0;i<3;i++){const c=S.slots[p][i];if(!c)continue;if(S.pickIdx[p]===i)S.discard[p].push(c);else{c.origin='returned';S.hand[p].push(c);if(p===0)S.animateHand.add(c.id)}}
- for(let p=0;p<2;p++)if(S.messUp[p]){S.messUp[p]=false;if(S.hand[p].length){const k=Math.floor(Math.random()*S.hand[p].length);S.deck[p].push(S.hand[p].splice(k,1)[0]);S.deck[p]=shuffle(S.deck[p])}}   // MESS UP!!!: after the two played cards are back in hand
+async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);for(const h of S.hand)for(const c of h)c.origin='hand';for(let p=0;p<2;p++)for(let i=0;i<3;i++){const c=S.slots[p][i];if(!c)continue;if(S.pickIdx[p]===i)S.discard[p].push(c);else{c.origin='returned';S.hand[p].push(c);if(p===0)S.animateHand.add(c.id)}}
+ // MESS UP!!!: after the two played cards are back in hand, one random card goes into the deck and the deck is reshuffled.
+ const hits=[];for(let p=0;p<2;p++)if(S.messUp[p]){S.messUp[p]=false;if(S.hand[p].length)hits.push([p,S.hand[p][Math.floor(Math.random()*S.hand[p].length)]])}
+ if(hits.length){
+  S.phase='dealing';const tok=S.token;S.animateHand.clear();renderHand();
+  for(const [p,card] of hits){
+   await animateMessUp(p,card,tok);if(tok!==S.token)return;
+   S.hand[p].splice(S.hand[p].indexOf(card),1);S.deck[p].push(card);S.deck[p]=shuffle(S.deck[p]);renderHud();renderHand();
+  }
+ }
  if(exhausted()||(S.deck.every(d=>d.length===0)&&S.hand.some(h=>h.length===0))){showHpFinish();return}startRound(false)}
 function canForfeit(){return S.phase==='plan'||S.phase==='dealing'||S.phase==='reveal'||S.phase==='discard'}
 function requestForfeit(){
