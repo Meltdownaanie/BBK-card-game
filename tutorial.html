@@ -89,7 +89,7 @@ const head=(title,backTo)=>el('div',{class:'crt-head'},el('a',{class:'crt-back',
 // same rules as the game server
 function clash(a,b){
  if(a.suit===b.suit){if(a.n===b.n)return{w:-1,dmg:0};return{w:a.n>b.n?0:1,dmg:Math.abs(a.n-b.n)};}
- return{w:BEATS[a.suit]===b.suit?0:1,dmg:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};
+ return{w:BEATS[a.suit]===b.suit?0:1,dmg:a.n===b.n?(a.n||10)*2:Math.abs(a.n-b.n)};
 }
 let view=null;           // null = lesson list, 1..5 = lesson
 function go(v){if(stage.cancel)stage.cancel();view=v;render();window.scrollTo(0,0);}

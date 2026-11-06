@@ -27,7 +27,7 @@ function dealInitial(p){for(const suit of suits){const i=p.deck.findIndex(c=>c.s
 const MAX_HAND=10;
 // Hand limit: a card drawn beyond 10 forces a random card from the hand onto the discard pile.
 function draw(p,count=1){while(count-->0&&p.deck.length){p.hand.push(p.deck.pop());if(p.hand.length>MAX_HAND){const out=p.hand.splice(crypto.randomInt(p.hand.length),1)[0];p.discard.push(out);(p.overflow=p.overflow||[]).push({id:out.id,suit:out.suit,n:out.n});}}}
-function clash(a,b){if(!a||!b)return {winner:-1,damage:0};if(a.suit===b.suit){if(a.n===b.n)return{winner:-1,damage:0};return{winner:a.n>b.n?0:1,damage:Math.abs(a.n-b.n)};}return{winner:beats[a.suit]===b.suit?0:1,damage:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};}
+function clash(a,b){if(!a||!b)return {winner:-1,damage:0};if(a.suit===b.suit){if(a.n===b.n)return{winner:-1,damage:0};return{winner:a.n>b.n?0:1,damage:Math.abs(a.n-b.n)};}return{winner:beats[a.suit]===b.suit?0:1,damage:a.n===b.n?(a.n||10)*2:Math.abs(a.n-b.n)};}
 function isTriple(p,n){return p.slots.every(c=>c&&c.n===n);}
 // CHARGE!!!: slots 1-2-3 hold consecutive rising numbers (6 7 8), any suits. MESS UP!!!: falling numbers of one suit (8 7 6).
 function isCharge(p){const s=p.slots;return s.every(Boolean)&&s[1].n===s[0].n+1&&s[2].n===s[1].n+1;}
