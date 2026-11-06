@@ -179,7 +179,7 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .hand-item{margin:0 -4px;transform-origin:50% 120%;transition:transform .15s steps(3)}
 .hand-item:nth-child(1){transform:rotate(-12deg) translateY(14px)}.hand-item:nth-child(2){transform:rotate(-6deg) translateY(4px)}
 .hand-item:nth-child(3){transform:rotate(0)}.hand-item:nth-child(4){transform:rotate(6deg) translateY(4px)}
-.hand-item:nth-child(5){transform:rotate(12deg) translateY(14px)}.hand-item:nth-child(n+6){transform:rotate(14deg) translateY(16px)}
+.hand-item:nth-child(5){transform:rotate(12deg) translateY(14px)}.hand-item:nth-child(n+6){transform:rotate(12deg) translateY(14px)}
 .hand-item:hover,.hand-item:focus-within{transform:rotate(0) translateY(-10px);z-index:5}
 .hand-item .card{width:clamp(58px,19vw,84px)!important}
 .hand-item{position:relative}
