@@ -60,10 +60,10 @@ The rating window starts at ±100, widens by 50 every 10 s waited and is capped 
 After a ranked pair is found the server sends `match_found` (with `opponent`, `me` and `startsIn`) and starts the game `MM_INTRO_MS` later (default 3500 ms) so both players can see who they face; if one leaves during that time the other gets `match_cancelled` and nothing is recorded.
 
 ## House bots (ranked fallback)
-Eight server-driven accounts (`is_bot` in `profiles`: BOT Pebble 900, Sprout 1100, Ember 1300, Tide 1400, Fang 1550, Howl 1700, Zenith 1850, Apex 2000 = two per rank).
+Eight server-driven accounts (`is_bot` in `profiles`, ratings 900/1100, 1300/1400, 1550/1700, 1850/2000 = two per rank).
 Run `supabase/migrations_house_bots.sql` once; the server loads them at start (needs `SUPABASE_SECRET_KEY`, see `bots` in `/health`).
 - A ranked player who waited `BOT_WAIT_MS` (default 20 s) with nobody to pair with gets the free bot closest in rating. A bot plays one match at a time.
-- Bots show as "BOT ..." on the match-found screen, keep a fixed rating and record (`record_match` skips their rows) and never appear on the leaderboard.
+- Bots use ordinary-looking names from `server/bot-names.js`, renamed every `BOT_RENAME_HOURS` (default 12, 0 = only at startup) and never during a match. They keep a fixed rating and record (`record_match` skips their rows) and never appear on the leaderboard.
 - Bots only see what a human client sees (own hand, opponent card count, revealed cards). Strength follows rating: easy below 1200, medium to 1499, hard above (`server/bot.js`).
 - `BOT_THINK_SCALE` (default 1) scales their human-like thinking pauses (tests use 0.003).
 

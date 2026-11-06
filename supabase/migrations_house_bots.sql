@@ -118,17 +118,17 @@ declare
   uid uuid;
 begin
   for b in select * from (values
-    ('BOT Pebble',  900), ('BOT Sprout', 1100),
-    ('BOT Ember',  1300), ('BOT Tide',   1400),
-    ('BOT Fang',   1550), ('BOT Howl',   1700),
-    ('BOT Zenith', 1850), ('BOT Apex',   2000)) as v(name, rating)
+    ('minhkhoi',  900), ('Thu_Trang', 1100),
+    ('hoangnam92',  1300), ('Bao_Ngoc',   1400),
+    ('duc.anh',   1550), ('KimLien99',   1700),
+    ('tuanvu', 1850), ('NgocMai_',   2000)) as v(name, rating)
   loop
     continue when exists (select 1 from public.profiles where lower(display_name) = lower(b.name));
     uid := gen_random_uuid();
     -- Auth row with no password and a permanent ban: a bot can never sign in, the game server plays for it.
     insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, banned_until)
     values (uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-            lower(replace(b.name, ' ', '.')) || '@bots.invalid', '{}'::jsonb, '{}'::jsonb, now(), now(), 'infinity');
+            lower(b.name) || '@bots.invalid', '{}'::jsonb, '{}'::jsonb, now(), now(), 'infinity');
     update public.profiles
        set display_name = b.name, rating = b.rating, peak_rating = b.rating,
            games = 10, wins = 5, losses = 5, draws = 0, tutorial_step = 5, is_bot = true
