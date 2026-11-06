@@ -348,7 +348,9 @@ function makeBotClient(bot){
  return ws;
 }
 function botReact(ws,state){
- ws.latest=state;
+ if(ws.memCode!==state.code){ws.memCode=state.code;ws.mem=new Map();}   // card memory lasts for one match
+ for(const h of state.history||[]){const n=brain.normEntry(h,state.seat);if(n)ws.mem.set(n.round,n);}
+ ws.latest=Object.assign({},state,{history:[...ws.mem.values()].sort((a,b)=>a.round-b.round)});
  let key=null,delay=0,act=null;
  if(state.phase==='plan'&&!state.ready){key=state.round+':plan';const lv=ws.level==='easy'?[4,12]:ws.level==='medium'?[7,18]:[9,24];delay=(lv[0]+Math.random()*(lv[1]-lv[0]))*1000;act=botPlan;}
  else if(state.phase==='discard'&&state.discardOptions.length&&state.discardSelected===null){key=state.round+':discard';delay=(2+Math.random()*4)*1000;act=botDiscard;}
