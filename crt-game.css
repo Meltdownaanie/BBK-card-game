@@ -183,6 +183,12 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .hand-item:hover,.hand-item:focus-within{transform:rotate(0) translateY(-10px);z-index:5}
 .hand-item .card{width:clamp(58px,19vw,84px)!important}
 .hand-item{position:relative}
+
+/* many cards (>5, e.g. after CHARGE): two tidy rows, no fan, nothing off-screen, big drag targets */
+.hand[data-many="1"]{display:grid!important;grid-template-columns:repeat(var(--cols,4),max-content);justify-content:center;gap:10px 6px!important;padding:8px 0 14px!important}
+.hand[data-many="1"] .hand-item{margin:0;transform:none!important}
+.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:translateY(-6px)!important}
+.hand[data-many="1"] .hand-item .card{width:clamp(44px,calc((100vw - 40px)/var(--cols,4) - 8px),76px)!important}
 @media (prefers-reduced-motion:reduce){.hand-item{transition:none}}
 
 /* top-left back button on every dialog / sub-screen */
