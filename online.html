@@ -205,6 +205,12 @@ body{padding:8px 12px 12px}
 .combo-celebration.pack{--comboGlow:#f3c96b;--comboInk:#ffe7a1}
 .combo-celebration.zero{--comboGlow:#72c9ff;--comboInk:#bcecff}
 .combo-celebration.kiants{--comboGlow:#ff7979;--comboInk:#ffd3d3}
+/* CHARGE!!! / MESS UP!!!: a short word on the board, no full-screen celebration */
+.combo-flash{position:fixed;left:50%;top:44%;z-index:1050;transform:translate(-50%,-50%);pointer-events:none;font-family:'Press Start 2P','Pixelify Sans',monospace;font-size:clamp(22px,7.2vw,44px);letter-spacing:.04em;white-space:nowrap;color:var(--flashInk);text-shadow:4px 4px 0 #0c0614,-2px -2px 0 #0c0614,2px -2px 0 #0c0614,-2px 2px 0 #0c0614,0 0 22px var(--flashGlow);animation:comboFlashPop 1.25s cubic-bezier(.2,.9,.3,1.2) both}
+.combo-flash.charge{--flashInk:#ffd34d;--flashGlow:#ffb300}
+.combo-flash.messup{--flashInk:#d8a8ff;--flashGlow:#a45cff}
+@keyframes comboFlashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+@media(prefers-reduced-motion:reduce){.combo-flash{animation:none!important}}
 .combo-panel{width:min(92vw,680px);padding:30px 14px 40px}
 .combo-kicker{font-size:clamp(11px,2.1vw,14px);letter-spacing:.18em;color:var(--comboInk)}
 .combo-cards{margin:19px auto 23px}
@@ -507,6 +513,11 @@ async function celebrateCombo(kind,player,description,token){
  await sleep(reducedMotion()?750:2500);
  overlay.hidden=true;overlay.innerHTML='';
  return token===S.token;
+}
+
+async function flashCombo(kind,token){
+ const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
+ document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
 }
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -1004,8 +1015,10 @@ async function revealOnline(m){
    await sleep(reducedMotion()?0:300);
   }
   for(let p=0;p<2;p++){const x=Math.max(0,S.hp[p]-m.hp[p]);if(x){const before=S.hp[p];S.hp[p]-=x;renderHud();animateHpHit(p,x,before);await sleep(reducedMotion()?0:250)}}
-  for(const c of m.combo||[])await celebrateCombo(c.kind,c.owner===m.seat?0:1,c.description,token);
- }catch(e){console.error(e)}
+  for(const c of m.combo||[]){
+   if(c.kind==='charge'||c.kind==='messup'){await flashCombo(c.kind,token);continue}
+   await celebrateCombo(c.kind,c.owner===m.seat?0:1,c.description,token);
+  } }catch(e){console.error(e)}
  finally{busy=false;const latest=queued||m;queued=null;await receive(latest)}
 }
 async function receive(m){

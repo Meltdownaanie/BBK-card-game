@@ -206,6 +206,12 @@ body{padding:8px 12px 12px}
 .combo-celebration.pack{--comboGlow:#f3c96b;--comboInk:#ffe7a1}
 .combo-celebration.zero{--comboGlow:#72c9ff;--comboInk:#bcecff}
 .combo-celebration.kiants{--comboGlow:#ff7979;--comboInk:#ffd3d3}
+/* CHARGE!!! / MESS UP!!!: a short word on the board, no full-screen celebration */
+.combo-flash{position:fixed;left:50%;top:44%;z-index:1050;transform:translate(-50%,-50%);pointer-events:none;font-family:'Press Start 2P','Pixelify Sans',monospace;font-size:clamp(22px,7.2vw,44px);letter-spacing:.04em;white-space:nowrap;color:var(--flashInk);text-shadow:4px 4px 0 #0c0614,-2px -2px 0 #0c0614,2px -2px 0 #0c0614,-2px 2px 0 #0c0614,0 0 22px var(--flashGlow);animation:comboFlashPop 1.25s cubic-bezier(.2,.9,.3,1.2) both}
+.combo-flash.charge{--flashInk:#ffd34d;--flashGlow:#ffb300}
+.combo-flash.messup{--flashInk:#d8a8ff;--flashGlow:#a45cff}
+@keyframes comboFlashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+@media(prefers-reduced-motion:reduce){.combo-flash{animation:none!important}}
 .combo-panel{width:min(92vw,680px);padding:30px 14px 40px}
 .combo-kicker{font-size:clamp(11px,2.1vw,14px);letter-spacing:.18em;color:var(--comboInk)}
 .combo-cards{margin:19px auto 23px}
@@ -481,6 +487,12 @@ async function celebrateCombo(kind,player,description,token){
  return token===S.token;
 }
 
+// Short word on the board for CHARGE!!! / MESS UP!!!; resolves when it is gone. Returns false if the match was reset meanwhile.
+async function flashCombo(kind,token){
+ const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
+ document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
+}
+
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function makeDeck(p){const d=[];for(const suit of ORDER)for(let n=0;n<10;n++)d.push({id:`${p}-${suit}-${n}`,suit,n});return shuffle(d)}
 function cardName(c){return `${SUITS[c.suit].name} ${c.n}`}
@@ -546,7 +558,7 @@ function updateButton(){updateForfeitButton();const b=$('mainButton');if(S.phase
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
 async function newGame(){
  S.token++;const token=S.token;clearInterval(S.timer);S.hp=[100,100];S.deck=[makeDeck(0),makeDeck(1)];S.discard=[[],[]];S.hand=[[],[]];S.slots=[[null,null,null],[null,null,null]];
- S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty=$('aiDifficulty').value;$('difficultyStatus').textContent=S.difficulty.toUpperCase();S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
+ S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty=$('aiDifficulty').value;$('difficultyStatus').textContent=S.difficulty.toUpperCase();S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();renderHistory();renderPreviousRound();$('overlay').hidden=true;updateForfeitButton();$('hand').innerHTML='';$('handCount').textContent='0 cards';render();msg('Dealing the opening five cards…');$('hand').closest('.hand-zone').classList.add('is-dealing');
  const firstCards=[initialThree(0),initialThree(1)];
  for(let i=0;i<5;i++){
@@ -883,6 +895,19 @@ async function endReveal(wins,outcomes){
   if(zeroText){
     if(!await celebrateCombo('zero',winner,`${winner===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token))return;
   }
+  // CHARGE!!! (rising straight, any suits) and MESS UP!!! (falling straight, one suit) fire whether or not the round was won.
+  if(!TUT.on)for(let p=0;p<2;p++){
+    if(isChargeLine(p)){
+      S.nextDraws[p]=Math.max(S.nextDraws[p],2);
+      msg(`CHARGE!!! ${p===0?'You draw':'The AI draws'} 2 cards next round.`);
+      if(!await flashCombo('charge',S.token))return;
+    }
+    if(isMessUpLine(p)){
+      S.messUp[1-p]=true;
+      msg(`MESS UP!!! ${p===0?'A random card from the AI’s hand':'A random card from your hand'} goes back into its deck.`);
+      if(!await flashCombo('messup',S.token))return;
+    }
+  }
   if(TUT.on&&TUT.judge(wins,winner))return;
   const bothPick=winner===-1&&!isShortened()&&outcomes.length===3&&outcomes.every(o=>o.w<0);
   S.phase='discard';S.result={wins,winner,outcomes,bothPick};S.pickIdx=[null,null];S.canPick=winner===0||bothPick;
@@ -911,7 +936,10 @@ async function animateDiscards(){
   jobs.push((async()=>{try{await copy.animate([{transform:'translate(0,0) scale(1) rotate(0)',opacity:1,offset:0},{transform:`translate(${dx*.12}px,${dy*.12-18}px) scale(1.08) rotate(${p?8:-8}deg)`,opacity:1,offset:.22},{transform:`translate(${dx}px,${dy}px) scale(.22) rotate(${p?200:-200}deg)`,opacity:.9,offset:1}],{duration:620,easing:'cubic-bezier(.5,0,.8,.4)',fill:'forwards'}).finished}catch(e){}copy.remove();tgt.classList.remove('bump');void tgt.offsetWidth;tgt.classList.add('bump');setTimeout(()=>tgt.classList.remove('bump'),400)})());}
  await Promise.all(jobs);
 }
+function isChargeLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n+1&&s[2].n===s[1].n+1}
+function isMessUpLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n-1&&s[2].n===s[1].n-1&&s[0].suit===s[1].suit&&s[1].suit===s[2].suit}
 function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);for(const h of S.hand)for(const c of h)c.origin='hand';for(let p=0;p<2;p++)for(let i=0;i<3;i++){const c=S.slots[p][i];if(!c)continue;if(S.pickIdx[p]===i)S.discard[p].push(c);else{c.origin='returned';S.hand[p].push(c);if(p===0)S.animateHand.add(c.id)}}
+ for(let p=0;p<2;p++)if(S.messUp[p]){S.messUp[p]=false;if(S.hand[p].length){const k=Math.floor(Math.random()*S.hand[p].length);S.deck[p].push(S.hand[p].splice(k,1)[0]);S.deck[p]=shuffle(S.deck[p])}}   // MESS UP!!!: after the two played cards are back in hand
  if(exhausted()||(S.deck.every(d=>d.length===0)&&S.hand.some(h=>h.length===0))){showHpFinish();return}startRound(false)}
 function canForfeit(){return S.phase==='plan'||S.phase==='dealing'||S.phase==='reveal'||S.phase==='discard'}
 function requestForfeit(){
@@ -1101,7 +1129,7 @@ Object.assign(TUT,{k:0,state:'play',
   const mk=(p,l)=>l.map(([suit,n])=>({id:`${p}-${suit}-${n}`,suit,n,origin:'hand'}));
   const mine=mk(0,L.hand),opp=mk(1,L.opp),used=new Set([...mine,...opp].map(c=>c.id));
   S.hp=[100,100];S.deck=[makeDeck(0).filter(c=>!used.has(c.id)),makeDeck(1).filter(c=>!used.has(c.id))];S.discard=[[],[]];S.hand=[mine,[]];S.slots=[[null,null,null],[null,null,null]];
-  S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='easy';$('difficultyStatus').textContent='TRAINING';S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
+  S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='easy';$('difficultyStatus').textContent='TRAINING';S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
   $('comboCelebration').hidden=true;closeDiscardPile();renderHistory();renderPreviousRound();$('overlay').hidden=true;$('forfeitButton').hidden=true;
   $('coach').hidden=false;$('coach').className='coach';
   startRound(true);

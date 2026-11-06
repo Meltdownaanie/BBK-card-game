@@ -26,6 +26,9 @@ function dealInitial(p){for(const suit of suits){const i=p.deck.findIndex(c=>c.s
 function draw(p,count=1){while(count-->0&&p.deck.length)p.hand.push(p.deck.pop());}
 function clash(a,b){if(!a||!b)return {winner:-1,damage:0};if(a.suit===b.suit){if(a.n===b.n)return{winner:-1,damage:0};return{winner:a.n>b.n?0:1,damage:Math.abs(a.n-b.n)};}return{winner:beats[a.suit]===b.suit?0:1,damage:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};}
 function isTriple(p,n){return p.slots.every(c=>c&&c.n===n);}
+// CHARGE!!!: slots 1-2-3 hold consecutive rising numbers (6 7 8), any suits. MESS UP!!!: falling numbers of one suit (8 7 6).
+function isCharge(p){const s=p.slots;return s.every(Boolean)&&s[1].n===s[0].n+1&&s[2].n===s[1].n+1;}
+function isMessUp(p){const s=p.slots;return s.every(Boolean)&&s[1].n===s[0].n-1&&s[2].n===s[1].n-1&&s[0].suit===s[1].suit&&s[1].suit===s[2].suit;}
 function validSlot(g,p,i){return Number.isInteger(i)&&i>=0&&i<3&&g.blocked[p]!==i&&!g.sharedBlocked.includes(i);}
 function required(g,p){return Math.min([0,1,2].filter(i=>validSlot(g,p,i)).length,g.players[p].hand.length+g.players[p].slots.filter(Boolean).length);}
 function snapshot(room,seat){
@@ -55,7 +58,7 @@ function endGame(room,winner,reason){const g=room.game;if(!g||g.phase==='over')r
  room.players.forEach(p=>{if(p.ws&&p.ws.bot&&p.user&&userRoom.get(p.user.id)===room)userRoom.delete(p.user.id);});}   // the bot can take a new match right away
 function newGame(room){
  stopTimer(room);
- const players=[0,1].map(()=>({hp:100,deck:makeDeck(),hand:[],slots:[null,null,null],discard:[],ready:false,locked:null,nextLocked:null,nextDraw:1,discardSelected:null}));
+ const players=[0,1].map(()=>({hp:100,deck:makeDeck(),hand:[],slots:[null,null,null],discard:[],ready:false,locked:null,nextLocked:null,nextDraw:1,discardSelected:null,messUp:false}));
  players.forEach(dealInitial);
  room.names=[0,1].map(seat=>{const pl=room.players.find(x=>x.seat===seat);return (pl&&pl.user&&pl.user.name)||null;});
  room.game={players,phase:'plan',round:1,deadline:0,blocked:[null,null],sharedBlocked:[],roundWinner:-1,history:[],lastResult:null,combo:null,winner:null,reason:null};
@@ -105,6 +108,11 @@ function resolveRound(room){
  const kiants=[0,1].find(i=>winner===1-i&&isTriple(g.players[i],9));
  if(kiants!==undefined){g.players[kiants].hp-=damageTaken[kiants];g.players[1-kiants].nextDraw=2;combo.push({kind:'kiants',owner:kiants,title:'KIANTS GILLER',description:'Double round damage and bonus draw'});}
  for(let p=0;p<2;p++)if(winner===p&&isTriple(g.players[p],0)){const target=1-p,slot=crypto.randomInt(3);g.players[target].nextLocked=slot;combo.push({kind:'zero',owner:p,title:'ZERO TO HERO CALL',description:'One enemy slot sealed next round',slot});}
+ for(let p=0;p<2;p++){   // these two fire whether or not the round was won
+  const numbers=g.players[p].slots.map(c=>c?c.n:null),suits=g.players[p].slots.map(c=>c?c.suit:null);
+  if(isCharge(g.players[p])){g.players[p].nextDraw=Math.max(g.players[p].nextDraw,2);combo.push({kind:'charge',owner:p,title:'CHARGE!!!',description:'Draws 2 cards next round',numbers,suits});}
+  if(isMessUp(g.players[p])){g.players[1-p].messUp=true;combo.push({kind:'messup',owner:p,title:'MESS UP!!!',description:'A random card from the opponent’s hand is shuffled back into their deck',numbers,suits});}
+ }
  g.roundWinner=winner;g.bothPick=bothPick;
  g.lastResult={round:g.round,wins,damageTaken,slots:g.players.map(p=>p.slots),outcomes,roundWinner:winner,fullSweep:wins.includes(3)};
  g.history.push({round:g.round,cards:g.players.map(p=>p.slots.map(c=>c?{suit:c.suit,n:c.n}:null)),result:{wins,damageTaken}});
@@ -134,6 +142,8 @@ function finishDiscard(room){
  for(let i=0;i<2;i++){
    const p=g.players[i];if(p.discardSelected===null)p.discardSelected=chooseDiscardIndex(p);
    p.slots.forEach((c,k)=>{if(!c)return;if(k===p.discardSelected)p.discard.push(c);else p.hand.push(c);});
+   // MESS UP!!!: once the two played cards are back in hand, one random card goes into the deck and the deck is reshuffled.
+   if(p.messUp){p.messUp=false;if(p.hand.length){p.deck.push(p.hand.splice(crypto.randomInt(p.hand.length),1)[0]);p.deck=shuffle(p.deck);}}
  }
  g.round++;startPlan(room);
 }
@@ -480,3 +490,5 @@ wss.on('connection',(ws,req)=>{
 });
 const heartbeat=setInterval(()=>{for(const ws of wss.clients){if(!ws.alive){ws.terminate();continue;}ws.alive=false;ws.ping();}},30000);heartbeat.unref();
 server.listen(PORT,'0.0.0.0',()=>console.log('BBK authoritative online server on',PORT,'| accounts:',ACCOUNTS,'| ranked:',RANKED));
+
+if(process.env.BBK_TEST)module.exports={rooms};
