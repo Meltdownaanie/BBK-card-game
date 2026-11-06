@@ -514,3 +514,33 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
  .hand[data-many="1"] .hand-item{margin:0 -9px!important}
  .hand[data-many="1"] .hand-item .card{width:clamp(50px,calc((100vw - 60px)/(var(--n,6)*.62 + .4)),104px)!important}
 }
+
+/* ===== secret combo panel (777 / 000 / 999 winner) in the game's pixel look ===== */
+.combo-celebration{background:rgba(7,4,15,.86)!important;pointer-events:none}
+.combo-celebration::before{content:"";position:absolute;inset:-90%;background:repeating-conic-gradient(var(--comboGlow) 0 7deg,transparent 7deg 21deg)!important;opacity:.13;animation:crtSpin 40s linear infinite!important}
+.combo-celebration::after{display:none!important}
+.combo-celebration.pack{--comboGlow:#ffd34d;--comboInk:#fff0a8}
+.combo-celebration.zero{--comboGlow:#5ad1c4;--comboInk:#c8fff4}
+.combo-celebration.kiants{--comboGlow:#ff7a59;--comboInk:#ffd9c8}
+.cv-panel{position:relative;z-index:1;width:min(92vw,580px);padding:20px 16px 22px;text-align:center;background:var(--c-panel);border-radius:16px;
+  box-shadow:0 0 0 4px var(--c-line),0 0 0 8px var(--comboGlow),0 0 0 12px var(--c-line),inset 0 0 0 3px var(--c-panel-in),0 18px 50px #000b;animation:cvIn .55s steps(7) both}
+@keyframes cvIn{0%{transform:scale(.3) translateY(40px);opacity:0}70%{transform:scale(1.06)}100%{transform:none;opacity:1}}
+.cv-kicker{font-family:var(--pn);font-size:clamp(8px,2.2vw,11px);letter-spacing:.14em;color:var(--c-lilac);animation:cvBlink 1s steps(2) infinite}
+@keyframes cvBlink{50%{opacity:.55}}
+.cv-name{margin:14px 0 0;font-family:var(--pn);font-weight:400;font-size:clamp(17px,5.6vw,34px);line-height:1.25;color:var(--comboInk);text-shadow:4px 4px 0 var(--c-line),0 0 18px var(--comboGlow);animation:cvName 1s steps(5) both}
+@keyframes cvName{0%{letter-spacing:.5em;opacity:0}100%{letter-spacing:.04em;opacity:1}}
+.cv-cards{display:flex;justify-content:center;gap:clamp(8px,3vw,18px);margin:18px 0 18px;perspective:600px}
+.cv-cards .card{--cw:clamp(64px,20vw,104px);width:var(--cw)!important;pointer-events:none;box-shadow:0 0 0 3px var(--c-line),0 0 24px var(--comboGlow)!important;animation:cvCard .5s steps(5) both}
+.cv-cards .card:nth-child(1){transform:rotate(-7deg);animation-delay:.05s}.cv-cards .card:nth-child(2){animation-delay:.18s}.cv-cards .card:nth-child(3){transform:rotate(7deg);animation-delay:.31s}
+@keyframes cvCard{0%{opacity:0;translate:0 -60px}100%{opacity:1;translate:0 0}}
+.cv-rows{display:grid;gap:8px;text-align:left}
+.cv-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--c-dark);box-shadow:0 0 0 3px var(--c-line);font-family:var(--pf);font-size:clamp(11px,3vw,15px);letter-spacing:.04em;animation:cvRow .4s steps(4) both}
+.cv-row:nth-child(1){animation-delay:.7s}.cv-row:nth-child(2){animation-delay:1s}
+@keyframes cvRow{0%{opacity:0;transform:translateX(-24px)}100%{opacity:1;transform:none}}
+.cv-row b{flex:0 0 auto;min-width:5.6em;font-family:var(--pn);font-weight:400;font-size:clamp(7px,1.9vw,9px);color:var(--c-mute)}
+.cv-row span{flex:1;font-weight:700}
+.cv-row.good span{color:#7dffa8}.cv-row.good{box-shadow:0 0 0 3px var(--c-line),inset 4px 0 0 #3fd17a}
+.cv-row.bad span{color:#ff8a8a}.cv-row.bad{box-shadow:0 0 0 3px var(--c-line),inset 4px 0 0 #ff4a4a}
+.cv-spark{position:absolute;bottom:-10px;left:var(--sx);width:var(--sz);height:var(--sz);background:var(--comboGlow);box-shadow:0 0 0 2px var(--c-line);animation:cvSpark 2.2s steps(14) var(--sd) infinite}
+@keyframes cvSpark{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-110vh) rotate(180deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.combo-celebration *,.combo-celebration::before{animation:none!important}}

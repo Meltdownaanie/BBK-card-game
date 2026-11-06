@@ -210,6 +210,7 @@ body{padding:8px 12px 12px}
 .combo-flash{position:fixed;left:50%;top:44%;z-index:1050;transform:translate(-50%,-50%);pointer-events:none;font-family:'Press Start 2P','Pixelify Sans',monospace;font-size:clamp(22px,7.2vw,44px);letter-spacing:.04em;white-space:nowrap;color:var(--flashInk);text-shadow:4px 4px 0 #0c0614,-2px -2px 0 #0c0614,2px -2px 0 #0c0614,-2px 2px 0 #0c0614,0 0 22px var(--flashGlow);animation:comboFlashPop 1.25s cubic-bezier(.2,.9,.3,1.2) both}
 .combo-flash.charge{--flashInk:#ffd34d;--flashGlow:#ffb300}
 .combo-flash.messup{--flashInk:#d8a8ff;--flashGlow:#a45cff}
+.combo-flash.wasted{--flashInk:#ff3030;--flashGlow:#a80000}
 @keyframes comboFlashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
 @media(prefers-reduced-motion:reduce){.combo-flash{animation:none!important}}
 .combo-panel{width:min(92vw,680px);padding:30px 14px 40px}
@@ -286,7 +287,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261107c">
+<link rel="stylesheet" href="./crt-game.css?v=20261107d">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -459,31 +460,24 @@ function animateHpHit(p,dmg,before){if(dmg<=0)return;const hud=document.querySel
 }
 
 
-async function celebrateCombo(kind,player,description,token){
- const overlay=$('comboCelebration');
- const combos={
-  pack:{number:7,name:'PACK JOT WIN',subtitle:'THE PERFECT SEVENS',effect:'INSTANT VICTORY',symbol:'✦'},
-  zero:{number:0,name:'ZERO TO HERO CALL',subtitle:'FROM NOTHING TO POWER',effect:'ENEMY SLOT SEALED',symbol:'◈'},
-  kiants:{number:9,name:'KIANTS GILLER',subtitle:'THE PRICE OF POWER',effect:'DOUBLE DAMAGE · BONUS DRAW',symbol:'✕'}
- };
- const combo=combos[kind];if(!combo)return true;
- const heading=`${combo.symbol} SECRET COMBO DISCOVERED ${combo.symbol}`;
+async function celebrateCombo(kind,player,description,token,extra={}){
+ // 999: the player who lost with it only sees the red word WASTED; the winner gets the GIANT KILLER panel.
+ if(kind==='kiants'&&player===0)return flashCombo('wasted',token);
+ const mine=player===0,overlay=$('comboCelebration');
+ const num={pack:7,zero:0,kiants:9}[kind];if(num===undefined)return true;
+ const names={pack:'PACK JOT WIN',zero:'ZERO TO HERO',kiants:'GIANT KILLER'},kick={pack:'SECRET COMBO · 7 7 7',zero:'SECRET COMBO · 0 0 0',kiants:'SECRET COMBO · 9 9 9'};
+ let cards=(extra.cards||[]).filter(Boolean);if(cards.length!==3)cards=['hammer','paper','scissors'].map((suit,i)=>({id:'cv'+i,suit,n:num}));
+ const slot=extra.slot!=null?`SLOT ${extra.slot+1}`:'A SLOT';
+ const row=(who,good,text)=>`<div class="cv-row ${good?'good':'bad'}"><b>${who}</b><span>${good?'+':'−'} ${text}</span></div>`;
+ let rows='';
+ if(kind==='pack')rows=row('YOU',mine,mine?'INSTANT VICTORY':'THE MATCH IS LOST')+row('OPPONENT',!mine,mine?'THE MATCH IS LOST':'INSTANT VICTORY');
+ else if(kind==='zero')rows=mine?row('YOU',true,'DRAW 2 CARDS NEXT ROUND')+row('OPPONENT',false,slot+' SEALED NEXT ROUND'):row('YOU',false,slot+' SEALED NEXT ROUND')+row('OPPONENT',true,'DRAWS 2 CARDS NEXT ROUND');
+ else rows=row('YOU',true,'DRAW 2 CARDS NEXT ROUND')+row('OPPONENT',false,'TAKES DOUBLE DAMAGE'+(extra.damage?' ('+extra.damage+')':''));
  overlay.className='combo-celebration '+kind;
- overlay.innerHTML=`<div class="combo-panel"><div class="combo-kicker"></div><div class="combo-cards">${['✊','📄','✂️'].map(icon=>`<div class="combo-card"><span class="combo-number">${combo.number}</span><span class="combo-icon">${icon}</span></div>`).join('')}</div><h2 class="combo-name"></h2><p class="combo-subtitle"></p><div class="combo-effect"></div><p class="combo-description"></p></div>`;
- overlay.querySelector('.combo-kicker').textContent=heading;
- overlay.querySelector('.combo-name').textContent=combo.name;
- overlay.querySelector('.combo-subtitle').textContent=combo.subtitle;
- overlay.querySelector('.combo-effect').textContent=combo.effect;
- overlay.querySelector('.combo-description').textContent=description;
- if(!reducedMotion())for(let i=0;i<22;i++){
-  const p=document.createElement('i');p.className='combo-particle';
-  const angle=2*Math.PI*i/22,dist=125+(i%5)*55;
-  p.style.setProperty('--px',Math.round(Math.cos(angle)*dist)+'px');
-  p.style.setProperty('--py',Math.round(Math.sin(angle)*dist)+'px');
-  p.style.setProperty('--delay',(i%6)*.06+'s');overlay.appendChild(p);
- }
+ overlay.innerHTML=`<div class="cv-panel"><div class="cv-kicker">${kick[kind]}</div><h2 class="cv-name">${names[kind]}</h2><div class="cv-cards">${cards.map(c=>cardHTML(c)).join('')}</div><div class="cv-rows">${rows}</div></div>`;
+ if(!reducedMotion())for(let i=0;i<26;i++){const p=document.createElement('i');p.className='cv-spark';p.style.setProperty('--sx',(Math.random()*100)+'%');p.style.setProperty('--sd',(Math.random()*1.4)+'s');p.style.setProperty('--sz',(4+Math.floor(Math.random()*3)*2)+'px');overlay.appendChild(p)}
  overlay.hidden=false;
- await sleep(reducedMotion()?750:2500);
+ await sleep(reducedMotion()?900:3000);
  overlay.hidden=true;overlay.innerHTML='';
  return token===S.token;
 }
@@ -512,8 +506,8 @@ async function animateMessUp(side,card,token){
 }
 // Short word on the board for CHARGE!!! / MESS UP!!!; resolves when it is gone. Returns false if the match was reset meanwhile.
 async function flashCombo(kind,token){
- const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
- document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
+ const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent={charge:'CHARGE!!!',messup:'MESS UP!!!',wasted:'WASTED'}[kind];el.setAttribute('role','status');
+ document.body.appendChild(el);await sleep(reducedMotion()?650:kind==='wasted'?1700:1250);el.remove();return token===S.token;
 }
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -688,7 +682,7 @@ async function endReveal(wins,outcomes){
   const kiantsLoser=[0,1].find(p=>winner===1-p&&isTriple(p,9));
   if(packWinner!==undefined){
     const desc=packWinner===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens — instant victory!';
-    if(!await celebrateCombo('pack',packWinner,desc,S.token))return;
+    if(!await celebrateCombo('pack',packWinner,desc,S.token,{cards:S.slots[packWinner]}))return;
     S.phase='over';clearInterval(S.timer);updateButton();showDialog('🏆 PACK JOT WIN!',desc);return;
   }
   let kiantsText='';
@@ -702,16 +696,16 @@ async function endReveal(wins,outcomes){
     S.kiantsBonus={loser,winner:gainer,damage:roundDamage};
     kiantsText=`⚡ KIANTS GILLER! ${loser===0?'You':'AI'} lost the round with three nines: ${roundDamage*2} total damage (×2). ${gainer===0?'You':'AI'} draws 2 cards next round.`;
     msg(kiantsText);
-    if(!await celebrateCombo('kiants',loser,`${loser===0?'You take':'The AI takes'} ${roundDamage*2} total damage (×2). ${gainer===0?'You draw':'The AI draws'} 2 cards next round.`,S.token))return;
+    if(!await celebrateCombo('kiants',loser,`${loser===0?'You take':'The AI takes'} ${roundDamage*2} total damage (×2). ${gainer===0?'You draw':'The AI draws'} 2 cards next round.`,S.token,{cards:S.slots[loser],damage:roundDamage*2}))return;
   }
   if(S.hp[0]<=0||S.hp[1]<=0){S.phase='over';updateButton();let title,text;if(S.hp[0]<=0&&S.hp[1]<=0){title='DRAW!';text='Both players ran out of HP.'}else if(S.hp[1]<=0){title='YOU WIN!';text='You defeated the AI.'}else{title='AI WINS!';text='Play again for a rematch.'}showDialog(title,text);return}
   let zeroText='';
   for(let p=0;p<2;p++)if(winner===p&&isTriple(p,0)){
-    const target=1-p;const slot=Math.floor(Math.random()*3);S.nextBlocked[target]=slot;
+    const target=1-p;const slot=Math.floor(Math.random()*3);S.nextBlocked[target]=slot;S.nextDraws[p]=Math.max(S.nextDraws[p],2);
     zeroText=`ZERO TO HERO CALL! ${target===0?"Your":"The AI’s"} slot ${slot+1} will be locked next round.`;
   }
   if(zeroText){
-    if(!await celebrateCombo('zero',winner,`${winner===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token))return;
+    if(!await celebrateCombo('zero',winner,`${winner===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token,{cards:S.slots[winner],slot:S.nextBlocked[1-winner]}))return;
   }
   // CHARGE!!! (rising straight, any suits) and MESS UP!!! (falling straight, one suit) fire whether or not the round was won.
   if(!TUT.on)for(let p=0;p<2;p++){

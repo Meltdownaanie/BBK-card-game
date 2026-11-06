@@ -110,7 +110,7 @@ function resolveRound(room){
  if(pack!==undefined)combo.push({kind:'pack',owner:pack,title:'PACK JOT WIN',description:'Instant victory'});
  const kiants=[0,1].find(i=>winner===1-i&&isTriple(g.players[i],9));
  if(kiants!==undefined){g.players[kiants].hp-=damageTaken[kiants];g.players[1-kiants].nextDraw=2;combo.push({kind:'kiants',owner:kiants,title:'KIANTS GILLER',description:'Double round damage and bonus draw'});}
- for(let p=0;p<2;p++)if(winner===p&&isTriple(g.players[p],0)){const target=1-p,slot=crypto.randomInt(3);g.players[target].nextLocked=slot;combo.push({kind:'zero',owner:p,title:'ZERO TO HERO CALL',description:'One enemy slot sealed next round',slot});}
+ for(let p=0;p<2;p++)if(winner===p&&isTriple(g.players[p],0)){const target=1-p,slot=crypto.randomInt(3);g.players[target].nextLocked=slot;g.players[p].nextDraw=Math.max(g.players[p].nextDraw,2);combo.push({kind:'zero',owner:p,title:'ZERO TO HERO CALL',description:'One enemy slot sealed next round, owner draws 2',slot});}
  for(let p=0;p<2;p++){   // these two fire whether or not the round was won
   const numbers=g.players[p].slots.map(c=>c?c.n:null),suits=g.players[p].slots.map(c=>c?c.suit:null);
   if(isCharge(g.players[p])){g.players[p].nextDraw=Math.max(g.players[p].nextDraw,2);combo.push({kind:'charge',owner:p,title:'CHARGE!!!',description:'Draws 2 cards next round',numbers,suits});}
