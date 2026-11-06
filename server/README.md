@@ -71,4 +71,6 @@ Run `supabase/migrations_house_bots.sql` once; the server loads them at start (n
 Fire after damage is dealt, whether or not the round was won; the client shows only the word on the board.
 - **CHARGE!!!** - slots 1→2→3 hold rising consecutive numbers (6 7 8), any suits: the player draws 2 cards next round.
 - **MESS UP!!!** - slots 1→2→3 hold falling consecutive numbers of one suit (8 7 6): once the opponent's two kept cards are back in hand, one random hand card goes into their deck and the deck is reshuffled.
+- **Hand limit 10** - a card drawn beyond 10 forces a random card from the hand onto the discard pile (state fields `overflow` / `opponentOverflow`).
+
 The `combo` list in the state message carries `{kind:'charge'|'messup',owner,numbers,suits}`.

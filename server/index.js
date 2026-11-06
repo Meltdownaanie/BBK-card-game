@@ -24,7 +24,9 @@ function code(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let c;do{c=Array.
 function roomCode(){let c;do{c=String(1000+crypto.randomInt(9000))}while(rooms.has(c));return c;}
 function makeDeck(){return shuffle(suits.flatMap(suit=>Array.from({length:10},(_,n)=>({id:suit+'-'+n,suit,n}))));}
 function dealInitial(p){for(const suit of suits){const i=p.deck.findIndex(c=>c.suit===suit);p.hand.push(p.deck.splice(i,1)[0]);}p.hand=shuffle(p.hand);while(p.hand.length<5)p.hand.push(p.deck.pop());}
-function draw(p,count=1){while(count-->0&&p.deck.length)p.hand.push(p.deck.pop());}
+const MAX_HAND=10;
+// Hand limit: a card drawn beyond 10 forces a random card from the hand onto the discard pile.
+function draw(p,count=1){while(count-->0&&p.deck.length){p.hand.push(p.deck.pop());if(p.hand.length>MAX_HAND){const out=p.hand.splice(crypto.randomInt(p.hand.length),1)[0];p.discard.push(out);(p.overflow=p.overflow||[]).push({id:out.id,suit:out.suit,n:out.n});}}}
 function clash(a,b){if(!a||!b)return {winner:-1,damage:0};if(a.suit===b.suit){if(a.n===b.n)return{winner:-1,damage:0};return{winner:a.n>b.n?0:1,damage:Math.abs(a.n-b.n)};}return{winner:beats[a.suit]===b.suit?0:1,damage:a.n===b.n?a.n*2:Math.abs(a.n-b.n)};}
 function isTriple(p,n){return p.slots.every(c=>c&&c.n===n);}
 // CHARGE!!!: slots 1-2-3 hold consecutive rising numbers (6 7 8), any suits. MESS UP!!!: falling numbers of one suit (8 7 6).
@@ -42,7 +44,7 @@ function snapshot(room,seat){
  lockedOpponent:[0,1,2].filter(i=>!validSlot(g,1-seat,i)),
  ready:me.ready,opponentReady:op.ready,needed:required(g,seat),nextDraw:me.nextDraw,
  yourDiscards:me.discard,history:g.history.slice(-8).map(e=>({round:e.round,cards:e.cards[1-seat],result:e.result})),
- lastResult:g.lastResult,combo:g.combo,messUpHit:(g.messHit||[]).map(h=>({mine:h.seat===seat,card:h.seat===seat?h.card:null})),
+ lastResult:g.lastResult,combo:g.combo,overflow:me.overflow||[],opponentOverflow:(op.overflow||[]).length,messUpHit:(g.messHit||[]).map(h=>({mine:h.seat===seat,card:h.seat===seat?h.card:null})),
  discardOptions:g.phase==='discard'&&picks(g,seat)&&me.discardSelected===null?me.slots.map((c,i)=>c?i:null).filter(x=>x!==null):[],
  discardSelected:me.discardSelected,
  winner:g.winner===null?null:g.winner===-1?-1:g.winner===seat?'you':'opponent',
@@ -76,7 +78,7 @@ function configureBlocks(g){
 function autoFill(g,p){const player=g.players[p];for(let i=0;i<3;i++)if(validSlot(g,p,i)&&!player.slots[i]&&player.hand.length){player.slots[i]=player.hand.splice(crypto.randomInt(player.hand.length),1)[0];}}
 function startPlan(room,first=false){
  const g=room.game;if(!g)return;
- if(!first){for(const p of g.players)draw(p,p.nextDraw);g.players.forEach(p=>p.nextDraw=1);}
+ if(!first){for(const p of g.players)p.overflow=[];for(const p of g.players)draw(p,p.nextDraw);g.players.forEach(p=>p.nextDraw=1);}
  if(g.players.every(p=>p.deck.length===0&&p.hand.length===0)){return finishByHp(room);}
  if(g.players.every(p=>p.deck.length===0)&&g.players.some(p=>p.hand.length===0)){return finishByHp(room);}
  g.blocked=g.players.map(p=>p.nextLocked);g.players.forEach(p=>{p.nextLocked=null;p.slots=[null,null,null];p.ready=false;p.discardSelected=null;});

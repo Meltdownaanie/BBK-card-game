@@ -507,3 +507,10 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 @keyframes muL{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(-16px,-4px) rotate(-14deg)}}
 @keyframes muR{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(16px,2px) rotate(14deg)}}
 @media (prefers-reduced-motion:reduce){.deck-stack.mu-shuffle span,.mu-tag{animation:none!important}}
+
+/* desktop: many cards stay in ONE row, slightly overlapped, no fan (2 rows are kept for phones) */
+@media (min-width:700px){
+ .hand[data-many="1"]{display:flex!important;flex-wrap:nowrap;justify-content:center;gap:0!important;padding:14px 0 26px!important}
+ .hand[data-many="1"] .hand-item{margin:0 -9px!important}
+ .hand[data-many="1"] .hand-item .card{width:clamp(50px,calc((100vw - 60px)/(var(--n,6)*.62 + .4)),104px)!important}
+}
