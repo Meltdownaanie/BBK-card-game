@@ -209,6 +209,7 @@ body{padding:8px 12px 12px}
 .combo-flash{position:fixed;left:50%;top:44%;z-index:1050;transform:translate(-50%,-50%);pointer-events:none;font-family:'Press Start 2P','Pixelify Sans',monospace;font-size:clamp(22px,7.2vw,44px);letter-spacing:.04em;white-space:nowrap;color:var(--flashInk);text-shadow:4px 4px 0 #0c0614,-2px -2px 0 #0c0614,2px -2px 0 #0c0614,-2px 2px 0 #0c0614,0 0 22px var(--flashGlow);animation:comboFlashPop 1.25s cubic-bezier(.2,.9,.3,1.2) both}
 .combo-flash.charge{--flashInk:#ffd34d;--flashGlow:#ffb300}
 .combo-flash.messup{--flashInk:#d8a8ff;--flashGlow:#a45cff}
+.combo-flash.wasted{--flashInk:#ff3030;--flashGlow:#a80000}
 @keyframes comboFlashPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
 @media(prefers-reduced-motion:reduce){.combo-flash{animation:none!important}}
 .combo-panel{width:min(92vw,680px);padding:30px 14px 40px}
@@ -294,6 +295,7 @@ body{padding:8px 12px 12px}
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
+<script src="./combo-fx.js?v=20261107a"></script>
 <div class="app">
  <header class="top"><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
 
@@ -487,31 +489,14 @@ function animateHpHit(p,dmg,before){if(dmg<=0)return;const hud=document.querySel
 
 
 async function celebrateCombo(kind,player,description,token){
- const overlay=$('comboCelebration');
- const combos={
-  pack:{number:7,name:'PACK JOT WIN',subtitle:'THE PERFECT SEVENS',effect:'INSTANT VICTORY',symbol:'✦'},
-  zero:{number:0,name:'ZERO TO HERO CALL',subtitle:'FROM NOTHING TO POWER',effect:'ENEMY SLOT SEALED',symbol:'◈'},
-  kiants:{number:9,name:'KIANTS GILLER',subtitle:'THE PRICE OF POWER',effect:'DOUBLE DAMAGE · BONUS DRAW',symbol:'✕'}
- };
- const combo=combos[kind];if(!combo)return true;
- const heading=`${combo.symbol} SECRET COMBO DISCOVERED ${combo.symbol}`;
- overlay.className='combo-celebration '+kind;
- overlay.innerHTML=`<div class="combo-panel"><div class="combo-kicker"></div><div class="combo-cards">${['✊','📄','✂️'].map(icon=>`<div class="combo-card"><span class="combo-number">${combo.number}</span><span class="combo-icon">${icon}</span></div>`).join('')}</div><h2 class="combo-name"></h2><p class="combo-subtitle"></p><div class="combo-effect"></div><p class="combo-description"></p></div>`;
- overlay.querySelector('.combo-kicker').textContent=heading;
- overlay.querySelector('.combo-name').textContent=combo.name;
- overlay.querySelector('.combo-subtitle').textContent=combo.subtitle;
- overlay.querySelector('.combo-effect').textContent=combo.effect;
- overlay.querySelector('.combo-description').textContent=description;
- if(!reducedMotion())for(let i=0;i<22;i++){
-  const p=document.createElement('i');p.className='combo-particle';
-  const angle=2*Math.PI*i/22,dist=125+(i%5)*55;
-  p.style.setProperty('--px',Math.round(Math.cos(angle)*dist)+'px');
-  p.style.setProperty('--py',Math.round(Math.sin(angle)*dist)+'px');
-  p.style.setProperty('--delay',(i%6)*.06+'s');overlay.appendChild(p);
- }
- overlay.hidden=false;
- await sleep(reducedMotion()?750:2500);
- overlay.hidden=true;overlay.innerHTML='';
+ // 999: the player who lost with it only sees the word WASTED; the winner watches the knight slay the dragon.
+ if(kind==='kiants'&&player===0)return flashCombo('wasted',token);
+ const meta={
+  pack:['PACK JOT WIN',player===0?'THREE SEVENS · YOU WIN!':'THREE SEVENS · YOU LOSE'],
+  zero:['ZERO TO HERO',player===0?'ENEMY SLOT SEALED · YOU DRAW 2':'YOUR SLOT SEALED · FOE DRAWS 2'],
+  kiants:['KIANTS GILLER','DOUBLE DAMAGE · DRAW 2']}[kind];
+ if(!meta||!window.BBKFX)return true;
+ await BBKFX.play(kind,{label:meta[0],sub:meta[1]});
  return token===S.token;
 }
 
@@ -538,8 +523,8 @@ async function animateMessUp(side,card,token){
  deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
 }
 async function flashCombo(kind,token){
- const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
- document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
+ const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent={charge:'CHARGE!!!',messup:'MESS UP!!!',wasted:'WASTED'}[kind];el.setAttribute('role','status');
+ document.body.appendChild(el);await sleep(reducedMotion()?650:kind==='wasted'?1700:1250);el.remove();return token===S.token;
 }
 
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -608,7 +593,7 @@ function render(){renderHud();renderSlots();renderHand();updateButton();$('round
 async function newGame(){
  S.token++;const token=S.token;clearInterval(S.timer);S.hp=[100,100];S.deck=[makeDeck(0),makeDeck(1)];S.discard=[[],[]];S.hand=[[],[]];S.slots=[[null,null,null],[null,null,null]];
  S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty=$('aiDifficulty').value;$('difficultyStatus').textContent=S.difficulty.toUpperCase();S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
- $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();renderHistory();renderPreviousRound();$('overlay').hidden=true;updateForfeitButton();$('hand').innerHTML='';$('handCount').textContent='0 cards';render();msg('Dealing the opening five cards…');$('hand').closest('.hand-zone').classList.add('is-dealing');
+ $('comboCelebration').hidden=true;window.BBKFX&&BBKFX.stop();$('comboCelebration').innerHTML='';closeDiscardPile();renderHistory();renderPreviousRound();$('overlay').hidden=true;updateForfeitButton();$('hand').innerHTML='';$('handCount').textContent='0 cards';render();msg('Dealing the opening five cards…');$('hand').closest('.hand-zone').classList.add('is-dealing');
  const firstCards=[initialThree(0),initialThree(1)];
  for(let i=0;i<5;i++){
    const card=i<3?firstCards[0][i]:draw(0);if(i<3){card.origin='new';S.hand[0].push(card)}if(i<3){const aiCard=firstCards[1][i];aiCard.origin='new';S.hand[1].push(aiCard)}else draw(1);if(token!==S.token)return;

@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BBK combo cinema</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>body{margin:0;background:#120a1f;color:#f3ecff;font:14px system-ui;padding:20px}h1{font:14px 'Press Start 2P',monospace;color:#ffd34d}
+button{font:11px 'Press Start 2P',monospace;background:#3b2a72;color:#fff;border:3px solid #7a63c4;padding:12px 14px;margin:6px 8px 6px 0;cursor:pointer}
+.word{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1300;pointer-events:none}.word b{font:clamp(26px,9vw,80px)/1 'Press Start 2P',monospace;color:#d4272a;text-shadow:5px 5px 0 #000,-2px -2px 0 #5a0b0d;animation:w 1.2s steps(8) both}
+@keyframes w{0%{transform:scale(.3);opacity:0}30%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}</style></head><body>
+<h1>BBK · COMBO CINEMA</h1><p>Bấm để xem từng cảnh (bấm vào màn hình để bỏ qua).</p>
+<button id="z">000 · ZERO TO HERO</button><button id="p">777 · PACK JOT WIN</button><button id="k">999 · NGƯỜI THẮNG</button><button id="w">999 · NGƯỜI THUA</button>
+<div class="word" id="word"><b>WASTED</b></div>
+<script src="./combo-fx.js"></script>
+<script>
+z.onclick=()=>BBKFX.play('zero',{label:'ZERO TO HERO',sub:'ENEMY SLOT SEALED · DRAW 2'});
+p.onclick=()=>BBKFX.play('pack',{label:'PACK JOT WIN',sub:'THREE SEVENS · INSTANT VICTORY'});
+k.onclick=()=>BBKFX.play('kiants',{label:'KIANTS GILLER',sub:'DOUBLE DAMAGE · DRAW 2'});
+w.onclick=()=>{const e=document.getElementById('word');e.style.display='flex';setTimeout(()=>e.style.display='none',1400)};
+</script></body></html>
