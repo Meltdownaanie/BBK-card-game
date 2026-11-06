@@ -546,7 +546,7 @@ function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Ma
 function makeDeck(p){const d=[];for(const suit of ORDER)for(let n=0;n<10;n++)d.push({id:`${p}-${suit}-${n}`,suit,n});return shuffle(d)}
 function cardName(c){return `${SUITS[c.suit].name} ${c.n}`}
 function fmt(n){return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`}
-function battle(a,b){if(!a||!b)return {w:-1,dmg:0};if(a.suit===b.suit){if(a.n===b.n)return {w:-1,dmg:0};return a.n>b.n?{w:0,dmg:a.n-b.n}:{w:1,dmg:b.n-a.n}}const w=BEATS[a.suit]===b.suit?0:1;if(a.n===b.n)return {w,dmg:a.n*2,dbl:true};return {w,dmg:Math.abs(a.n-b.n)}}
+function battle(a,b){if(!a||!b)return {w:-1,dmg:0};if(a.suit===b.suit){if(a.n===b.n)return {w:-1,dmg:0};return a.n>b.n?{w:0,dmg:a.n-b.n}:{w:1,dmg:b.n-a.n}}const w=BEATS[a.suit]===b.suit?0:1;if(a.n===b.n)return {w,dmg:(a.n||10)*2,dbl:true};return {w,dmg:Math.abs(a.n-b.n)}}
 function roundTime(){return 75}
 function draw(p){if(S.deck[p].length){const c=S.deck[p].pop();c.origin='new';S.hand[p].push(c);return c}return null}
 // Ensure each player starts with one card of every suit.

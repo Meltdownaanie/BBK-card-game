@@ -520,7 +520,7 @@ function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Ma
 function makeDeck(p){const d=[];for(const suit of ORDER)for(let n=0;n<10;n++)d.push({id:`${p}-${suit}-${n}`,suit,n});return shuffle(d)}
 function cardName(c){return `${SUITS[c.suit].name} ${c.n}`}
 function fmt(n){return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`}
-function battle(a,b){if(!a||!b)return {w:-1,dmg:0};if(a.suit===b.suit){if(a.n===b.n)return {w:-1,dmg:0};return a.n>b.n?{w:0,dmg:a.n-b.n}:{w:1,dmg:b.n-a.n}}const w=BEATS[a.suit]===b.suit?0:1;if(a.n===b.n)return {w,dmg:a.n*2,dbl:true};return {w,dmg:Math.abs(a.n-b.n)}}
+function battle(a,b){if(!a||!b)return {w:-1,dmg:0};if(a.suit===b.suit){if(a.n===b.n)return {w:-1,dmg:0};return a.n>b.n?{w:0,dmg:a.n-b.n}:{w:1,dmg:b.n-a.n}}const w=BEATS[a.suit]===b.suit?0:1;if(a.n===b.n)return {w,dmg:(a.n||10)*2,dbl:true};return {w,dmg:Math.abs(a.n-b.n)}}
 function roundTime(){return 75}
 const MAX_HAND=10;
 // Hand limit: a card drawn beyond 10 forces a random card from the hand onto the discard pile.
@@ -980,7 +980,7 @@ Object.assign(TUT,{k:0,state:'play',
     else{this.say(lv,'All slots are filled. Press REVEAL CARDS to flip everything at once.',[]);this.pulse('#mainButton')}
    }else{
     const lines=[];for(let i=0;i<3;i++){const m=S.slots[0][i],o=S.slots[1][i];if(m&&o){const r=battle(m,o);lines.push(`Slot ${i+1}: ${r.w===0?'you win '+r.dmg:r.w===1?'you lose '+r.dmg:'tie'}`)}}
-    const base={2:'The enemy cards are face up. Circle: Hammer beats Scissors, Scissors beats Paper, Paper beats Hammer. Beat all three slots.',3:'Damage = gap between the numbers (same number across suits = double). Win all 3 slots for +5 sweep bonus and deal 18+ damage.',4:'Win at least 2 slots to win the round. Then you get to discard one played card.'}[this.k];
+    const base={2:'The enemy cards are face up. Circle: Hammer beats Scissors, Scissors beats Paper, Paper beats Hammer. Beat all three slots.',3:'Damage = gap between the numbers (same number across suits = double, a 0 counts as 10 so 0 vs 0 deals 20). Win all 3 slots for +5 sweep bonus and deal 18+ damage.',4:'Win at least 2 slots to win the round. Then you get to discard one played card.'}[this.k];
     this.say(lv,ready?'Happy with it? Press REVEAL CARDS.':base,lines);if(ready)this.pulse('#mainButton')
    }
   }else if(S.phase==='discard'&&S.canPick&&this.k===4){
