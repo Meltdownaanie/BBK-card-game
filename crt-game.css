@@ -514,3 +514,28 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
  .hand[data-many="1"] .hand-item{margin:0 -9px!important}
  .hand[data-many="1"] .hand-item .card{width:clamp(50px,calc((100vw - 60px)/(var(--n,6)*.62 + .4)),104px)!important}
 }
+
+/* HAND LIMIT animation + opponent hand counter */
+.hl-flight{filter:drop-shadow(0 0 10px #ff4d4d) drop-shadow(0 0 22px #d11) !important;outline:3px solid #ff6b6b;outline-offset:2px}
+.hl-tag{color:#ff6b6b;text-shadow:2px 2px 0 #1a0505;animation:none;white-space:nowrap}
+.discard-counter.hl-hit{animation:hlHit .26s steps(4)}
+@keyframes hlHit{50%{transform:scale(1.35);filter:drop-shadow(0 0 8px #ff4d4d)}}
+.hand-counter{display:flex;flex-direction:row;align-items:center;gap:5px;font-size:9px;color:var(--c-mute)}
+.hand-counter .hc-cards{position:relative;width:18px;height:20px;display:inline-block}
+.hand-counter .hc-cards i{position:absolute;top:2px;width:11px;height:16px;border:2px solid #a38746;border-radius:3px;background:#2c3940}
+.hand-counter .hc-cards i:nth-child(1){left:0;transform:rotate(-14deg)}.hand-counter .hc-cards i:nth-child(2){left:3px}.hand-counter .hc-cards i:nth-child(3){left:6px;transform:rotate(14deg)}
+.hand-counter .deck-label{display:none}
+.hand-counter.full .deck-num{color:#ff6b6b!important}
+@media (prefers-reduced-motion:reduce){.discard-counter.hl-hit{animation:none}}
+
+/* Phones: a hand of 6+ cards becomes compact chips in 2 rows, so the board keeps its size */
+@media (max-width:699px){
+ .hand[data-many="1"]{gap:6px 5px!important;padding:6px 0 8px!important}
+ .hand[data-many="1"] .hand-item{position:relative}
+ .hand[data-many="1"] .hand-item .card-origin{position:absolute!important;top:-4px;left:50%;transform:translateX(-50%)!important;height:5px!important;width:26px;padding:0!important;font-size:0!important;line-height:0!important;border-radius:3px!important;z-index:2;max-width:none;border:0!important}
+ .hand[data-many="1"] .hand-item .card-origin.hand{display:none!important}
+ .hand[data-many="1"] .hand-item .card{width:clamp(44px,calc((100vw - 40px)/var(--cols,4) - 6px),70px)!important;height:42px!important;min-height:0;aspect-ratio:auto!important;flex-direction:row!important;gap:5px!important;justify-content:center!important;padding:0 4px!important;border-radius:8px!important}
+ .hand[data-many="1"] .hand-item .card .suitname{display:none!important}
+ .hand[data-many="1"] .hand-item .card .number{font-size:22px!important;line-height:1}
+ .hand[data-many="1"] .hand-item .card .symbol{transform:scale(.8);margin:0}
+}

@@ -288,7 +288,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261107c">
+<link rel="stylesheet" href="./crt-game.css?v=20261108a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -299,7 +299,7 @@ body{padding:8px 12px 12px}
  <section class="status"><div class="roundinfo">ROUND<strong id="round">1</strong></div><span class="tag modepill">ONLINE · <b id="difficultyStatus">1v1</b></span><div id="clock"><div class="time"><span id="time">1:15</span> <small id="limit">/ 75s</small></div><div class="timebar"><i id="timerFill"></i></div></div></section>
 <div id="blockAlert" class="block-alert" hidden></div>
  <div class="hud-row bottom-hud solo opp-top">
-  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · ONLINE</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span></span></div><span class="deck-label">DECK</span></div><div class="discard-counter"><b class="deck-num" id="discard1">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
+  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · ONLINE</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span></span></div><span class="deck-label">DECK</span></div><div class="discard-counter"><b class="deck-num" id="discard1">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></div><div class="hand-counter" id="oppHandCount" aria-label="Opponent cards in hand"><b class="deck-num" id="oppHandNum">5</b><span class="hc-cards" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">HAND</span></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
 </div>
 <section class="board" aria-label="Battle arena"><div class="columns">
  <div class="column"><div class="ai-row"><div id="slot10" class="slot" data-n="1"></div><div class="ghost-slot" id="prev10" aria-label="Opponent previous round slot 1"></div></div><div class="versus" id="vs0"><span class="pill">1 VS 1</span></div><div id="slot00" class="slot mine" data-n="1"></div></div>
@@ -536,6 +536,28 @@ async function animateMessUp(side,card,token){
  const tag=document.createElement('div');tag.className='mu-tag';tag.textContent='SHUFFLE';tag.style.left=(dr.left+dr.width/2)+'px';tag.style.top=(dr.top-8)+'px';document.body.appendChild(tag);
  deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
 }
+// HAND LIMIT: the over-limit card glows red, shows a tag and flies to the discard pile.
+async function animateHandLimit(side,card,token){
+ if(reducedMotion())return;
+ const pile=document.querySelector((side===0?'.player-hud':'.enemy-hud')+' .discard-counter');if(!pile)return;
+ let src=side===0&&card?[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id):null,temp=null,hidden=null;
+ if(!src){
+  const anchor=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();
+  temp=document.createElement('div');temp.style.cssText=`position:fixed;left:${anchor.left+anchor.width/2-34}px;top:${anchor.top+(side===0?-10:anchor.height/2-45)}px;width:68px;height:94px;visibility:hidden;`;
+  temp.innerHTML=side===0&&card?cardHTML(card):'<div class="mu-back"></div>';
+  const inner=temp.firstElementChild;if(inner){inner.style.width='68px';inner.style.height='94px'}
+  document.body.appendChild(temp);src=inner||temp;
+ }else hidden=src;
+ const {copy,rect}=flightCopy(src);if(hidden)hidden.style.visibility='hidden';if(temp)temp.remove();
+ const pr=pile.getBoundingClientRect(),dx=pr.left+pr.width/2-(rect.left+rect.width/2),dy=pr.top+pr.height/2-(rect.top+rect.height/2);
+ copy.classList.add('hl-flight');
+ const tag=document.createElement('div');tag.className='mu-tag hl-tag';tag.textContent='HAND LIMIT 10';{const ar=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();tag.style.left=(ar.left+ar.width/2)+'px';tag.style.top=(side===0?ar.top-4:ar.bottom+22)+'px'}document.body.appendChild(tag);
+ try{
+  await copy.animate([{transform:'translate(0,0) scale(1)',offset:0},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.2},{transform:'translate(5px,-18px) scale(1.25) rotate(5deg)',offset:.35},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.25) rotate(${side?200:-200}deg)`,opacity:.15,offset:1}],{duration:1150,easing:'ease-in-out',fill:'forwards'}).finished;
+ }catch(e){}
+ copy.remove();tag.remove();if(hidden)hidden.style.visibility='';
+ pile.classList.add('hl-hit');await sleep(260);pile.classList.remove('hl-hit');
+}
 async function flashCombo(kind,token){
  const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
  document.body.appendChild(el);await sleep(reducedMotion()?650:1250);el.remove();return token===S.token;
@@ -584,7 +606,7 @@ function roundWinner(wins,outcomes){if(isShortened())return wins[0]===wins[1]?-1
 function isTriple(p,n){return S.slots[p].every(c=>c&&c.n===n)}
 function blockText(){const labels=[];if(S.endgameBlocked.length)labels.push(`FINAL ROUND: Both players have locked slots ${S.endgameBlocked.map(i=>i+1).join(', ')}`);for(let p=0;p<2;p++)if(S.blocked[p]!==null&&!S.endgameBlocked.includes(S.blocked[p]))labels.push(`${p===0?'YOU':'AI'} has slot ${S.blocked[p]+1} locked`);return labels.join(' · ')}
 function hpAlertClass(hp){if(hp<=5)return 'hp-c5';if(hp<=10)return 'hp-c10';if(hp<=15)return 'hp-c15';if(hp<=25)return 'hp-c25';if(hp<=50)return 'hp-c50';if(hp<=70)return 'hp-c70';return 'hp-c100'}
-function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);$('handCount').textContent=S.hand[0].length+' cards'}
+function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);{const oh=S.hand[1].length,el=$('oppHandNum');if(el){el.textContent=oh;$('oppHandCount').classList.toggle('full',oh>=10)}}$('handCount').textContent=S.hand[0].length+' cards'}
 function renderSlots(){const prev=previousAICards();for(let i=0;i<3;i++){const a=S.slots[1][i],m=S.slots[0][i];const blockedAI=isBlocked(1,i),blockedMe=isBlocked(0,i);$('slot1'+i).innerHTML=blockedAI?'':a?(S.phase==='plan'?'<div class="card back" aria-label="Face-down AI card"></div>':cardHTML(a)) : '';$('prev1'+i).innerHTML=ghostCardHTML(prev[i]);$('slot0'+i).innerHTML=blockedMe?'':cardHTML(m);$('slot1'+i).classList.toggle('is-blocked',blockedAI);$('slot0'+i).classList.toggle('is-blocked',blockedMe);const sc=$('slot0'+i).querySelector('button.card');if(sc)sc.draggable=S.phase==='plan';$('slot0'+i).classList.toggle('target',S.phase==='plan'&&S.target===i&&!m&&!blockedMe);if(S.phase==='plan'||S.phase==='idle'){$('vs'+i).className='versus';$('vs'+i).innerHTML=`<span class="pill">${blockedAI||blockedMe?'🔒 '+(i+1):`${i+1} VS ${i+1}`}</span>`}}const alert=$('blockAlert'),txt=blockText();alert.hidden=!txt;alert.textContent=txt?`🔒 ${txt} · Place cards in the remaining open slots`:''}
 
 function renderPlayedTracker(){
@@ -1019,7 +1041,8 @@ async function nextRound(m){
   }
  }catch(e){console.error(e)}
  msg('Drawing cards for the next round…');
- try{for(const c of fresh){if(token!==S.token)break;const card={...c,origin:'new'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:90)}}
+ try{for(const c of fresh){if(token!==S.token)break;const card={...c,origin:'new'};S.hand[0].push(card);S.deck[0].pop();renderHud();renderHand();await animateDealtCard(card,token);await sleep(reducedMotion()?0:90)}
+  if(token===S.token){for(const c of (m.overflow||[]))await animateHandLimit(0,c,token);if(m.opponentOverflow)await animateHandLimit(1,null,token)}}
  finally{$('hand').closest('.hand-zone').classList.remove('is-dealing');busy=false;const latest=queued||m;queued=null;await receive(latest);
   if(m.overflow&&m.overflow.length)msg('HAND LIMIT 10: a random card ('+m.overflow.map(c=>c.suit+' '+c.n).join(', ')+') was discarded.');else if(m.opponentOverflow)msg('HAND LIMIT 10: the opponent discarded a random card.')}
 }
