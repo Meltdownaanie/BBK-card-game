@@ -187,9 +187,8 @@ body{padding:8px 12px 12px}
 .combo-panel{position:relative;z-index:1;width:min(90vw,650px);text-align:center;padding:34px 12px 42px;animation:comboEntrance .6s cubic-bezier(.1,.82,.2,1.18) both;filter:drop-shadow(0 12px 30px #000a)}
 .combo-kicker{color:#fff;font-size:clamp(12px,2.5vw,15px);font-weight:900;letter-spacing:.4em;text-transform:uppercase;text-shadow:0 0 12px var(--comboGlow);animation:comboFlicker 1.2s both}
 .combo-cards{display:flex;justify-content:center;gap:clamp(6px,2vw,16px);margin:18px auto 20px;perspective:700px}
-.combo-card{width:clamp(65px,15vw,108px);aspect-ratio:5/7;border:2px solid var(--comboGlow);border-radius:13px;background:linear-gradient(160deg,#f7f7f8,#d9e4ee);box-shadow:0 0 18px var(--comboGlow),0 12px 22px #0008;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#1a2732;font-weight:1000;transform-origin:50% 110%;animation:comboCardFall .7s cubic-bezier(.15,.8,.24,1.3) both}
+.combo-card{width:clamp(65px,15vw,108px);aspect-ratio:5/7;transform-origin:50% 110%;animation:comboCardFall .7s cubic-bezier(.15,.8,.24,1.3) both;filter:drop-shadow(0 0 14px var(--comboGlow)) drop-shadow(0 10px 16px #0008)}.combo-card .card{--cw:100%;width:100%;height:100%;pointer-events:none;margin:0!important}
 .combo-card:nth-child(1){animation-delay:.04s;--tilt:-11deg}.combo-card:nth-child(2){animation-delay:.16s;--tilt:0deg}.combo-card:nth-child(3){animation-delay:.28s;--tilt:11deg}
-.combo-card .combo-number{font-size:clamp(38px,8vw,66px);line-height:1}.combo-card .combo-icon{font-size:clamp(17px,4vw,29px)}
 .combo-name{margin:0;color:var(--comboInk);font-size:clamp(30px,8vw,64px);font-weight:1000;line-height:1;letter-spacing:.04em;overflow-wrap:anywhere;text-transform:uppercase;-webkit-text-stroke:.6px #fff6;text-shadow:0 4px 0 #121820,0 0 12px var(--comboGlow),0 0 40px var(--comboGlow);animation:comboNamePop .8s cubic-bezier(.15,.9,.22,1.18) .27s both}
 .combo-description{color:#f0f5f9;font-size:clamp(14px,3.1vw,19px);font-weight:800;margin:17px auto 0;max-width:570px;text-shadow:0 2px 10px #000;animation:comboFlicker .8s .5s both}
 .combo-particle{position:absolute;top:50%;left:50%;width:7px;height:7px;border-radius:50%;background:var(--comboGlow);box-shadow:0 0 12px var(--comboGlow);animation:comboParticle 1.5s cubic-bezier(.1,.8,.4,1) both;animation-delay:var(--delay)}
@@ -496,7 +495,7 @@ async function celebrateCombo(kind,player,description,token){
  const combo=combos[kind];if(!combo)return true;
  const heading=`${combo.symbol} SECRET COMBO DISCOVERED ${combo.symbol}`;
  overlay.className='combo-celebration '+kind;
- overlay.innerHTML=`<div class="combo-panel"><div class="combo-kicker"></div><div class="combo-cards">${['✊','📄','✂️'].map(icon=>`<div class="combo-card"><span class="combo-number">${combo.number}</span><span class="combo-icon">${icon}</span></div>`).join('')}</div><h2 class="combo-name"></h2><p class="combo-subtitle"></p><div class="combo-effect"></div><p class="combo-description"></p></div>`;
+ overlay.innerHTML=`<div class="combo-panel"><div class="combo-kicker"></div><div class="combo-cards">${['hammer','paper','scissors'].map((suit,i)=>`<div class="combo-card">${cardHTML({id:'combo-'+i,suit,n:combo.number})}</div>`).join('')}</div><h2 class="combo-name"></h2><p class="combo-subtitle"></p><div class="combo-effect"></div><p class="combo-description"></p></div>`;
  overlay.querySelector('.combo-kicker').textContent=heading;
  overlay.querySelector('.combo-name').textContent=combo.name;
  overlay.querySelector('.combo-subtitle').textContent=combo.subtitle;
