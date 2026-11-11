@@ -91,7 +91,7 @@ function isShortened(g){return g.sharedBlocked.length>0||g.blocked.some(x=>x!==n
 function roundWins(g,wins,dealt){if(isShortened(g))return wins[0]===wins[1]?-1:wins[0]>wins[1]?0:1;if(wins[0]>=2)return 0;if(wins[1]>=2)return 1;if(wins[0]===1&&wins[1]===1&&dealt)return dealt[0]===dealt[1]?-1:dealt[0]>dealt[1]?0:1;return -1;}
 function resolveRound(room){
  const g=room.game;if(!g||g.phase!=='plan')return;
- stopTimer(room);g.players.forEach((p,i)=>autoFill(g,i));
+ stopTimer(room);   // time is up: slots left empty stay empty (no random auto-fill)
  const wins=[0,0],damageTaken=[0,0],dealt=[0,0],outcomes=[];
  const used=[0,1,2].filter(i=>g.players[0].slots[i]||g.players[1].slots[i]);
  const left=[0,1].map(p=>used.filter(i=>g.players[p].slots[i]));
@@ -134,7 +134,7 @@ function startDiscard(room){
  g.phase='discard';g.deadline=Date.now()+DISCARD_MS;
  g.players.forEach((p,i)=>{p.discardSelected=null;if(!picks(g,i))p.discardSelected=chooseDiscardIndex(p);});
  broadcast(room);
- if(g.players.every(p=>p.discardSelected!==null))return finishDiscard(room);
+ if(g.players.every(p=>p.discardSelected!==null||!p.slots.some(Boolean)))return finishDiscard(room);
  schedule(room,DISCARD_MS,()=>finishDiscard(room));
 }
 function picks(g,i){return g.roundWinner===i||!!g.bothPick;}
