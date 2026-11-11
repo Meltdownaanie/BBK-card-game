@@ -539,4 +539,8 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
  .hand[data-many="1"] .hand-item .card .symbol{transform:scale(var(--row-s,.78));margin:calc((var(--row-s,.78) - 1) * 14px) 0!important}
  .hand[data-many="1"] .hand-item .card-origin{top:-10px!important;font-size:7.5px!important;padding:2px 4px!important;line-height:1!important;white-space:nowrap;letter-spacing:0!important}
 }
-}
+
+/* Status text under the HP bar is hidden (the space stays so the layout does not move). */
+.message:not(.alert){visibility:hidden!important}
+.message.alert{color:var(--c-gold)!important}
+.hand-counter .hc-icon{display:block;width:30px;height:27px;flex:0 0 auto}
