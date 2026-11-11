@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261108a">
+<link rel="stylesheet" href="./crt-game.css?v=20261111a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -308,7 +308,7 @@ body{padding:8px 12px 12px}
 </div>
  <section class="coach" id="coach" hidden aria-live="polite"><div class="coach-face" aria-hidden="true">🙂</div><div class="coach-body"><div class="coach-lv" id="coachLv"></div><p id="coachText"></p><ul id="coachList"></ul><div class="coach-actions" id="coachActions"></div></div></section>
  <p class="message" id="message" aria-live="polite"></p>
-<section class="hand-zone" aria-label="Your hand and deck"><div class="hand-heading">YOUR HAND <span id="handCount">5 cards</span></div><div class="hand" id="hand" aria-label="Cards in your hand"></div></section>
+<section class="hand-zone" aria-label="Your hand and deck"><div class="hand-heading">YOUR HAND <span id="handCount">5 cards</span></div><div class="hand-swipe-hint" aria-hidden="true"><span class="arr" id="swL">◀</span><span>SWIPE · <b id="swN">0</b> CARDS</span><span class="arr" id="swR">▶</span></div><div class="hand" id="hand" aria-label="Cards in your hand"></div></section>
 <div class="lockrow"><button id="mainButton" class="primary" disabled>Waiting to start</button></div>
  <section class="played-tracker" aria-label="Opponent revealed cards">
   <div class="played-tracker-heading"><strong>OPPONENT CARDS PLAYED</strong><span id="playedCount">0 / 30 revealed</span></div>
@@ -601,7 +601,7 @@ function renderPlayedTracker(){
 }
 function renderHistory(){renderPlayedTracker();const root=$('historyContent');if(!root)return;if(!S.history.length){root.innerHTML='<p>No rounds played yet.</p>';return}root.innerHTML=[...S.history].reverse().map(h=>`<div class="history-round"><strong>Round ${h.round}</strong><div class="history-cards">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}: ${SUITS[c.suit].icon} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div></div>`).join('')}
 function renderPreviousRound(){const root=$('previousRound');if(!root)return;const h=[...S.history].reverse().find(r=>r.round<S.round);if(!h){root.innerHTML='<p>No previous round.</p>';return}root.innerHTML=`<strong>Round ${h.round}</strong><div class="history-cards" style="margin-top:8px">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}<br>${SUITS[c.suit].icon} ${SUITS[c.suit].name} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div>`}
-function renderHand(){const h=[...S.hand[0]].sort((a,b)=>ORDER.indexOf(a.suit)-ORDER.indexOf(b.suit)||a.n-b.n);const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};$('hand').innerHTML=h.map(c=>{const [label,cls]=origins[c.origin]||origins.hand;const animate=S.animateHand.has(c.id)?(cls==='new'?' card-drawn':' card-returned'):'';return `<div class="hand-item${animate}"><span class="card-origin ${cls}">${label}</span>${cardHTML(c)}</div>`}).join('');S.animateHand.clear();$('hand').dataset.many=h.length>5?'1':'0';$('hand').style.setProperty('--n',h.length);$('hand').style.setProperty('--cols',Math.ceil(h.length/2));$('hand').querySelectorAll('button').forEach(b=>{b.disabled=S.phase!=='plan';b.draggable=S.phase==='plan'});$('handCount').textContent=h.length+' cards'}
+function renderHand(){const h=[...S.hand[0]].sort((a,b)=>ORDER.indexOf(a.suit)-ORDER.indexOf(b.suit)||a.n-b.n);const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};$('hand').innerHTML=h.map(c=>{const [label,cls]=origins[c.origin]||origins.hand;const animate=S.animateHand.has(c.id)?(cls==='new'?' card-drawn':' card-returned'):'';return `<div class="hand-item${animate}"><span class="card-origin ${cls}">${label}</span>${cardHTML(c)}</div>`}).join('');S.animateHand.clear();$('hand').dataset.many=h.length>5?'1':'0';$('hand').style.setProperty('--n',h.length);$('hand').style.setProperty('--cols',Math.ceil(h.length/2));$('hand').querySelectorAll('button').forEach(b=>{b.disabled=S.phase!=='plan';b.draggable=S.phase==='plan'});$('handCount').textContent=h.length+' cards';updateHandSwipe()}
 function msg(s){$('message').textContent=s}
 function updateButton(){updateForfeitButton();const b=$('mainButton');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':`Place ${need-n} more`;b.disabled=n<need}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
@@ -920,6 +920,12 @@ for(const surface of dropSurfaces){
 }
 // Pointer events for touch/pen. Native HTML drag handles mouse; tapping is still allowed.
 let touchDrag=null;
+// Phones: a big hand scrolls sideways. Horizontal swipe on a card scrolls; any other direction drags the card.
+let handGlide=0;
+function updateHandSwipe(){const h=$('hand');if(!h)return;const max=h.scrollWidth-h.clientWidth;const on=!!h.dataset.many&&max>2;const l=on&&h.scrollLeft>2,r=on&&h.scrollLeft<max-2;h.dataset.fade=(l?'l ':'')+(r?'r':'');const L=$('swL'),R=$('swR'),N=$('swN');if(L)L.classList.toggle('on',l);if(R)R.classList.toggle('on',r);if(N)N.textContent=S.hand[0].length}
+function glideHand(v){cancelAnimationFrame(handGlide);const h=$('hand');let last=performance.now();const step=t=>{const dt=Math.min(40,t-last);last=t;h.scrollLeft-=v*dt;v*=Math.pow(.94,dt/16);updateHandSwipe();if(Math.abs(v)>.03)handGlide=requestAnimationFrame(step)};if(Math.abs(v)>.05&&!reducedMotion())handGlide=requestAnimationFrame(step)}
+$('hand').addEventListener('scroll',updateHandSwipe,{passive:true});addEventListener('resize',updateHandSwipe);
+
 function cleanTouchDrag(){
  if(touchDrag?.ghost)touchDrag.ghost.remove();
  touchDrag=null;clearTargets();
@@ -929,11 +935,14 @@ document.addEventListener('pointerdown',e=>{
  const source=dragSourceFromElement(e.target);if(!source)return;
  const card=source.kind==='slot'?$('slot0'+source.slot).querySelector('button.card'):[...$('hand').querySelectorAll('button.card')].find(b=>b.dataset.id===source.id);
  if(!card)return;
+ cancelAnimationFrame(handGlide);
  touchDrag={pointerId:e.pointerId,source,startX:e.clientX,startY:e.clientY,active:false,ghost:null,card};
 });
 document.addEventListener('pointermove',e=>{
  const d=touchDrag;if(!d||d.pointerId!==e.pointerId||S.phase!=='plan')return;
+ if(d.swipe){const h=$('hand'),t=performance.now();h.scrollLeft=d.sl-(e.clientX-d.startX);const dt=Math.max(1,t-d.lt);d.vx=(e.clientX-d.lx)/dt*.6+(d.vx||0)*.4;d.lx=e.clientX;d.lt=t;updateHandSwipe();if(e.cancelable)e.preventDefault();return}
  if(!d.active&&Math.hypot(e.clientX-d.startX,e.clientY-d.startY)<9)return;
+ if(!d.active&&d.source.kind==='hand'){const h=$('hand'),dx=e.clientX-d.startX,dy=e.clientY-d.startY;if(h.dataset.many&&h.scrollWidth>h.clientWidth+2&&Math.abs(dx)>Math.abs(dy)*1.2){d.swipe=true;d.sl=h.scrollLeft+dx;d.lx=e.clientX;d.lt=performance.now();d.vx=0;h.scrollLeft=d.sl-dx;if(e.cancelable)e.preventDefault();return}}
  if(!d.active){
   d.active=true;d.ghost=d.card.cloneNode(true);d.ghost.classList.add('drag-ghost');
   d.ghost.style.width=d.card.getBoundingClientRect().width+'px';
@@ -947,6 +956,7 @@ document.addEventListener('pointermove',e=>{
 },{passive:false});
 document.addEventListener('pointerup',e=>{
  const d=touchDrag;if(!d||d.pointerId!==e.pointerId)return;
+ if(d.swipe){const v=performance.now()-d.lt<80?d.vx:0;cleanTouchDrag();glideHand(v);suppressClick=true;setTimeout(()=>suppressClick=false,250);return}
  const active=d.active,source=d.source;
  const dest=active?dragDestinationFromElement(document.elementFromPoint(e.clientX,e.clientY)):null;
  cleanTouchDrag();
