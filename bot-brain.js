@@ -178,10 +178,8 @@ function planMove(state, level, clash) {
         if (full) {
           if (isTriple(row, 7) && r.win) v += 90;                                   // PACK JOT: instant victory
           if (isTriple(row, 0) && r.win) v += 6;                                    // ZERO TO HERO seals a slot
-          if (isTriple(row, 9) && r.lose) v -= 14;                                  // KIANTS GILLER hurts the loser
           if (cfg.counting && !shortened) {
             if (isTriple(w, 7) && r.lose) v -= 90;                                  // they would win on the spot
-            if (isTriple(w, 9) && r.win) v += 8;                                    // their 999 backfires
           }
         }
         total += v;
