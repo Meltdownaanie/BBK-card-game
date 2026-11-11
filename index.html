@@ -482,7 +482,7 @@ async function celebrateCombo(kind,player,description,token){
   p.style.setProperty('--delay',(i%6)*.06+'s');overlay.appendChild(p);
  }
  overlay.hidden=false;
- await sleep(reducedMotion()?750:2500);
+ await sleep(7000);   // PACK JOT / ZERO TO HERO stay on screen ~7 s
  overlay.hidden=true;overlay.innerHTML='';
  return token===S.token;
 }
@@ -711,7 +711,7 @@ async function endReveal(wins,outcomes){
   if(fullSweep){const loser=wins[0]===3?1:0,before=S.hp[loser];S.hp[loser]-=5;renderHud();animateHpHit(loser,5,before);msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');await sleep(reducedMotion()?100:650);}
   // Secret victory combo wins the match; risky combo doubles round damage and grants an extra draw.
   const packWinner=[0,1].find(p=>winner===p&&isTriple(p,7));
-  const kiantsLoser=[0,1].find(p=>winner===1-p&&isTriple(p,9));
+  const kiantsLoser=undefined;   // KIANTS GILLER (999) has been removed from the game
   if(packWinner!==undefined){
     const desc=packWinner===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens — instant victory!';
     if(!await celebrateCombo('pack',packWinner,desc,S.token))return;

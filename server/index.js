@@ -16,7 +16,7 @@ const RECONNECT_MS=process.env.RECONNECT_MS===undefined?60000:Math.max(0,Number(
 const RECORD_RETRY_MS=Math.max(10,Number(process.env.RECORD_RETRY_MS)||2000);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const suits=['hammer','paper','scissors'],beats={hammer:'scissors',paper:'hammer',scissors:'paper'};
-const PLAN_MS=75000,DISCARD_MS=50000,REVEAL_MS=3600;
+const PLAN_MS=75000,DISCARD_MS=50000,REVEAL_MS=3600,COMBO_HOLD_MS=+(process.env.COMBO_HOLD_MS||7000);
 const pick=a=>a[crypto.randomInt(a.length)];
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=crypto.randomInt(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 const send=(ws,data)=>{if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data));};
@@ -108,8 +108,6 @@ function resolveRound(room){
  const combo=[];
  const pack=[0,1].find(i=>winner===i&&isTriple(g.players[i],7));
  if(pack!==undefined)combo.push({kind:'pack',owner:pack,title:'PACK JOT WIN',description:'Instant victory'});
- const kiants=[0,1].find(i=>winner===1-i&&isTriple(g.players[i],9));
- if(kiants!==undefined){g.players[kiants].hp-=damageTaken[kiants];g.players[1-kiants].nextDraw=2;combo.push({kind:'kiants',owner:kiants,title:'KIANTS GILLER',description:'Double round damage and bonus draw'});}
  for(let p=0;p<2;p++)if(winner===p&&isTriple(g.players[p],0)){const target=1-p,slot=crypto.randomInt(3);g.players[target].nextLocked=slot;combo.push({kind:'zero',owner:p,title:'ZERO TO HERO CALL',description:'One enemy slot sealed next round',slot});}
  for(let p=0;p<2;p++){   // these two fire whether or not the round was won
   const numbers=g.players[p].slots.map(c=>c?c.n:null),suits=g.players[p].slots.map(c=>c?c.suit:null);
@@ -119,8 +117,9 @@ function resolveRound(room){
  g.roundWinner=winner;g.bothPick=bothPick;
  g.lastResult={round:g.round,wins,damageTaken,slots:g.players.map(p=>p.slots),outcomes,roundWinner:winner,fullSweep:wins.includes(3)};
  g.history.push({round:g.round,cards:g.players.map(p=>p.slots.map(c=>c?{suit:c.suit,n:c.n}:null)),result:{wins,damageTaken}});
- g.combo=combo;g.phase='reveal';g.deadline=Date.now()+REVEAL_MS;broadcast(room);
- schedule(room,REVEAL_MS,()=>{
+ const hold=combo.some(c=>c.kind==='pack'||c.kind==='zero')?COMBO_HOLD_MS:0;   // big combo screens stay up ~7 s
+ g.combo=combo;g.phase='reveal';g.deadline=Date.now()+REVEAL_MS+hold;broadcast(room);
+ schedule(room,REVEAL_MS+hold,()=>{
    if(pack!==undefined)return endGame(room,pack,'PACK JOT WIN');
    if(g.players[0].hp<=0||g.players[1].hp<=0){
      const a=g.players[0].hp,b=g.players[1].hp;
