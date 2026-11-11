@@ -529,21 +529,14 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 @media (prefers-reduced-motion:reduce){.discard-counter.hl-hit{animation:none}}
 
 .hand-swipe-hint{display:none}
-/* Phones: a hand of 6+ cards stays full size in one row; swipe left/right to see the rest. The board keeps its size. */
+/* Phones: a hand of 6+ cards splits into 2 rows of readable cards (number, suit icon and NEW/RETURNED tag stay legible). */
 @media (max-width:699px){
- .hand[data-many="1"]{display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;overflow-x:auto!important;overflow-y:hidden!important;gap:8px!important;padding:20px 14px 4px!important;scroll-snap-type:none;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;grid-template-columns:none!important}
- .hand[data-many="1"]::-webkit-scrollbar{display:none}
- .hand[data-many="1"][data-fade~="r"]{-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent)}
- .hand[data-many="1"][data-fade~="l"]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%);mask-image:linear-gradient(90deg,transparent,#000 14%)}
- .hand[data-many="1"][data-fade~="l"][data-fade~="r"]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
- .hand[data-many="1"] .hand-item{position:relative;flex:0 0 auto;margin:0!important;max-width:none!important;width:auto!important}
- .hand[data-many="1"] .hand-item .card{width:clamp(64px,19vw,72px)!important;height:auto!important;aspect-ratio:5/7!important;min-height:0}
- .hand[data-many="1"] .hand-item .card-origin{top:-17px!important;font-size:9px!important;padding:2px 5px!important;line-height:1!important}
- .hand-swipe-hint{display:none}
- .hand-zone:has(.hand[data-many="1"]){position:relative}
- .hand-zone:has(.hand[data-many="1"]) .hand-swipe-hint{display:flex;position:absolute;left:0;right:0;top:calc(50% + 8px);transform:translateY(-50%);justify-content:space-between;pointer-events:none;z-index:3;padding:0 1px}
- .hand-swipe-hint>span:not(.arr){display:none}
- .hand-swipe-hint .arr{font-size:12px;line-height:1;padding:10px 3px;border-radius:4px;background:#0b1418cc;color:var(--c-teal);opacity:0;transition:opacity .15s}
- .hand-swipe-hint .arr.on{opacity:1;color:var(--c-teal)}
+ .hand[data-many="1"]{display:grid!important;grid-template-columns:repeat(var(--cols,5),minmax(0,72px))!important;justify-content:center!important;gap:13px 6px!important;padding:12px 8px 2px!important;overflow:visible!important}
+ .hand[data-many="1"] .hand-item{position:relative;margin:0!important;max-width:none!important;width:auto!important;min-width:0}
+ .hand[data-many="1"] .hand-item .card{width:100%!important;max-width:72px;height:64px!important;min-height:0;aspect-ratio:auto!important;flex-direction:column!important;justify-content:center!important;gap:1px!important;padding:5px 2px 3px!important}
+ .hand[data-many="1"] .hand-item .card .suitname{display:none!important}
+ .hand[data-many="1"] .hand-item .card .number{font-size:25px!important;line-height:1!important}
+ .hand[data-many="1"] .hand-item .card .symbol{transform:scale(.78);margin:-3px 0!important}
+ .hand[data-many="1"] .hand-item .card-origin{top:-10px!important;font-size:7.5px!important;padding:2px 4px!important;line-height:1!important;white-space:nowrap;letter-spacing:0!important}
 }
 }
