@@ -44,7 +44,7 @@ function snapshot(room,seat){
  lockedOpponent:[0,1,2].filter(i=>!validSlot(g,1-seat,i)),
  ready:me.ready,opponentReady:op.ready,needed:required(g,seat),nextDraw:me.nextDraw,
  yourDiscards:me.discard,history:g.history.slice(-8).map(e=>({round:e.round,cards:e.cards[1-seat],result:e.result})),
- lastResult:g.lastResult,combo:g.combo,overflow:me.overflow||[],opponentOverflow:(op.overflow||[]).length,messUpHit:(g.messHit||[]).map(h=>({mine:h.seat===seat,card:h.seat===seat?h.card:null})),
+ lastResult:g.lastResult,combo:g.combo,overflow:me.overflow||[],opponentOverflow:(op.overflow||[]).length,messUpHit:(g.messHit||[]).map(h=>({mine:h.seat===seat,card:h.seat===seat?h.card:null})),idleDiscard:(g.idleHit||[]).map(h=>({mine:h.seat===seat,card:h.seat===seat?h.card:null})),
  discardOptions:g.phase==='discard'&&picks(g,seat)&&me.discardSelected===null?me.slots.map((c,i)=>c?i:null).filter(x=>x!==null):[],
  discardSelected:me.discardSelected,
  winner:g.winner===null?null:g.winner===-1?-1:g.winner===seat?'you':'opponent',
@@ -141,10 +141,13 @@ function picks(g,i){return g.roundWinner===i||!!g.bothPick;}
 function chooseDiscardIndex(p){const list=p.slots.map((c,i)=>c?i:null).filter(x=>x!==null);return list.length?pick(list):null;}
 function finishDiscard(room){
  const g=room.game;if(!g||g.phase!=='discard')return;
- stopTimer(room);g.messHit=[];
+ stopTimer(room);g.messHit=[];g.idleHit=[];
  for(let i=0;i<2;i++){
    const p=g.players[i];if(p.discardSelected===null)p.discardSelected=chooseDiscardIndex(p);
+   const played=p.slots.some(Boolean);
    p.slots.forEach((c,k)=>{if(!c)return;if(k===p.discardSelected)p.discard.push(c);else p.hand.push(c);});
+   // No card played this round: a random card from the hand is discarded.
+   if(!played&&p.hand.length){const out=p.hand.splice(crypto.randomInt(p.hand.length),1)[0];p.discard.push(out);g.idleHit.push({seat:i,card:{id:out.id,suit:out.suit,n:out.n}});}
    // MESS UP!!!: once the two played cards are back in hand, one random card goes into the deck and the deck is reshuffled.
    if(p.messUp){p.messUp=false;if(p.hand.length){const out=p.hand.splice(crypto.randomInt(p.hand.length),1)[0];p.deck.push(out);p.deck=shuffle(p.deck);g.messHit.push({seat:i,card:{id:out.id,suit:out.suit,n:out.n}});}}
  }

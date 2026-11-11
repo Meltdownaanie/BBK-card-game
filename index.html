@@ -335,7 +335,7 @@ body{padding:8px 12px 12px}
       <article><span class="tutorial-step">05</span><div><strong>DAMAGE</strong><p>Damage equals the difference between the two card numbers. The higher number wins a same-suit clash. When different suits share a number, the winning suit deals twice that number.</p></div></article>
       <article><span class="tutorial-step">06</span><div><strong>WINNING A ROUND</strong><p>Win at least two of the three slots to win the round. Win all three to inflict five bonus damage. If you win one slot, lose one and tie one, whoever dealt more total damage wins the round; if all three slots tie, both players choose a card to discard. In endgame rounds with fewer slots, win more slots than the opponent.</p></div></article>
       <article><span class="tutorial-step">07</span><div><strong>DISCARD & DRAW</strong><p>The round winner chooses one played card to discard. The loser discards one at random. Remaining played cards return to hand; normally each player draws one card next round.</p></div></article>
-      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. Discard selection has a 50-second limit. When cards run low, some slots lock; discarded cards never return.</p></div></article>
+      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. Play no card at all and a random card from your hand is discarded. Discard selection has a 50-second limit. When cards run low, some slots lock; discarded cards never return.</p></div></article>
     </div>
     <button id="tutorialDone" type="button" class="primary">GOT IT!</button>
   </section>
@@ -510,7 +510,7 @@ async function animateMessUp(side,card,token){
  deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
 }
 // HAND LIMIT: the over-limit card glows red, shows a tag and flies to the discard pile.
-async function animateHandLimit(side,card,token){
+async function animateHandLimit(side,card,token,label='HAND LIMIT 10'){
  if(reducedMotion())return;
  const pile=document.querySelector((side===0?'.player-hud':'.enemy-hud')+' .discard-counter');if(!pile)return;
  let src=side===0&&card?[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id):null,temp=null,hidden=null;
@@ -524,7 +524,7 @@ async function animateHandLimit(side,card,token){
  const {copy,rect}=flightCopy(src);if(hidden)hidden.style.visibility='hidden';if(temp)temp.remove();
  const pr=pile.getBoundingClientRect(),dx=pr.left+pr.width/2-(rect.left+rect.width/2),dy=pr.top+pr.height/2-(rect.top+rect.height/2);
  copy.classList.add('hl-flight');
- const tag=document.createElement('div');tag.className='mu-tag hl-tag';tag.textContent='HAND LIMIT 10';{const ar=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();tag.style.left=(ar.left+ar.width/2)+'px';tag.style.top=(side===0?ar.top-4:ar.bottom+22)+'px'}document.body.appendChild(tag);
+ const tag=document.createElement('div');tag.className='mu-tag hl-tag';tag.textContent=label;{const ar=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();tag.style.left=(ar.left+ar.width/2)+'px';tag.style.top=(side===0?ar.top-4:ar.bottom+22)+'px'}document.body.appendChild(tag);
  try{
   await copy.animate([{transform:'translate(0,0) scale(1)',offset:0},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.2},{transform:'translate(5px,-18px) scale(1.25) rotate(5deg)',offset:.35},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.25) rotate(${side?200:-200}deg)`,opacity:.15,offset:1}],{duration:1150,easing:'ease-in-out',fill:'forwards'}).finished;
  }catch(e){}
@@ -783,6 +783,9 @@ async function animateDiscards(){
 function isChargeLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n+1&&s[2].n===s[1].n+1}
 function isMessUpLine(p){const s=S.slots[p];return s.every(Boolean)&&s[1].n===s[0].n-1&&s[2].n===s[1].n-1&&s[0].suit===s[1].suit&&s[1].suit===s[2].suit}
 async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);for(const h of S.hand)for(const c of h)c.origin='hand';for(let p=0;p<2;p++)for(let i=0;i<3;i++){const c=S.slots[p][i];if(!c)continue;if(S.pickIdx[p]===i)S.discard[p].push(c);else{c.origin='returned';S.hand[p].push(c);if(p===0)S.animateHand.add(c.id)}}
+ // No card played this round: a random card from that hand is discarded.
+ const idle=[];if(!TUT.on)for(let p=0;p<2;p++)if(!S.slots[p].some(Boolean)&&S.hand[p].length)idle.push([p,S.hand[p][Math.floor(Math.random()*S.hand[p].length)]]);
+ if(idle.length){S.phase='dealing';const tok=S.token;S.animateHand.clear();renderHand();for(const [p,c] of idle){await animateHandLimit(p,c,tok,'NO CARD PLAYED');if(tok!==S.token)return;dropCard(p,c);renderHud();renderHand()}}
  // MESS UP!!!: after the two played cards are back in hand, one random card goes into the deck and the deck is reshuffled.
  const hits=[];for(let p=0;p<2;p++)if(S.messUp[p]){S.messUp[p]=false;if(S.hand[p].length)hits.push([p,S.hand[p][Math.floor(Math.random()*S.hand[p].length)]])}
  if(hits.length){
