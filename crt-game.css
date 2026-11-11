@@ -544,3 +544,8 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .message:not(.alert){visibility:hidden!important}
 .message.alert{color:var(--c-gold)!important}
 .hand-counter .hc-icon{display:block;width:30px;height:27px;flex:0 0 auto}
+
+/* Opponent hand counter as text: "HAND: 5" */
+.hand-counter{gap:4px!important;white-space:nowrap;font-family:var(--pf)!important}
+.hand-counter .hc-label{font-size:10px;letter-spacing:.5px;color:var(--c-mute)}
+.hand-counter .deck-num{font-size:15px}
