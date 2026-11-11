@@ -81,6 +81,12 @@ const LESSONS=[
  {t:'DISCARD & DRAW',d:'Win a round, then discard a card.'},
  {t:'PRACTICE MATCH',d:'Beat the training bot to finish.'}
 ];
+const BONUS=[
+ {t:'CHARGE',d:'Rising 3 · 4 · 5 draws you 2 cards.'},
+ {t:'MESS UP',d:'Falling same-suit line hits their hand.'},
+ {t:'HAND LIMIT',d:'Draw past 10 and a random card is discarded.'}
+];
+const bonusDone=()=>{try{const b=JSON.parse(localStorage.getItem('bbk.tutorial.bonus')||'[]');return Array.isArray(b)?b:[]}catch(e){return []}};
 const step=()=>window.BBK?BBK.tutorial.get():0;
 const el=(tag,attrs,...kids)=>{const n=document.createElement(tag);for(const k in attrs||{}){if(attrs[k]==null||attrs[k]===false)continue;if(k==='class')n.className=attrs[k];else if(k==='text')n.textContent=attrs[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),attrs[k]);else n.setAttribute(k,attrs[k]);}for(const c of kids.flat())if(c!=null)n.append(c.nodeType?c:document.createTextNode(c));return n;};
 const svg=(id,w,h)=>{const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',w);s.setAttribute('height',h);s.setAttribute('viewBox','0 0 8 8');s.setAttribute('aria-hidden','true');const u=document.createElementNS('http://www.w3.org/2000/svg','use');u.setAttribute('href','#'+id);s.append(u);return s;};
@@ -105,7 +111,7 @@ function hub(){
   const b=el('button',{type:'button',class:'lesson-row '+state,onclick:()=>{location.href=k===5?'./index.html?practice=1':'./index.html?lesson='+k}},
    el('span',{class:'no'},state==='done'?svg('i-check',22,22):state==='lock'?svg('i-lock',22,22):String(k)),
    el('span',{},el('b',{text:k+' · '+L.t}),el('small',{text:L.d})),
-   state==='cur'?el('span',{class:'crt-badge crt-pulse',text:s===0?'START':'NEXT'}):el('span'));
+   state==='cur'?el('span',{class:'crt-badge crt-pulse',text:s===0?'START':'NEXT'}):state==='done'?el('span',{class:'crt-note',style:'font-size:9px;color:var(--crt-mute)',text:'REPLAY'}):el('span'));
   if(state==='lock')b.disabled=true;
   return b;
  });
@@ -113,7 +119,18 @@ function hub(){
  const reward=done
   ?el('div',{class:'crt-panel stack'},el('b',{style:'color:#6fd3a0;font-size:12px',text:'RANKED UNLOCKED'}),el('p',{class:'crt-note',text:'You finished the tutorial. Ranked matches are open to you.'}),el('a',{class:'crt-btn',href:'./online.html',text:'PLAY MULTIPLAYER'}))
   :el('div',{class:'crt-panel',style:'border:3px dashed var(--crt-gold)'},el('b',{style:'color:var(--crt-gold);font-size:11px',text:'REWARD'}),el('p',{class:'crt-note',style:'margin-top:8px',text:'Finish all 5 lessons to unlock RANKED matches.'}));
- return [head('TUTORIAL','./index.html'),bar,el('div',{class:'stack'},rows),el('div',{style:'margin-top:auto'},reward)];
+ const bd=bonusDone();
+ const bonusRows=BONUS.map((L,i)=>{
+  const k=i+6,isDone=bd.includes(k);
+  const b=el('button',{type:'button',class:'lesson-row '+(done?(isDone?'done':'cur'):'lock'),onclick:()=>{location.href='./index.html?lesson='+k}},
+   el('span',{class:'no'},isDone?svg('i-check',22,22):done?'+':svg('i-lock',22,22)),
+   el('span',{},el('b',{text:'BONUS · '+L.t}),el('small',{text:L.d})),
+   isDone?el('span',{class:'crt-note',style:'font-size:9px;color:var(--crt-mute)',text:'REPLAY'}):el('span'));
+  if(!done)b.disabled=true;
+  return b;
+ });
+ const replay=done?el('a',{class:'crt-btn teal',href:'./index.html?lesson=1',text:'REPLAY TUTORIAL FROM LESSON 1'}):null;
+ return [head('TUTORIAL','./index.html'),bar,el('div',{class:'stack'},rows),el('div',{class:'stack'},el('b',{style:'color:var(--crt-gold);font-size:11px',text:'COMBO LESSONS'+(done?'':' (unlock after lesson 5)')}),bonusRows),replay,el('div',{style:'margin-top:auto'},reward)].filter(Boolean);
 }
 
 const P=(t)=>el('p',{class:'crt-note',text:t});

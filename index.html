@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261107c">
+<link rel="stylesheet" href="./crt-game.css?v=20261108a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -296,7 +296,7 @@ body{padding:8px 12px 12px}
  <section class="status"><div class="roundinfo">ROUND<strong id="round">1</strong></div><span class="tag modepill">VS AI · <b id="difficultyStatus">EASY</b></span><div id="clock"><div class="time"><span id="time">1:15</span> <small id="limit">/ 75s</small></div><div class="timebar"><i id="timerFill"></i></div></div></section>
 <div id="blockAlert" class="block-alert" hidden></div>
  <div class="hud-row bottom-hud solo opp-top">
-  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · AI</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span></span></div><span class="deck-label">DECK</span></div><div class="discard-counter"><b class="deck-num" id="discard1">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
+  <section class="hud enemy-hud" aria-label="Opponent status"><div class="who"><span>OPPONENT · AI</span><strong id="hp1">100 <small>HP</small></strong><div class="healthbar" id="bar1"><i></i></div></div><div class="resource-info"><div class="deck-counter"><span class="deck-num" id="deck1">25</span><div class="deck-stack" aria-hidden="true"><span></span><span></span><span></span></div><span class="deck-label">DECK</span></div><div class="discard-counter"><b class="deck-num" id="discard1">0</b><span class="pile" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">DISCARD</span></div><div class="hand-counter" id="oppHandCount" aria-label="Opponent cards in hand"><b class="deck-num" id="oppHandNum">5</b><span class="hc-cards" aria-hidden="true"><i></i><i></i><i></i></span><span class="deck-label">HAND</span></div><div class="backs" id="backs1" aria-label="Opponent hand"></div></div></section>
 </div>
 <section class="board" aria-label="Battle arena"><div class="columns">
  <div class="column"><div class="ai-row"><div id="slot10" class="slot" data-n="1"></div><div class="ghost-slot" id="prev10" aria-label="Opponent previous round slot 1"></div></div><div class="versus" id="vs0"><span class="pill">1 VS 1</span></div><div id="slot00" class="slot mine" data-n="1"></div></div>
@@ -509,6 +509,28 @@ async function animateMessUp(side,card,token){
  const tag=document.createElement('div');tag.className='mu-tag';tag.textContent='SHUFFLE';tag.style.left=(dr.left+dr.width/2)+'px';tag.style.top=(dr.top-8)+'px';document.body.appendChild(tag);
  deck.classList.add('mu-shuffle');await sleep(1000);deck.classList.remove('mu-shuffle');tag.remove();
 }
+// HAND LIMIT: the over-limit card glows red, shows a tag and flies to the discard pile.
+async function animateHandLimit(side,card,token){
+ if(reducedMotion())return;
+ const pile=document.querySelector((side===0?'.player-hud':'.enemy-hud')+' .discard-counter');if(!pile)return;
+ let src=side===0&&card?[...$('hand').querySelectorAll('button.card')].find(el=>el.dataset.id===card.id):null,temp=null,hidden=null;
+ if(!src){
+  const anchor=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();
+  temp=document.createElement('div');temp.style.cssText=`position:fixed;left:${anchor.left+anchor.width/2-34}px;top:${anchor.top+(side===0?-10:anchor.height/2-45)}px;width:68px;height:94px;visibility:hidden;`;
+  temp.innerHTML=side===0&&card?cardHTML(card):'<div class="mu-back"></div>';
+  const inner=temp.firstElementChild;if(inner){inner.style.width='68px';inner.style.height='94px'}
+  document.body.appendChild(temp);src=inner||temp;
+ }else hidden=src;
+ const {copy,rect}=flightCopy(src);if(hidden)hidden.style.visibility='hidden';if(temp)temp.remove();
+ const pr=pile.getBoundingClientRect(),dx=pr.left+pr.width/2-(rect.left+rect.width/2),dy=pr.top+pr.height/2-(rect.top+rect.height/2);
+ copy.classList.add('hl-flight');
+ const tag=document.createElement('div');tag.className='mu-tag hl-tag';tag.textContent='HAND LIMIT 10';{const ar=(side===0?$('hand'):document.querySelector('.enemy-hud')).getBoundingClientRect();tag.style.left=(ar.left+ar.width/2)+'px';tag.style.top=(side===0?ar.top-4:ar.bottom+22)+'px'}document.body.appendChild(tag);
+ try{
+  await copy.animate([{transform:'translate(0,0) scale(1)',offset:0},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.2},{transform:'translate(5px,-18px) scale(1.25) rotate(5deg)',offset:.35},{transform:'translate(-5px,-18px) scale(1.25) rotate(-5deg)',offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.25) rotate(${side?200:-200}deg)`,opacity:.15,offset:1}],{duration:1150,easing:'ease-in-out',fill:'forwards'}).finished;
+ }catch(e){}
+ copy.remove();tag.remove();if(hidden)hidden.style.visibility='';
+ pile.classList.add('hl-hit');await sleep(260);pile.classList.remove('hl-hit');
+}
 // Short word on the board for CHARGE!!! / MESS UP!!!; resolves when it is gone. Returns false if the match was reset meanwhile.
 async function flashCombo(kind,token){
  const el=document.createElement('div');el.className='combo-flash '+kind;el.textContent=kind==='charge'?'CHARGE!!!':'MESS UP!!!';el.setAttribute('role','status');
@@ -524,6 +546,8 @@ function roundTime(){return 75}
 const MAX_HAND=10;
 // Hand limit: a card drawn beyond 10 forces a random card from the hand onto the discard pile.
 function trimHand(p){if(S.hand[p].length<=MAX_HAND)return null;const k=Math.floor(Math.random()*S.hand[p].length),c=S.hand[p].splice(k,1)[0];S.discard[p].push(c);return c}
+function overflowPick(p){return S.hand[p].length>MAX_HAND?S.hand[p][Math.floor(Math.random()*S.hand[p].length)]:null}
+function dropCard(p,c){const i=S.hand[p].indexOf(c);if(i>=0){S.hand[p].splice(i,1);S.discard[p].push(c)}}
 function draw(p){if(S.deck[p].length){const c=S.deck[p].pop();c.origin='new';S.hand[p].push(c);return c}return null}
 // Ensure each player starts with one card of every suit.
 function initialThree(p){const taken=[];for(const suit of ORDER){const idx=S.deck[p].findIndex(c=>c.suit===suit);if(idx<0)throw Error('Deck is missing suit '+suit);taken.push(S.deck[p].splice(idx,1)[0])}return shuffle(taken)}
@@ -561,7 +585,7 @@ function roundWinner(wins,outcomes){if(isShortened())return wins[0]===wins[1]?-1
 function isTriple(p,n){return S.slots[p].every(c=>c&&c.n===n)}
 function blockText(){const labels=[];if(S.endgameBlocked.length)labels.push(`FINAL ROUND: Both players have locked slots ${S.endgameBlocked.map(i=>i+1).join(', ')}`);for(let p=0;p<2;p++)if(S.blocked[p]!==null&&!S.endgameBlocked.includes(S.blocked[p]))labels.push(`${p===0?'YOU':'AI'} has slot ${S.blocked[p]+1} locked`);return labels.join(' · ')}
 function hpAlertClass(hp){if(hp<=5)return 'hp-c5';if(hp<=10)return 'hp-c10';if(hp<=15)return 'hp-c15';if(hp<=25)return 'hp-c25';if(hp<=50)return 'hp-c50';if(hp<=70)return 'hp-c70';return 'hp-c100'}
-function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);$('handCount').textContent=S.hand[0].length+' cards'}
+function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);{const oh=S.hand[1].length,el=$('oppHandNum');if(el){el.textContent=oh;$('oppHandCount').classList.toggle('full',oh>=10)}}$('handCount').textContent=S.hand[0].length+' cards'}
 function renderSlots(){const prev=previousAICards();for(let i=0;i<3;i++){const a=S.slots[1][i],m=S.slots[0][i];const blockedAI=isBlocked(1,i),blockedMe=isBlocked(0,i);$('slot1'+i).innerHTML=blockedAI?'':a?(S.phase==='plan'?'<div class="card back" aria-label="Face-down AI card"></div>':cardHTML(a)) : '';$('prev1'+i).innerHTML=ghostCardHTML(prev[i]);$('slot0'+i).innerHTML=blockedMe?'':cardHTML(m);$('slot1'+i).classList.toggle('is-blocked',blockedAI);$('slot0'+i).classList.toggle('is-blocked',blockedMe);const sc=$('slot0'+i).querySelector('button.card');if(sc)sc.draggable=S.phase==='plan';$('slot0'+i).classList.toggle('target',S.phase==='plan'&&S.target===i&&!m&&!blockedMe);if(S.phase==='plan'||S.phase==='idle'){$('vs'+i).className='versus';$('vs'+i).innerHTML=`<span class="pill">${blockedAI||blockedMe?'🔒 '+(i+1):`${i+1} VS ${i+1}`}</span>`}}const alert=$('blockAlert'),txt=blockText();alert.hidden=!txt;alert.textContent=txt?`🔒 ${txt} · Place cards in the remaining open slots`:''}
 
 function renderPlayedTracker(){
@@ -618,7 +642,7 @@ function aiPlay(){
  S.hand[1]=S.hand[1].filter(c=>!picks.includes(c));
 }
 async function startRound(first=false){
- if(TUT.on&&!first){TUT.roundDone();return}
+ if(TUT.on&&!first&&!TUT.L[TUT.k].draws){TUT.roundDone();return}
  let limitNote='';const token=S.token;clearInterval(S.timer);S.round++;S.phase='dealing';
  S.slots=[[null,null,null],[null,null,null]];S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.blocked=[...S.nextBlocked];S.nextBlocked=[null,null];S.endgameBlocked=[];
  renderPreviousRound();render();
@@ -632,12 +656,15 @@ async function startRound(first=false){
      const card=k<requests[0]?draw(0):null;
      if(k<requests[1])draw(1);
      if(card){renderHud();renderHand();await animateDealtCard(card,token)}
-     const lost=[trimHand(0),trimHand(1)];
-     if(lost[0]){limitNote=`HAND LIMIT ${MAX_HAND}: a random card (${cardName(lost[0])}) was discarded.`;renderHud();renderHand()}
+     const lost=[overflowPick(0),overflowPick(1)];
+     for(let p=0;p<2;p++)if(lost[p]){await animateHandLimit(p,lost[p],token);if(token!==S.token)return;dropCard(p,lost[p])}
+     if(lost[0])limitNote=`HAND LIMIT ${MAX_HAND}: a random card (${cardName(lost[0])}) was discarded.`;
      else if(lost[1])limitNote=`HAND LIMIT ${MAX_HAND}: the AI discarded a random card.`;
+     if(lost[0]||lost[1]){renderHud();renderHand()}
      if(token!==S.token)return;
      if(card&&k+1<draws)await sleep(reducedMotion()?0:90);
    }
+   if(TUT.on){TUT.roundDone();return}
  }
  if(S.deck.every(d=>d.length===0)&&S.hand.some(h=>h.length===0)){showHpFinish();return}
  configureEndgameBlocks();if(TUT.on)TUT.setOpp();else aiPlay();S.duration=roundTime();S.deadline=Date.now()+S.duration*1000;S.phase='plan';
@@ -713,7 +740,7 @@ async function endReveal(wins,outcomes){
     if(!await celebrateCombo('zero',winner,`${winner===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token))return;
   }
   // CHARGE!!! (rising straight, any suits) and MESS UP!!! (falling straight, one suit) fire whether or not the round was won.
-  if(!TUT.on)for(let p=0;p<2;p++){
+  if(!TUT.on||TUT.L[TUT.k].combos)for(let p=0;p<2;p++){
     if(isChargeLine(p)){
       S.nextDraws[p]=Math.max(S.nextDraws[p],2);
       msg(`CHARGE!!! ${p===0?'You draw':'The AI draws'} 2 cards next round.`);
@@ -944,7 +971,10 @@ Object.assign(TUT,{k:0,state:'play',
   1:{name:'PLACE & REVEAL',hand:[['hammer',7],['paper',5],['scissors',9],['hammer',3],['paper',0]],opp:[['scissors',4],['hammer',6],['paper',2]],faceUp:false,first:'0-hammer-7'},
   2:{name:'THE CIRCLE',hand:[['hammer',3],['paper',8],['scissors',6],['hammer',9],['paper',1]],opp:[['scissors',5],['hammer',5],['paper',5]],faceUp:true},
   3:{name:'BIG DAMAGE',hand:[['paper',9],['scissors',7],['hammer',8],['hammer',5],['scissors',2]],opp:[['hammer',3],['paper',2],['scissors',4]],faceUp:true},
-  4:{name:'DISCARD & DRAW',hand:[['hammer',7],['paper',6],['scissors',8],['hammer',2],['paper',4]],opp:[['scissors',2],['hammer',3],['paper',1]],faceUp:true}
+  4:{name:'DISCARD & DRAW',hand:[['hammer',7],['paper',6],['scissors',8],['hammer',2],['paper',4]],opp:[['scissors',2],['hammer',3],['paper',1]],faceUp:true},
+  6:{name:'CHARGE',hand:[['hammer',3],['paper',4],['scissors',5],['hammer',8],['paper',1]],opp:[['scissors',2],['hammer',6],['paper',3]],faceUp:true,combos:true},
+  7:{name:'MESS UP',hand:[['hammer',6],['hammer',5],['hammer',4],['paper',2],['scissors',8]],opp:[['scissors',2],['hammer',6],['paper',3]],faceUp:true,combos:true},
+  8:{name:'HAND LIMIT',hand:[['hammer',3],['paper',4],['scissors',5],['hammer',7],['paper',8],['scissors',9],['hammer',0],['paper',1],['scissors',2],['hammer',6]],opp:[['scissors',2],['hammer',6],['paper',3]],faceUp:true,combos:true,draws:true}
  },
  allow(id){const L=this.L[this.k];if(this.state!=='play')return false;if(L.first&&playedCards(0)===0)return id===L.first;return true},
  setOpp(){const L=this.L[this.k];S.slots[1]=L.opp.map(([suit,n])=>({id:`1-${suit}-${n}`,suit,n}))},
@@ -971,7 +1001,7 @@ Object.assign(TUT,{k:0,state:'play',
   if(S.phase==='plan'||S.phase==='idle'){$('time').textContent='--';$('limit').textContent='no timer';$('timerFill').style.width='100%';$('clock').classList.remove('urgent')}
   if(S.phase==='plan'&&L.faceUp)for(let i=0;i<3;i++)if(S.slots[1][i])$('slot1'+i).innerHTML=cardHTML(S.slots[1][i]);
   if(this.state!=='play')return;
-  const lv=`LESSON ${this.k} / 5 · ${L.name}`,n=playedCards(0),ready=n===requiredCards(0)&&n>0;
+  const lv=this.k>5?`BONUS ${this.k-5} / 3 · ${L.name}`:`LESSON ${this.k} / 5 · ${L.name}`,n=playedCards(0),ready=n===requiredCards(0)&&n>0;
   if(S.phase==='plan'){
    if(this.k===1){
     if(n===0){this.say(lv,'This is a real match board. The enemy placed 3 face-down cards. Tap the glowing Hammer 7 in your hand to put it into a slot.',[]);this.pulse('#hand [data-id="'+L.first+'"]')}
@@ -979,10 +1009,10 @@ Object.assign(TUT,{k:0,state:'play',
     else{this.say(lv,'All slots are filled. Press REVEAL CARDS to flip everything at once.',[]);this.pulse('#mainButton')}
    }else{
     const lines=[];for(let i=0;i<3;i++){const m=S.slots[0][i],o=S.slots[1][i];if(m&&o){const r=battle(m,o);lines.push(`Slot ${i+1}: ${r.w===0?'you win '+r.dmg:r.w===1?'you lose '+r.dmg:'tie'}`)}}
-    const base={2:'The enemy cards are face up. Circle: Hammer beats Scissors, Scissors beats Paper, Paper beats Hammer. Beat all three slots.',3:'Damage = gap between the numbers (same number across suits = double, a 0 counts as 10 so 0 vs 0 deals 20). Win all 3 slots for +5 sweep bonus and deal 18+ damage.',4:'Win at least 2 slots to win the round. Then you get to discard one played card.'}[this.k];
+    const base={2:'The enemy cards are face up. Circle: Hammer beats Scissors, Scissors beats Paper, Paper beats Hammer. Beat all three slots.',3:'Damage = gap between the numbers (same number across suits = double, a 0 counts as 10 so 0 vs 0 deals 20). Win all 3 slots for +5 sweep bonus and deal 18+ damage.',4:'Win at least 2 slots to win the round. Then you get to discard one played card.',6:'CHARGE!!! Put numbers that rise by exactly 1 from slot 1 to slot 3, any suits: Hammer 3, Paper 4, Scissors 5. You draw 2 cards next round, even if you lose the round.',7:'MESS UP!!! Put 3 cards of the SAME suit that fall by 1 from slot 1 to slot 3: Hammer 6, Hammer 5, Hammer 4. The enemy puts a random hand card back into its deck and the deck is reshuffled.',8:'Your hand is full: 10 cards, the maximum. Make a CHARGE line (Hammer 3, Paper 4, Scissors 5 in slots 1-3), then see what happens when you draw 2 more.'}[this.k];
     this.say(lv,ready?'Happy with it? Press REVEAL CARDS.':base,lines);if(ready)this.pulse('#mainButton')
    }
-  }else if(S.phase==='discard'&&S.canPick&&this.k===4){
+  }else if(S.phase==='discard'&&S.canPick&&(this.k===4||this.k===8)){
    this.say(lv,'You won the round! The winner chooses one played card to discard for good. Tap one of your cards in the slots.',['The other cards return to your hand','You draw a new card next round']);this.pulse('#slot00 .card,#slot01 .card,#slot02 .card');
   }
  },
@@ -990,11 +1020,13 @@ Object.assign(TUT,{k:0,state:'play',
   this.state='result';S.phase='over';clearInterval(S.timer);updateButton();
   const k=this.k,acts=[];
   if(ok){
-   if(window.BBK&&BBK.tutorial.get()<k)BBK.tutorial.set(k);
-   acts.push([k<4?'NEXT LESSON ▶':'PRACTICE MATCH ▶',()=>{if(k<4)this.start(k+1);else location.href='./index.html?practice=1'},'primary']);
+   if(k<=4&&window.BBK&&BBK.tutorial.get()<k)BBK.tutorial.set(k);
+   if(k>=6)try{const b=JSON.parse(localStorage.getItem('bbk.tutorial.bonus')||'[]');if(!b.includes(k)){b.push(k);localStorage.setItem('bbk.tutorial.bonus',JSON.stringify(b))}}catch(e){}
+   if(k<=4)acts.push([k<4?'NEXT LESSON ▶':'PRACTICE MATCH ▶',()=>{if(k<4)this.start(k+1);else location.href='./index.html?practice=1'},'primary']);
+   else if(k<8)acts.push(['NEXT LESSON ▶',()=>this.start(k+1),'primary']);
   }else acts.push(['TRY AGAIN',()=>this.start(k),'primary']);
   acts.push(['LESSON LIST',()=>{location.href='./tutorial.html'}]);
-  this.say(`LESSON ${k} / 5 · ${this.L[k].name}`,text,list,acts,ok?'ok':'bad');
+  this.say(k>5?`BONUS ${k-5} / 3 · ${this.L[k].name}`:`LESSON ${k} / 5 · ${this.L[k].name}`,text,list,acts,ok?'ok':'bad');
  },
  judge(wins,winner){
   const k=this.k;
@@ -1005,14 +1037,21 @@ Object.assign(TUT,{k:0,state:'play',
    this.finish(false,`Only ${dmg} damage. Win all 3 slots (sweep +5) and use big numbers on slots you are sure to win. Aim for 18+.`);return true}
   if(k===4){if(winner===0){this.state='play';return false}
    this.finish(false,'You need to win at least 2 of 3 slots to win the round and choose a discard.');return true}
+  if(k===6){if(isChargeLine(0)){this.finish(true,'CHARGE!!! Your cards rose 3 → 4 → 5, so you draw 2 cards next round.',['Rising by exactly 1 from slot 1 to slot 3, any suits','Works even if you lose the round','Charge draws 2 cards instead of 1']);return true}
+   this.finish(false,'No charge yet. Put Hammer 3 in slot 1, Paper 4 in slot 2 and Scissors 5 in slot 3: the numbers must rise by 1 from left to right.');return true}
+  if(k===7){if(isMessUpLine(0)){animateMessUp(1,null,S.token);this.finish(true,'MESS UP!!! Three Hammers falling 6 → 5 → 4: the enemy shoves a random card from its hand back into its deck and reshuffles.',['Same suit, falling by exactly 1 from slot 1 to slot 3','Works even if you lose the round','The enemy loses a card from its hand, not from the board']);return true}
+   this.finish(false,'No mess up yet. Put Hammer 6 in slot 1, Hammer 5 in slot 2 and Hammer 4 in slot 3: same suit, falling by 1.');return true}
+  if(k===8){if(isChargeLine(0)){this.state='play';return false}
+   this.finish(false,'Make the CHARGE line first: Hammer 3, Paper 4, Scissors 5 in slots 1, 2, 3. The 2 extra cards are what push you over the limit.');return true}
   return false
  },
- roundDone(){this.finish(true,'Discarded! Played cards you keep go back to your hand, and you draw a card each round.',['The round winner picks the discard','Everyone else discards at random','Next: a full practice match vs the training bot'])}
+ roundDone(){if(this.k===8){this.finish(true,'HAND LIMIT! CHARGE gave you 2 cards, so you went past 10 and a random card from your hand was discarded.',['Maximum hand: 10 cards','A card drawn over 10 discards a random card from your hand','Spend your cards before you stack charges']);return}
+  this.finish(true,'Discarded! Played cards you keep go back to your hand, and you draw a card each round.',['The round winner picks the discard','Everyone else discards at random','Next: a full practice match vs the training bot'])}
 });
-const tutMatch=location.search.match(/[?&]lesson=([1-4])(&|$)/);
+const tutMatch=location.search.match(/[?&]lesson=([1-4]|[6-8])(&|$)/);
 if(tutMatch){
  const k=+tutMatch[1];
- if(!window.BBK||k>BBK.tutorial.get()+1){location.replace('./tutorial.html')}
+ if(!window.BBK||(k<=4?k>BBK.tutorial.get()+1:BBK.tutorial.get()<5)){location.replace('./tutorial.html')}
  else{
   $('tutBack').hidden=false;$('tutBack').addEventListener('click',()=>{location.href='./tutorial.html'});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();location.href='./tutorial.html'}},true);
