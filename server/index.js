@@ -68,7 +68,8 @@ function newGame(room){
  startPlan(room,true);
 }
 function configureBlocks(g){
- g.sharedBlocked=[];const left=Math.min(...g.players.map(p=>p.hand.length));
+ g.sharedBlocked=[];return;   // short hands no longer lock slots: that player just plays fewer cards, in any open slots
+ const left=Math.min(...g.players.map(p=>p.hand.length));
  if(left>=3||left<=0)return;
  const count=3-left,forced=g.blocked.filter(x=>x!==null);
  g.sharedBlocked=[...new Set(forced)].slice(0,count);

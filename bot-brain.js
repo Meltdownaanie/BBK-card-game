@@ -160,7 +160,11 @@ function planMove(state, level, clash) {
   const oppCount = Math.min(oppOpen.length, state.opponentHandCount);
   const shortened = need < 3 || oppCount < 3 || open.length < 3 || oppOpen.length < 3;
 
-  const options = permutations(state.hand, need);
+  // With fewer cards than open slots the bot also chooses WHICH slots to use.
+  const slotSets = [];
+  (function pickSlots(start, acc) { if (acc.length === need) { slotSets.push(acc); return; } for (let i = start; i < open.length; i++) pickSlots(i + 1, acc.concat(open[i])); })(0, []);
+  const options = [];
+  for (const cards of permutations(state.hand, need)) for (const slots of slotSets) options.push({ cards, slots });
   let scored;
   if (!cfg.samples) {
     scored = [{ move: options[rnd(options.length)], score: 0 }];                 // EASY: pure random
@@ -170,7 +174,7 @@ function planMove(state, level, clash) {
     const full = need === 3 && open.length === 3;
     scored = options.map(move => {
       const row = [null, null, null];
-      move.forEach((c, i) => { row[open[i]] = c; });
+      move.cards.forEach((c, i) => { row[move.slots[i]] = c; });
       let total = 0;
       for (const w of worlds) {
         const r = evaluate(clash, row, w, shortened);
@@ -194,7 +198,7 @@ function planMove(state, level, clash) {
   }
   const pick = cfg.topN === 2 ? (Math.random() < 0.7 ? 0 : 1) : rnd(Math.min(cfg.topN, scored.length));   // medium: usually its best idea, sometimes the runner-up
   const best = scored[Math.min(pick, scored.length - 1)].move;
-  return best.map((c, i) => ({ cardId: c.id, slot: open[i] }));
+  return best.cards.map((c, i) => ({ cardId: c.id, slot: best.slots[i] }));
 }
 
 /* How much a hand is worth keeping: strong cards, sets heading for 777 / 000, and straights for CHARGE / MESS UP. */
