@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261111d">
+<link rel="stylesheet" href="./crt-game.css?v=20261112a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -603,7 +603,26 @@ function renderHistory(){renderPlayedTracker();const root=$('historyContent');if
 function renderPreviousRound(){const root=$('previousRound');if(!root)return;const h=[...S.history].reverse().find(r=>r.round<S.round);if(!h){root.innerHTML='<p>No previous round.</p>';return}root.innerHTML=`<strong>Round ${h.round}</strong><div class="history-cards" style="margin-top:8px">${h.cards.map((c,i)=>c?`<span class="history-card ${c.suit}" title="Slot ${i+1}">Slot ${i+1}<br>${SUITS[c.suit].icon} ${SUITS[c.suit].name} ${c.n}</span>`:`<span class="history-card">Slot ${i+1}: Empty</span>`).join('')}</div><div class="discard-note">AI discard: 🔒 Hidden</div>`}
 function renderHand(){const h=[...S.hand[0]].sort((a,b)=>ORDER.indexOf(a.suit)-ORDER.indexOf(b.suit)||a.n-b.n);const origins={new:['NEW DRAW','new'],returned:['RETURNED','returned'],hand:['IN HAND','hand']};$('hand').innerHTML=h.map(c=>{const [label,cls]=origins[c.origin]||origins.hand;const animate=S.animateHand.has(c.id)?(cls==='new'?' card-drawn':' card-returned'):'';return `<div class="hand-item${animate}"><span class="card-origin ${cls}">${label}</span>${cardHTML(c)}</div>`}).join('');S.animateHand.clear();$('hand').dataset.many=h.length>5?'1':'0';$('hand').style.setProperty('--n',h.length);$('hand').style.setProperty('--cols',Math.ceil(h.length/2));$('hand').querySelectorAll('button').forEach(b=>{b.disabled=S.phase!=='plan';b.draggable=S.phase==='plan'});$('handCount').textContent=h.length+' cards';updateHandSwipe();fitManyHand()}
 function msg(s){const m=$('message');m.textContent=s;m.classList.toggle('alert',/^⚠/.test(String(s||'')))}
-function updateButton(){updateForfeitButton();const b=$('mainButton');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':`Place ${need-n} more`;b.disabled=n<need}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
+// One-line guide under the main button label: what to do next. It lives inside the button, so the board never moves.
+function guideText(){
+ if(typeof TUT!=='undefined'&&TUT.on)return '';
+ const n=playedCards(0),need=requiredCards(0),locked=[0,1,2].filter(i=>isBlocked(0,i)).map(i=>i+1);
+ if(S.phase==='plan'){
+  if(false)return 'Cards locked in · waiting for the other player';
+  if(need===0)return 'No cards to play this round';
+  if(n>=need)return 'All set · press the button to flip the cards';
+  if(n===0&&locked.length)return `Slot ${locked.join(' & ')} is locked · use the open slots`;
+  if(n===0&&need<3)return `Only ${need} card${need>1?'s':''} left · use any slots you like`;
+  if(n===0)return 'Tap a card or drag it into a slot';
+  return 'Keep going · tap a placed card to take it back';
+ }
+ if(S.phase==='dealing')return 'Drawing cards for the next round';
+ if(S.phase==='reveal')return 'Same slot fights · win 2 slots to win the round';
+ if(S.phase==='discard')return S.canPick?'Round won · tap one of your played cards to discard it':'One of your played cards is discarded';
+ return '';
+}
+function updateButton(){try{return updateButtonCore()}finally{$('mainButton').dataset.hint=guideText()}}
+function updateButtonCore(){updateForfeitButton();const b=$('mainButton');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':`Place ${need-n} more`;b.disabled=n<need}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
 async function newGame(){
  S.token++;const token=S.token;clearInterval(S.timer);S.hp=[100,100];S.deck=[makeDeck(0),makeDeck(1)];S.discard=[[],[]];S.hand=[[],[]];S.slots=[[null,null,null],[null,null,null]];
