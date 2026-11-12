@@ -285,10 +285,9 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261112b">
+<link rel="stylesheet" href="./crt-game.css?v=20261112c">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
-<script src="./fx.js?v=20261105c"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
 <div class="app">
  <header class="top"><button type="button" id="tutBack" class="secondary top-back-btn" hidden>← BACK</button><h2 class="logo"><span class="h">B</span><span class="p">B</span><span class="s">K</span></h2><div class="header-actions"><button type="button" id="showTutorialGame" class="tutorial-open">? HOW TO PLAY</button><button type="button" id="forfeitButton" class="forfeit-button" hidden aria-label="Leave the match and forfeit">⎋ ESCAPE</button></div></header>
@@ -393,10 +392,6 @@ function clashMeta(a,b,result){
   if(winnerSuit==='paper'&&loserSuit==='hammer')return{type:'wrap',text:'WRAP!',burst:'🌀'};
   return {type:'plain',text:'IMPACT!',burst:result.dmg>=6?'✹':'✦'};
 }
-function spawnSpecialFx(meta,cx,cy,power){
-  if(reducedMotion())return;
-  const t=meta?meta.type:'plain';(FX[t]||FX.plain)(cx,cy,power);
-}
 function screenJolt(power){
   if(reducedMotion())return;
   const p=Math.max(1,Math.min(10,power));
@@ -408,25 +403,24 @@ function screenJolt(power){
     {transform:'translate(0,0)'}
   ],{duration:190+p*28,easing:'ease-out'})}catch(e){}
 }
-FX.jolt=screenJolt;if(window.FX2)FX2.jolt=screenJolt;
-// A card facing an empty slot: it lunges across the board and punches the other side's HP bar.
+if(window.FX2)FX2.jolt=screenJolt;
+// A card facing an empty slot: it flies up to the other side's HP bar and hits it with the normal clash impact.
 async function animateDirectHit(owner,i,card,dmg,token){
   const el=$('slot'+(owner===0?'0':'1')+i).querySelector('.card'),hud=document.querySelector(owner===0?'.enemy-hud':'.player-hud');
-  if(!el||!hud||reducedMotion()){if(dmg>=7)screenJolt(dmg);await sleep(reducedMotion()?0:200);return}
+  if(!el||!hud||reducedMotion()||!window.FX2){if(dmg>=7)screenJolt(dmg);await sleep(reducedMotion()?0:200);return}
   const bar=hud.querySelector('.healthbar')||hud,r=el.getBoundingClientRect(),h=bar.getBoundingClientRect();
-  const cx=r.left+r.width/2,cy=r.top+r.height/2,tx=Math.max(h.left+20,Math.min(h.right-20,cx)),ty=h.top+h.height/2,dx=tx-cx,dy=ty-cy;
+  const cx=r.left+r.width/2,cy=r.top+r.height/2,tx=Math.max(h.left+r.width/2,Math.min(h.right-r.width/2,cx));
+  const ty=owner===0?h.bottom+r.height/2+10:h.top-r.height/2-10,dx=tx-cx,dy=ty-cy;
   const power=Math.max(.75,Math.min(3.2,.8+dmg*.17)),{copy}=flightCopy(el);el.style.visibility='hidden';
-  const dur=Math.round(460+Math.min(260,dmg*26));
+  const outer=document.createElement('div');outer.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;z-index:1006;pointer-events:none`;
+  copy.style.left='0';copy.style.top='0';outer.appendChild(copy);document.body.appendChild(outer);
   try{
-    const an=copy.animate([
-      {transform:'translate(0,0) scale(1) rotate(0deg)',offset:0},
-      {transform:`translate(${-dx*.12}px,${-dy*.12}px) scale(1.12) rotate(${owner===0?-8:8}deg)`,offset:.22},
-      {transform:`translate(${dx*.92}px,${dy*.92}px) scale(${(1.1+power*.06).toFixed(2)}) rotate(${owner===0?10:-10}deg)`,offset:.5},
-      {transform:`translate(${dx*.55}px,${dy*.55}px) scale(.95) rotate(0deg)`,offset:.72},
-      {transform:'translate(0,0) scale(1)',offset:1}],{duration:dur,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'});
-    setTimeout(()=>{if(token!==S.token)return;try{spawnSpecialFx({type:{hammer:'smash',scissors:'cut',paper:'wrap'}[card.suit]||'plain',suit:card.suit},tx,ty,power)}catch(e){}screenJolt(dmg+2);hud.classList.add('direct-hit');setTimeout(()=>hud.classList.remove('direct-hit'),420)},Math.round(dur*.5));
-    await an.finished.catch(()=>{});
-  }finally{copy.remove();el.style.visibility=''}
+    await outer.animate([{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}],{duration:240,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'}).finished.catch(()=>{});
+    if(token!==S.token)return;
+    await FX2.play({hammer:'smash',scissors:'cut',paper:'portal'}[card.suit]||'smash',copy,bar,power,false,dmg);
+    if(token!==S.token)return;
+    await outer.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:220,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).finished.catch(()=>{});
+  }finally{outer.remove();el.style.visibility='';bar.style.transform='';bar.style.filter='';bar.style.opacity='';bar.getAnimations&&bar.getAnimations().forEach(a=>a.cancel())}
 }
 async function animateClash(i,result,token,aCard,bCard){
   const me=$('slot0'+i).querySelector('.card'),ai=$('slot1'+i).querySelector('.card');
@@ -451,9 +445,8 @@ async function animateClash(i,result,token,aCard,bCard){
       {transform:`translate(${paths[j].x*.46}px,${paths[j].y*.46}px) rotate(${j===0?(9+power*2):(-9-power*2)}deg) scale(${(0.88-power*.03).toFixed(2)})`,opacity:1,offset:.75},
       {transform:'translate(0,0) scale(1)',opacity:0,offset:1}],
       {duration:dur,easing:'cubic-bezier(.18,.84,.2,1)',fill:'forwards'}));
-    setTimeout(()=>{if(token!==S.token)return;spawnSpecialFx(meta,cx,cy,power);if(dmg>=3)screenJolt(dmg+(meta&&meta.type!=='plain'?2:0))},Math.round(dur*.43));
+    setTimeout(()=>{if(token!==S.token)return;if(dmg>=3)screenJolt(dmg)},Math.round(dur*.43));
     await Promise.all(anims.map(a=>a.finished.catch(()=>{})));
-    if(meta&&meta.type!=='plain')await sleep(Math.round({smash:480,cut:520,wrap:1250}[meta.type]*(.7+power*.15)));
   }finally{twins.forEach(el=>el.remove());me.style.visibility='';ai.style.visibility='';}
 }
 function animateHpHit(p,dmg,before){if(dmg<=0)return;const hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');if(!hud)return;

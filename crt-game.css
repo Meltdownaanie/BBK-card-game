@@ -556,7 +556,3 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
  #mainButton[data-hint]:not([data-hint=""])::after{content:attr(data-hint);position:absolute;left:6px;right:6px;bottom:4px;font-size:10px;line-height:1;letter-spacing:.02em;font-weight:400;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;opacity:.92}
 }
 
-/* Direct hit on the HP bar (a card facing an empty slot) */
-.hud.direct-hit,.enemy-hud.direct-hit,.player-hud.direct-hit{animation:directHit .42s steps(6)}
-@keyframes directHit{0%,100%{transform:none;filter:none}20%{transform:translateX(-5px);filter:brightness(1.8) saturate(1.6)}40%{transform:translateX(5px)}60%{transform:translateX(-3px);filter:brightness(1.3)}80%{transform:translateX(2px)}}
-@media (prefers-reduced-motion:reduce){.direct-hit{animation:none!important}}
