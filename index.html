@@ -335,7 +335,7 @@ body{padding:8px 12px 12px}
       <article><span class="tutorial-step">05</span><div><strong>DAMAGE</strong><p>Damage equals the difference between the two card numbers. The higher number wins a same-suit clash. When different suits share a number, the winning suit deals twice that number.</p></div></article>
       <article><span class="tutorial-step">06</span><div><strong>WINNING A ROUND</strong><p>Win at least two of the three slots to win the round. Win all three to inflict five bonus damage. If you win one slot, lose one and tie one, whoever dealt more total damage wins the round; if all three slots tie, both players choose a card to discard. In endgame rounds with fewer slots, win more slots than the opponent.</p></div></article>
       <article><span class="tutorial-step">07</span><div><strong>DISCARD & DRAW</strong><p>The round winner chooses one played card to discard. The loser discards one at random. Remaining played cards return to hand; normally each player draws one card next round.</p></div></article>
-      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. Play no card at all and a random card from your hand is discarded. Discard selection has a 50-second limit. When cards run low, some slots lock; discarded cards never return.</p></div></article>
+      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. Play no card at all and a random card from your hand is discarded. Discard selection has a 50-second limit. When a hand has fewer than 3 cards, that player simply plays fewer cards and may use any open slot; discarded cards never return.</p></div></article>
     </div>
     <button id="tutorialDone" type="button" class="primary">GOT IT!</button>
   </section>
@@ -568,7 +568,7 @@ function requiredCards(p){return Math.min(openSlots(p).length,S.hand[p].length+p
 // When both players have few cards, lock matching slots. Prioritize
 // the slot locked by the secret ability to avoid over-locking.
 function configureEndgameBlocks(){
- S.endgameBlocked=[];
+ S.endgameBlocked=[];return;   // short hands no longer lock slots: that player just plays fewer cards, in any open slots
  const left=Math.min(S.hand[0].length,S.hand[1].length);
  if(left>=3||left<=0)return;
  const count=3-left;
