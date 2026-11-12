@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261112a">
+<link rel="stylesheet" href="./crt-game.css?v=20261112b">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./fx.js?v=20261105c"></script>
@@ -335,7 +335,7 @@ body{padding:8px 12px 12px}
       <article><span class="tutorial-step">05</span><div><strong>DAMAGE</strong><p>Damage equals the difference between the two card numbers. The higher number wins a same-suit clash. When different suits share a number, the winning suit deals twice that number.</p></div></article>
       <article><span class="tutorial-step">06</span><div><strong>WINNING A ROUND</strong><p>Win at least two of the three slots to win the round. Win all three to inflict five bonus damage. If you win one slot, lose one and tie one, whoever dealt more total damage wins the round; if all three slots tie, both players choose a card to discard. In endgame rounds with fewer slots, win more slots than the opponent.</p></div></article>
       <article><span class="tutorial-step">07</span><div><strong>DISCARD & DRAW</strong><p>The round winner chooses one played card to discard. The loser discards one at random. Remaining played cards return to hand; normally each player draws one card next round.</p></div></article>
-      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. Play no card at all and a random card from your hand is discarded. Discard selection has a 50-second limit. When a hand has fewer than 3 cards, that player simply plays fewer cards and may use any open slot; discarded cards never return.</p></div></article>
+      <article><span class="tutorial-step">08</span><div><strong>TIME & FINAL ROUNDS</strong><p>You have 75 seconds to place cards. A slot you leave empty when time runs out stays empty. An enemy card facing an empty slot hits your HP directly (a 0 hits for 10). Play no card at all and a random card from your hand is also discarded. Discard selection has a 50-second limit. When a hand has fewer than 3 cards, that player simply plays fewer cards and may use any open slot; discarded cards never return.</p></div></article>
     </div>
     <button id="tutorialDone" type="button" class="primary">GOT IT!</button>
   </section>
@@ -409,6 +409,25 @@ function screenJolt(power){
   ],{duration:190+p*28,easing:'ease-out'})}catch(e){}
 }
 FX.jolt=screenJolt;if(window.FX2)FX2.jolt=screenJolt;
+// A card facing an empty slot: it lunges across the board and punches the other side's HP bar.
+async function animateDirectHit(owner,i,card,dmg,token){
+  const el=$('slot'+(owner===0?'0':'1')+i).querySelector('.card'),hud=document.querySelector(owner===0?'.enemy-hud':'.player-hud');
+  if(!el||!hud||reducedMotion()){if(dmg>=7)screenJolt(dmg);await sleep(reducedMotion()?0:200);return}
+  const bar=hud.querySelector('.healthbar')||hud,r=el.getBoundingClientRect(),h=bar.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2,tx=Math.max(h.left+20,Math.min(h.right-20,cx)),ty=h.top+h.height/2,dx=tx-cx,dy=ty-cy;
+  const power=Math.max(.75,Math.min(3.2,.8+dmg*.17)),{copy}=flightCopy(el);el.style.visibility='hidden';
+  const dur=Math.round(460+Math.min(260,dmg*26));
+  try{
+    const an=copy.animate([
+      {transform:'translate(0,0) scale(1) rotate(0deg)',offset:0},
+      {transform:`translate(${-dx*.12}px,${-dy*.12}px) scale(1.12) rotate(${owner===0?-8:8}deg)`,offset:.22},
+      {transform:`translate(${dx*.92}px,${dy*.92}px) scale(${(1.1+power*.06).toFixed(2)}) rotate(${owner===0?10:-10}deg)`,offset:.5},
+      {transform:`translate(${dx*.55}px,${dy*.55}px) scale(.95) rotate(0deg)`,offset:.72},
+      {transform:'translate(0,0) scale(1)',offset:1}],{duration:dur,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'});
+    setTimeout(()=>{if(token!==S.token)return;try{spawnSpecialFx({type:{hammer:'smash',scissors:'cut',paper:'wrap'}[card.suit]||'plain',suit:card.suit},tx,ty,power)}catch(e){}screenJolt(dmg+2);hud.classList.add('direct-hit');setTimeout(()=>hud.classList.remove('direct-hit'),420)},Math.round(dur*.5));
+    await an.finished.catch(()=>{});
+  }finally{copy.remove();el.style.visibility=''}
+}
 async function animateClash(i,result,token,aCard,bCard){
   const me=$('slot0'+i).querySelector('.card'),ai=$('slot1'+i).querySelector('.card');
   const dmg=Math.max(0,result.dmg||0),power=Math.max(.75,Math.min(3.2,.8+dmg*.17+(result.dbl?.45:0))),meta=clashMeta(aCard,bCard,result);
@@ -617,7 +636,7 @@ function guideText(){
   return 'Keep going · tap a placed card to take it back';
  }
  if(S.phase==='dealing')return 'Drawing cards for the next round';
- if(S.phase==='reveal')return 'Same slot fights · win 2 slots to win the round';
+ if(S.phase==='reveal')return 'Same slot fights · an empty slot takes a direct hit';
  if(S.phase==='discard')return S.canPick?'Round won · tap one of your played cards to discard it':'One of your played cards is discarded';
  return '';
 }
@@ -702,20 +721,16 @@ async function reveal(timeout=false){
  msg(timeout?'Time is up! Empty slots stay empty. Revealing…':'Revealing cards…');
  S.roundHpStart=[...S.hp];S.kiantsBonus=null;
  const tok=S.token,wins=[0,0],outcomes=[];await sleep(300);if(tok!==S.token)return;
- // Match identical slots first. In short rounds, unmatched cards
- // still battle each other so no damage is lost.
- const availableMe=[0,1,2].filter(i=>S.slots[0][i]),availableAI=[0,1,2].filter(i=>S.slots[1][i]);
- const pairs=[];
- for(const i of [...availableMe])if(availableAI.includes(i)){pairs.push([i,i]);availableMe.splice(availableMe.indexOf(i),1);availableAI.splice(availableAI.indexOf(i),1)}
- while(availableMe.length&&availableAI.length)pairs.push([availableMe.shift(),availableAI.shift()]);
- for(const i of availableAI)if(S.slots[1][i])$('slot1'+i).innerHTML=cardHTML(S.slots[1][i]);
+ // Slot by slot: two cards fight; a card facing an EMPTY slot hits the other side's HP directly (0 counts as 10).
+ const pairs=[0,1,2].filter(i=>S.slots[0][i]||S.slots[1][i]).map(i=>[i,i]);
+ for(let i=0;i<3;i++)if(S.slots[1][i])$('slot1'+i).innerHTML=cardHTML(S.slots[1][i]);
  for(const [mi,ai] of pairs){
-  const a=S.slots[0][mi],b=S.slots[1][ai],result=battle(a,b);outcomes.push(result);
+  const a=S.slots[0][mi],b=S.slots[1][ai],result=a&&b?battle(a,b):{w:a?0:1,dmg:(a||b).n||10,direct:true};outcomes.push(result);
   if(b)$('slot1'+ai).innerHTML=cardHTML(b);
-  if(a&&b&&mi===ai)await animateClash(mi,result,tok,a,b);else await sleep(160);
+  if(a&&b)await animateClash(mi,result,tok,a,b);else await animateDirectHit(result.w,mi,a||b,result.dmg,tok);
   if(tok!==S.token)return;
   const versus=$('vs'+mi);versus.className='versus '+(result.w===0?'me':result.w===1?'ai':'tie');
-  versus.innerHTML=`<span class="pill">${!a||!b?'Locked/Empty':result.w<0?'Tie':(result.w===0?'Deals ':'Received ')+result.dmg}</span>`;
+  versus.innerHTML=`<span class="pill">${result.w<0?'Tie':(result.direct?'Direct hit ':result.w===0?'Deals ':'Received ')+result.dmg}</span>`;
   if(result.w===0){wins[0]++;const before=S.hp[1];S.hp[1]-=result.dmg;renderHud();animateHpHit(1,result.dmg,before);$('slot0'+mi).querySelector('.card')?.classList.add('win');$('slot1'+ai).querySelector('.card')?.classList.add('lose')}
   else if(result.w===1){wins[1]++;const before=S.hp[0];S.hp[0]-=result.dmg;renderHud();animateHpHit(0,result.dmg,before);$('slot1'+ai).querySelector('.card')?.classList.add('win');$('slot0'+mi).querySelector('.card')?.classList.add('lose')}
   await sleep(reducedMotion()?120:350);if(tok!==S.token)return;
