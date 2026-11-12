@@ -94,13 +94,12 @@ function resolveRound(room){
  const g=room.game;if(!g||g.phase!=='plan')return;
  stopTimer(room);   // time is up: slots left empty stay empty (no random auto-fill)
  const wins=[0,0],damageTaken=[0,0],dealt=[0,0],outcomes=[];
- const used=[0,1,2].filter(i=>g.players[0].slots[i]||g.players[1].slots[i]);
- const left=[0,1].map(p=>used.filter(i=>g.players[p].slots[i]));
- const pairs=[];for(const i of left[0].slice())if(left[1].includes(i)){pairs.push([i,i]);left[0].splice(left[0].indexOf(i),1);left[1].splice(left[1].indexOf(i),1);}
- while(left[0].length&&left[1].length)pairs.push([left[0].shift(),left[1].shift()]);
- for(const [i,j] of pairs){
-   const a=g.players[0].slots[i],b=g.players[1].slots[j],r=clash(a,b);
-   outcomes.push({slots:[i,j],winner:r.winner,damage:r.damage});
+ // Slot by slot: two cards fight; a card facing an EMPTY slot hits the other player's HP directly (0 counts as 10).
+ for(let i=0;i<3;i++){
+   const a=g.players[0].slots[i],b=g.players[1].slots[i];if(!a&&!b)continue;
+   let r,direct=false;
+   if(a&&b)r=clash(a,b);else{direct=true;r={winner:a?0:1,damage:(a||b).n||10};}
+   outcomes.push({slots:[i,i],winner:r.winner,damage:r.damage,direct});
    if(r.winner>=0){wins[r.winner]++;dealt[r.winner]+=r.damage;const loser=1-r.winner;g.players[loser].hp-=r.damage;damageTaken[loser]+=r.damage;}
  }
  const winner=roundWins(g,wins,dealt);
@@ -491,7 +490,7 @@ function onMessage(ws,msg){
   if(msg.type==='discard'&&g.phase==='discard'&&picks(g,info.seat)){
     if(p.discardSelected!==null||!Number.isInteger(msg.slot)||!p.slots[msg.slot])return;
     p.discardSelected=msg.slot;
-    if(g.players.every(x=>x.discardSelected!==null))finishDiscard(room);else broadcast(room);return;
+    if(g.players.every(x=>x.discardSelected!==null||!x.slots.some(Boolean)))finishDiscard(room);else broadcast(room);return;
   }
 }
 wss.on('connection',(ws,req)=>{

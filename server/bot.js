@@ -25,8 +25,8 @@ function evaluate(clash, mine, theirs, shortened) {
   let wm = 0, wt = 0, dm = 0, dt = 0;
   for (let i = 0; i < 3; i++) {
     const a = mine[i], b = theirs[i];
-    if (!a || !b) continue;
-    const r = clash(a, b);
+    if (!a && !b) continue;
+    const r = a && b ? clash(a, b) : { winner: a ? 0 : 1, damage: (a || b).n || 10 };   // a card facing an empty slot hits HP directly (0 = 10)
     if (r.winner === 0) { wm++; dm += r.damage; } else if (r.winner === 1) { wt++; dt += r.damage; }
   }
   let net = dm - dt;
