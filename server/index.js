@@ -1,5 +1,5 @@
 'use strict';
-/* BBK Card Game authoritative multiplayer server. No hidden opponent cards sent to clients. */
+/* 184 (formerly BBK) authoritative multiplayer server. No hidden opponent cards sent to clients. */
 const http=require('node:http'),crypto=require('node:crypto');
 const {WebSocketServer,WebSocket}=require('ws');
 const brain=require('./bot');
@@ -392,7 +392,7 @@ const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type','application/json; charset=utf-8');
  res.setHeader('Access-Control-Allow-Origin','*');
  const ok=req.url==='/health'||req.url==='/';
- const body=ok?{status:'online',name:'BBK Card Game',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length,casual:casual.length,bots:bots.length}:{error:'Not found'};
+ const body=ok?{status:'online',name:'184',mode:'authoritative-1v1',rooms:rooms.size,accounts:ACCOUNTS,ranked:RANKED,queue:queue.length,casual:casual.length,bots:bots.length}:{error:'Not found'};
  res.writeHead(ok?200:404);res.end(JSON.stringify(body));
 });
 const wss=new WebSocketServer({server,maxPayload:4096});
@@ -497,7 +497,7 @@ wss.on('connection',(ws,req)=>{
  if(!allowed(req)){try{ws.close(1008,'Origin not allowed')}catch{}return;}
  ws.alive=true;ws.user=null;ws.authSeq=0;ws.tokens=40;ws.tokenAt=Date.now();ws.strikes=0;
  ws.on('pong',()=>ws.alive=true);
- send(ws,{type:'welcome',message:'Connected to BBK Card Game server'});
+ send(ws,{type:'welcome',message:'Connected to the 184 game server'});
  ws.on('message',raw=>{
   if(!take(ws,1)){if(++ws.strikes>50)ws.terminate();return;}
   let msg;try{msg=JSON.parse(raw.toString());}catch{return send(ws,{type:'error',message:'Invalid message'});}
@@ -509,6 +509,6 @@ wss.on('connection',(ws,req)=>{
  ws.on('error',()=>{});
 });
 const heartbeat=setInterval(()=>{for(const ws of wss.clients){if(!ws.alive){ws.terminate();continue;}ws.alive=false;ws.ping();}},30000);heartbeat.unref();
-server.listen(PORT,'0.0.0.0',()=>console.log('BBK authoritative online server on',PORT,'| accounts:',ACCOUNTS,'| ranked:',RANKED));
+server.listen(PORT,'0.0.0.0',()=>console.log('184 authoritative online server on',PORT,'| accounts:',ACCOUNTS,'| ranked:',RANKED));
 
 if(process.env.BBK_TEST)module.exports={rooms};
