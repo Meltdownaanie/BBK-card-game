@@ -1,6 +1,6 @@
-# BBK multiplayer server
+# 184 multiplayer server
 
-Authoritative 1v1 WebSocket server for the BBK card game. The server keeps every deck and hand;
+Authoritative 1v1 WebSocket server for the 184 card game (formerly BBK). The server keeps every deck and hand;
 clients only receive their own cards plus the opponent's revealed cards.
 
 ## Render deployment
