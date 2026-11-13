@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261113a">
+<link rel="stylesheet" href="./crt-game.css?v=20261113b">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
@@ -417,7 +417,8 @@ async function animateDirectHit(owner,i,card,dmg,token){
   try{
     await outer.animate([{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}],{duration:240,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'}).finished.catch(()=>{});
     if(token!==S.token)return;
-    await FX2.play({hammer:'smash',scissors:'cut',paper:'portal'}[card.suit]||'smash',copy,bar,power,false,dmg);
+    setTimeout(()=>{if(token===S.token)screenJolt(Math.min(10,dmg+6))},95);   // heavier hit than a normal clash: the HP takes it directly
+    await FX2.play({hammer:'smash',scissors:'cut',paper:'portal'}[card.suit]||'smash',copy,bar,Math.min(3.2,power*1.5+.4),dmg>=8,dmg);
     if(token!==S.token)return;
     await outer.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:220,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).finished.catch(()=>{});
   }finally{outer.remove();el.style.visibility='';bar.style.transform='';bar.style.filter='';bar.style.opacity='';bar.getAnimations&&bar.getAnimations().forEach(a=>a.cancel())}
@@ -597,7 +598,7 @@ function roundWinner(wins,outcomes){if(isShortened())return wins[0]===wins[1]?-1
 function isTriple(p,n){return S.slots[p].every(c=>c&&c.n===n)}
 function blockText(){const labels=[];if(S.endgameBlocked.length)labels.push(`FINAL ROUND: Both players have locked slots ${S.endgameBlocked.map(i=>i+1).join(', ')}`);for(let p=0;p<2;p++)if(S.blocked[p]!==null&&!S.endgameBlocked.includes(S.blocked[p]))labels.push(`${p===0?'YOU':'AI'} has slot ${S.blocked[p]+1} locked`);return labels.join(' · ')}
 function hpAlertClass(hp){if(hp<=5)return 'hp-c5';if(hp<=10)return 'hp-c10';if(hp<=15)return 'hp-c15';if(hp<=25)return 'hp-c25';if(hp<=50)return 'hp-c50';if(hp<=70)return 'hp-c70';return 'hp-c100'}
-function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);{const oh=S.hand[1].length+S.slots[1].filter(Boolean).length,el=$('oppHandNum');if(el){el.textContent=oh;$('oppHandCount').classList.toggle('full',oh>=10)}}$('handCount').textContent=S.hand[0].length+' cards'}
+function renderHud(){for(let p=0;p<2;p++){const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';const bar=$('bar'+p),fill=bar.querySelector('i'),hud=document.querySelector(p===0?'.player-hud':'.enemy-hud');fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);hud.classList.remove('hp-c100','hp-c70','hp-c50','hp-c25','hp-c15','hp-c10','hp-c5');hud.classList.add(hpAlertClass(hp));hud.dataset.low=hp>0&&hp<=10?'10':hp>0&&hp<=20?'20':hp>0&&hp<=50?'50':'';$('deck'+p).textContent=S.deck[p].length;$('discard'+p).textContent=S.discard[p].length}$('backs1').innerHTML='<i></i>'.repeat(S.hand[1].length);{const oh=S.hand[1].length+S.slots[1].filter(Boolean).length,el=$('oppHandNum');if(el){el.textContent=oh;$('oppHandCount').classList.toggle('full',oh>=10)}}$('handCount').textContent=S.hand[0].length+' cards'}
 function renderSlots(){const prev=previousAICards();for(let i=0;i<3;i++){const a=S.slots[1][i],m=S.slots[0][i];const blockedAI=isBlocked(1,i),blockedMe=isBlocked(0,i);$('slot1'+i).innerHTML=blockedAI?'':a?(S.phase==='plan'?'<div class="card back" aria-label="Face-down AI card"></div>':cardHTML(a)) : '';$('prev1'+i).innerHTML=ghostCardHTML(prev[i]);$('slot0'+i).innerHTML=blockedMe?'':cardHTML(m);$('slot1'+i).classList.toggle('is-blocked',blockedAI);$('slot0'+i).classList.toggle('is-blocked',blockedMe);const sc=$('slot0'+i).querySelector('button.card');if(sc)sc.draggable=S.phase==='plan';$('slot0'+i).classList.toggle('target',S.phase==='plan'&&S.target===i&&!m&&!blockedMe);if(S.phase==='plan'||S.phase==='idle'){$('vs'+i).className='versus';$('vs'+i).innerHTML=`<span class="pill">${blockedAI||blockedMe?'🔒 '+(i+1):`${i+1} VS ${i+1}`}</span>`}}const alert=$('blockAlert'),txt=blockText();alert.hidden=!txt;alert.textContent=txt?`🔒 ${txt} · Place cards in the remaining open slots`:''}
 
 function renderPlayedTracker(){
