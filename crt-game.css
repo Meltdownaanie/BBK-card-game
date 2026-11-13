@@ -564,21 +564,22 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .hud-row.solo .who .who-id .hand-counter .hc-label{font-size:8px!important;letter-spacing:.3px}
 .hud-row.solo .who .who-id .hand-counter .deck-num{font-size:12px!important;line-height:1}
 
-/* Low-HP warning: threshold marks at 50 / 20 / 10 HP appear once HP is 50 or less, and the bar blinks red - faster and stronger the lower it gets. */
-.hud .healthbar{position:relative}
-.hud[data-low="50"] .healthbar::after,.hud[data-low="20"] .healthbar::after,.hud[data-low="10"] .healthbar::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
- background:linear-gradient(90deg,transparent calc(10% - 1px),#fff7e8cc calc(10% - 1px),#fff7e8cc calc(10% + 1px),transparent calc(10% + 1px),transparent calc(20% - 1px),#fff7e8cc calc(20% - 1px),#fff7e8cc calc(20% + 1px),transparent calc(20% + 1px),transparent calc(50% - 1px),#fff7e8aa calc(50% - 1px),#fff7e8aa calc(50% + 1px),transparent calc(50% + 1px))}
-.hud[data-low] .healthbar{outline:3px solid transparent;outline-offset:1px}
-.hud[data-low="50"] .healthbar{animation:hpLow50 1.6s ease-in-out infinite}
-.hud[data-low="20"] .healthbar{animation:hpLow20 .8s ease-in-out infinite}
-.hud[data-low="10"] .healthbar{animation:hpLow10 .4s steps(1,end) infinite}
-.hud[data-low="20"] .healthbar i{background:#ff4a2e!important;animation:hpFill20 .8s ease-in-out infinite}
-.hud[data-low="10"] .healthbar i{background:#d4001f!important;animation:hpFill10 .4s steps(1,end) infinite}
-.hud[data-low="10"]{outline:3px solid transparent;outline-offset:-3px;animation:hpHud10 .4s steps(1,end) infinite}
-@keyframes hpLow50{0%,100%{outline-color:transparent;filter:none}50%{outline-color:#b3262d99;filter:drop-shadow(0 0 4px #ff3b3b88)}}
-@keyframes hpLow20{0%,100%{outline-color:transparent;filter:none}50%{outline-color:#e0102cdd;filter:drop-shadow(0 0 8px #ff1f3d)}}
-@keyframes hpLow10{0%{outline-color:#ff1a36;filter:drop-shadow(0 0 12px #ff0022)}50%{outline-color:#6a000e;filter:none}}
-@keyframes hpFill20{0%,100%{opacity:1}50%{opacity:.55}}
-@keyframes hpFill10{0%{opacity:1}50%{opacity:.3}}
-@keyframes hpHud10{0%{outline-color:#ff1a36cc}50%{outline-color:transparent}}
+/* Low-HP warning: at 50 / 20 / 10 HP the bar blinks red, faster and stronger the lower it gets (no marks, no filters).
+   Paused while any dialog or overlay is open so nothing glows through it. */
+.hud[data-low] .healthbar{outline:2px solid transparent;outline-offset:1px}
+.hud[data-low="50"] .healthbar{animation:hpLow50 1.4s ease-in-out infinite}
+.hud[data-low="20"] .healthbar{animation:hpLow20 .7s ease-in-out infinite}
+.hud[data-low="10"] .healthbar{animation:hpLow10 .34s steps(1,end) infinite}
+.hud[data-low="20"] .healthbar i{background:#ff4a2e!important;animation:hpFill20 .7s ease-in-out infinite}
+.hud[data-low="10"] .healthbar i{background:#d4001f!important;animation:hpFill10 .34s steps(1,end) infinite}
+.hud[data-low="10"]{outline:3px solid transparent;outline-offset:-3px;animation:hpHud10 .34s steps(1,end) infinite}
+@keyframes hpLow50{0%,100%{outline-color:transparent}50%{outline-color:#c0303a}}
+@keyframes hpLow20{0%,100%{outline-color:transparent;outline-width:2px}50%{outline-color:#ff1f3d;outline-width:3px}}
+@keyframes hpLow10{0%{outline-color:#ff1a36;outline-width:4px}50%{outline-color:#5c000c;outline-width:2px}}
+@keyframes hpFill20{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes hpFill10{0%{opacity:1}50%{opacity:.25}}
+@keyframes hpHud10{0%{outline-color:#ff1a36}50%{outline-color:transparent}}
+body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low],
+body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low] .healthbar,
+body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low] .healthbar i{animation:none!important;outline-color:transparent!important}
 @media (prefers-reduced-motion:reduce){.hud[data-low] .healthbar,.hud[data-low] .healthbar i,.hud[data-low="10"]{animation:none!important}}
