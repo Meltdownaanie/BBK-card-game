@@ -572,14 +572,15 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 .hud[data-low="10"] .healthbar{animation:hpLow10 .34s steps(1,end) infinite}
 .hud[data-low="20"] .healthbar i{background:#ff4a2e!important;animation:hpFill20 .7s ease-in-out infinite}
 .hud[data-low="10"] .healthbar i{background:#d4001f!important;animation:hpFill10 .34s steps(1,end) infinite}
-.hud[data-low="10"]{outline:3px solid transparent;outline-offset:-3px;animation:hpHud10 .34s steps(1,end) infinite}
 @keyframes hpLow50{0%,100%{outline-color:transparent}50%{outline-color:#c0303a}}
 @keyframes hpLow20{0%,100%{outline-color:transparent;outline-width:2px}50%{outline-color:#ff1f3d;outline-width:3px}}
 @keyframes hpLow10{0%{outline-color:#ff1a36;outline-width:4px}50%{outline-color:#5c000c;outline-width:2px}}
 @keyframes hpFill20{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes hpFill10{0%{opacity:1}50%{opacity:.25}}
-@keyframes hpHud10{0%{outline-color:#ff1a36}50%{outline-color:transparent}}
 body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low],
 body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low] .healthbar,
 body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not([hidden]),.tutorial-overlay:not([hidden]),.combo-celebration:not([hidden])) .hud[data-low] .healthbar i{animation:none!important;outline-color:transparent!important}
 @media (prefers-reduced-motion:reduce){.hud[data-low] .healthbar,.hud[data-low] .healthbar i,.hud[data-low="10"]{animation:none!important}}
+
+/* Only the HP bar warns at low HP: the player panels themselves never pulse. */
+.bottom-hud .hud.hp-c5,.hud-row .hud.hp-c5,.hud.hp-c5{animation:none!important}
