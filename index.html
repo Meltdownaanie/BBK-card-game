@@ -418,7 +418,7 @@ async function animateDirectHit(owner,i,card,dmg,token){
     await outer.animate([{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}],{duration:240,easing:'cubic-bezier(.5,0,.6,1)',fill:'forwards'}).finished.catch(()=>{});
     if(token!==S.token)return;
     setTimeout(()=>{if(token===S.token)screenJolt(Math.min(10,dmg+6))},95);   // heavier hit than a normal clash: the HP takes it directly
-    await FX2.play({hammer:'smash',scissors:'cut',paper:'portal'}[card.suit]||'smash',copy,bar,Math.min(3.2,power*1.5+.4),dmg>=8,dmg);
+    await FX2.play({hammer:'smash',scissors:'cut',paper:'portal'}[card.suit]||'smash',copy,bar,Math.min(3.2,power*1.5+.4),false,dmg);   // never the critical-damage effect
     if(token!==S.token)return;
     await outer.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:220,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).finished.catch(()=>{});
   }finally{outer.remove();el.style.visibility='';bar.style.transform='';bar.style.filter='';bar.style.opacity='';bar.getAnimations&&bar.getAnimations().forEach(a=>a.cancel())}
