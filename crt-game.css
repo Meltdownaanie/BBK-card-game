@@ -584,3 +584,6 @@ body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not
 
 /* Only the HP bar warns at low HP: the player panels themselves never pulse. */
 .bottom-hud .hud.hp-c5,.hud-row .hud.hp-c5,.hud.hp-c5{animation:none!important}
+
+/* Main button while fewer cards than the maximum are placed: still clickable, but quieter than the gold "all set" state */
+#mainButton.partial:not(:disabled){background:#4b3c86!important;color:#efe6ff!important;box-shadow:0 4px 0 #241a42!important}

@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261113d">
+<link rel="stylesheet" href="./crt-game.css?v=20261115a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
@@ -628,8 +628,8 @@ function guideText(){
   if(n>=need)return 'All set · press the button to flip the cards';
   if(n===0&&locked.length)return `Slot ${locked.join(' & ')} is locked · use the open slots`;
   if(n===0&&need<3)return `Only ${need} card${need>1?'s':''} left · use any slots you like`;
-  if(n===0)return 'Tap a card or drag it into a slot';
-  return 'Keep going · tap a placed card to take it back';
+  if(n===0)return 'Place cards · empty slots take direct hits';
+  return 'Add more or reveal · empty slots take hits';
  }
  if(S.phase==='dealing')return 'Drawing cards for the next round';
  if(S.phase==='reveal')return 'Same slot fights · an empty slot takes a direct hit';
@@ -637,7 +637,7 @@ function guideText(){
  return '';
 }
 function updateButton(){try{return updateButtonCore()}finally{$('mainButton').dataset.hint=guideText()}}
-function updateButtonCore(){updateForfeitButton();const b=$('mainButton');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':`Place ${need-n} more`;b.disabled=n<need}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
+function updateButtonCore(){updateForfeitButton();const b=$('mainButton');b.classList.remove('partial');if(S.phase==='plan'){const n=playedCards(0),need=requiredCards(0);b.textContent=n===need?'REVEAL CARDS':TUT.on?`Place ${need-n} more`:`REVEAL ${n}/${need} CARDS`;b.disabled=TUT.on&&n<need;b.classList.toggle('partial',!TUT.on&&n<need)}else if(S.phase==='reveal'){b.textContent='Revealing…';b.disabled=true}else if(S.phase==='discard'){b.textContent=S.canPick?'Choose discard (50s)':'Next round…';b.disabled=true}else{b.textContent=S.phase==='over'?'Game over':'Waiting to start';b.disabled=true};if(TUT.on)TUT.after()}
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
 async function newGame(){
  S.token++;const token=S.token;clearInterval(S.timer);S.hp=[100,100];S.deck=[makeDeck(0),makeDeck(1)];S.discard=[[],[]];S.hand=[[],[]];S.slots=[[null,null,null],[null,null,null]];
@@ -854,7 +854,7 @@ function showDialog(title,text){
  if(practice&&won&&window.BBK){title='🏆 TUTORIAL COMPLETE!';text='You beat the training bot. Ranked matches are now unlocked.';doneLink.hidden=false;BBK.tutorial.set(5)}
  else if(practice)text+=' Win this match to finish the tutorial.';
  $('dialogTitle').textContent=title;$('dialogText').textContent=text;$('startButton').textContent='↻ PLAY AGAIN';showPane('ai');$('overlay').hidden=false}
-$('hand').addEventListener('click',e=>{const b=e.target.closest('button.card');if(!suppressClick&&b&&!b.disabled)onHand(b.dataset.id)});for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>onSlot(i));$('mainButton').addEventListener('click',()=>{if(S.phase==='plan'&&playedCards(0)===requiredCards(0))reveal(false);});document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{
+$('hand').addEventListener('click',e=>{const b=e.target.closest('button.card');if(!suppressClick&&b&&!b.disabled)onHand(b.dataset.id)});for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>onSlot(i));$('mainButton').addEventListener('click',()=>{if(S.phase==='plan'&&(playedCards(0)===requiredCards(0)||!TUT.on))reveal(false);});   /* empty slots are allowed: they take direct hits */document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{
   const d=button.dataset.difficulty;$('aiDifficulty').value=d;
   document.querySelectorAll('.difficulty-option').forEach(b=>{const chosen=b===button;b.classList.toggle('selected',chosen);b.setAttribute('aria-pressed',String(chosen))});
 }));

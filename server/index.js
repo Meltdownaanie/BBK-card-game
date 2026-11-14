@@ -483,7 +483,7 @@ function onMessage(ws,msg){
   }
   if(msg.type==='lock'&&g.phase==='plan'){
     if(p.ready)return;
-    if(p.slots.filter(Boolean).length!==required(g,info.seat))return send(ws,{type:'error',message:'Place your required cards first'});
+    if(p.slots.filter(Boolean).length>required(g,info.seat))return send(ws,{type:'error',message:'Too many cards placed'});   // fewer (even none) is allowed: empty slots take direct hits
     p.ready=true;broadcast(room);
     if(g.players.every(x=>x.ready))resolveRound(room);return;
   }
