@@ -44,7 +44,7 @@ function stdSync(){const g=STD.g;S.hp=[g.hp[0],g.hp[1]];stdSyncCards();S.blocked
 function stdHud(){const g=STD.g;if(!g)return;
  for(let p=0;p<2;p++){const id=document.querySelector(p===0?'.player-hud .who-id':'.enemy-hud .who-id');if(!id)continue;let line=id.querySelector('.std-nameline');
   if(!line){line=document.createElement('div');line.className='std-nameline';const name=id.querySelector('span');name.textContent=p===0?'YOU':'AI';id.insertBefore(line,name);line.appendChild(name);const t=document.createElement('span');t.className='std-tags';line.appendChild(t)}
-  const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">×2</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">×2</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
+  const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">+10</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">+10</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
 function stdFan(){const h=$('hand'),it=[...h.children],n=it.length,many=h.dataset.many==='1';it.forEach((el,i)=>{const k=i-(n-1)/2,a=Math.abs(k);el.style.setProperty('--r',(many?0:k*6)+'deg');el.style.setProperty('--y',(many?0:Math.round(3.5*a*a))+'px')})}
 function stdAfterHand(){stdFan();stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}

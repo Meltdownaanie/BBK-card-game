@@ -46,7 +46,7 @@ const FX = {
   [S6]: ['Thua slot', 'Đối thủ discard ngẫu nhiên 1 lá trên tay.'],
   [H7]: ['Thắng / Thua slot', 'Thắng: lấy 2 lá Búa từ discard pile. Thua: rút 2 lá Búa từ deck.'],
   [H8]: ['Thắng slot', 'Chọn 1 chất: cả hai không được chơi chất đó ở round tiếp theo.'],
-  [H9]: ['Thắng slot · chỉ lần đầu đánh xuống', 'Chỉ có tác dụng ở lần đầu tiên lá này được đánh xuống. Nếu lần đó thắng slot: từ round sau đến hết game, nhân đôi sát thương gây ra và HP hồi của bạn. Không thắng thì mất hiệu ứng.'],
+  [H9]: ['Thắng slot · chỉ lần đầu đánh xuống', 'Chỉ có tác dụng ở lần đầu tiên lá này được đánh xuống. Nếu lần đó thắng slot: từ round sau đến hết game, mỗi round khi tính tổng, sát thương bạn gây ra +10 và HP bạn hồi +10. Không thắng thì mất hiệu ứng.'],
   [P7]: ['Thắng slot', 'Gây thêm sát thương = số lá đã rút bằng hiệu ứng × 2 (chưa rút lá nào: 20).'],
   [P8]: ['Thắng slot', 'Tìm 1 lá số 9 và 1 lá số 7 trong deck.'],
   [P9]: ['Thắng slot', 'Tìm 2 lá số 8 và 1 lá số 6 từ deck hoặc discard pile.'],
@@ -192,7 +192,7 @@ function resolve(g, rows) {
           const auto = () => { const cs = [0, 0, 0]; for (const x of g.hand[p]) cs[S(x)]++; for (let j = 0; j < 3; j++) if (rows[p][j] >= 0) cs[S(rows[p][j])]++; let s = 0; for (let j = 1; j < 3; j++) if (cs[j] < cs[s]) s = j; return s; };
           const s = ask(p, { kind: 'suit', key: 'H8', title: 'Búa 8: chọn 1 chất bị cấm với cả hai ở round tiếp theo' }, auto);
           g.nextBan[0] |= 1 << s; g.nextBan[1] |= 1 << s; fired = true; say(p, c, i, 'Cấm chất ' + SUIT_VI[s] + ' với cả hai ở round tiếp theo'); } break;
-        case H9: if (won && h9first[p]) { g.dblNext[p] = true; say(p, c, i, 'Từ round sau: nhân đôi sát thương gây ra và HP hồi'); fired = true; } break;
+        case H9: if (won && h9first[p]) { g.dblNext[p] = true; say(p, c, i, 'Từ round sau: +10 sát thương gây ra và +10 HP hồi mỗi round'); fired = true; } break;
         case P7: if (won) { const d = g.drawnN[p] > 0 ? g.drawnN[p] * 2 : 20; dmgTo[o] += d; fired = true; say(p, c, i, 'Gây thêm ' + d + ' sát thương'); } break;
         case P8: if (won) { let k = 0; for (const n of [9, 7]) { const l = g.deck[p].filter(x => N(x) === n); if (l.length) { const pk = ask(p, { kind: 'cards', key: 'P8' + n, title: 'Bao 8: tìm 1 lá số ' + n + ' trong deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); k += effTake(g, p, pk[0]); } } if (k) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Tìm ' + k + ' lá trong deck'); } } break;
         case P9: if (won) { let k = 0, dk = 0, j = 0; for (const n of [8, 8, 6]) { j++; const ld = g.deck[p].filter(x => N(x) === n), lp = g.disc[p].filter(x => N(x) === n), l = ld.concat(lp); if (!l.length) continue;
@@ -212,9 +212,10 @@ function resolve(g, rows) {
   }
   const pre = [dmgTo[0], dmgTo[1]];
   for (let p = 0; p < 2; p++) {
-    const o = 1 - p, m = g.dbl[p] ? 2 : 1;
-    heal[p] = (heal[p] + (healTotal[p] ? pre[o] : 0)) * m;
-    dmgTo[o] = Math.max(0, pre[o] * m - reduce[o]);
+    // Búa 9 (active from the round after it triggered): +10 to the round's total damage dealt and +10 to the round's total healing, only when there is damage / healing to add to.
+    const o = 1 - p, b = g.dbl[p] ? 10 : 0, h = heal[p] + (healTotal[p] ? pre[o] : 0);
+    heal[p] = h > 0 ? h + b : 0;
+    dmgTo[o] = Math.max(0, (pre[o] > 0 ? pre[o] + b : 0) - reduce[o]);
   }
   const before = [g.hp[0], g.hp[1]];
   for (let p = 0; p < 2; p++) g.hp[p] = Math.min(100, g.hp[p] - dmgTo[p] + heal[p]);
@@ -308,7 +309,7 @@ function score(g, p, ctx) {
   let v = (g.hp[p] - g.hp[o]);
   v += 1.5 * ((g.hand[p].length + g.deck[p].length) - (g.hand[o].length + g.deck[o].length));
   v += 0.8 * (g.hand[p].length - g.hand[o].length);
-  v += 14 * ((g.dbl[p] || g.dblNext[p] ? 1 : 0) - (g.dbl[o] || g.dblNext[o] ? 1 : 0));
+  v += 9 * ((g.dbl[p] || g.dblNext[p] ? 1 : 0) - (g.dbl[o] || g.dblNext[o] ? 1 : 0));
   if (ctx.winner === p) v += 3; else if (ctx.winner === o) v -= 3;
   if (g.nextBlocked[o] >= 0) v += 5; if (g.nextBlocked[p] >= 0) v -= 5;
   v += 1.5 * (g.nextDraw[p] - g.nextDraw[o]);
