@@ -46,7 +46,7 @@ const FX = {
   [S6]: ['Thua slot', 'Đối thủ discard ngẫu nhiên 1 lá trên tay.'],
   [H7]: ['Thắng / Thua slot', 'Thắng: lấy 2 lá Búa từ discard pile. Thua: rút 2 lá Búa từ deck.'],
   [H8]: ['Thắng slot', 'Chọn 1 chất: cả hai không được chơi chất đó ở round tiếp theo.'],
-  [H9]: ['Thắng slot', 'Từ round sau đến hết game: nhân đôi sát thương gây ra và HP hồi của bạn.'],
+  [H9]: ['Thắng slot · chỉ lần đầu đánh xuống', 'Chỉ có tác dụng ở lần đầu tiên lá này được đánh xuống. Nếu lần đó thắng slot: từ round sau đến hết game, nhân đôi sát thương gây ra và HP hồi của bạn. Không thắng thì mất hiệu ứng.'],
   [P7]: ['Thắng slot', 'Gây thêm sát thương = số lá đã rút bằng hiệu ứng × 2 (chưa rút lá nào: 20).'],
   [P8]: ['Thắng slot', 'Tìm 1 lá số 9 và 1 lá số 7 trong deck.'],
   [P9]: ['Thắng slot', 'Tìm 2 lá số 8 và 1 lá số 6 từ deck hoặc discard pile.'],
@@ -58,7 +58,7 @@ const FX = {
 function newGame(activeA, activeB) {
   const g = { hp: [100, 100], deck: [[], []], hand: [[], []], disc: [[], []], eff: [0, 0], active: [activeA, activeB], cnt: [0, 0], drawTrig: [0, 0], drawnN: [0, 0],
     dbl: [false, false], dblNext: [false, false], ban: [0, 0], nextBan: [0, 0], blocked: [-1, -1], nextBlocked: [-1, -1], nextDraw: [1, 1], messUp: [false, false],
-    round: 1, over: false, winner: -1, reason: '', trig: null, log: null, ask: null, human: -1 };
+    h9: [false, false], round: 1, over: false, winner: -1, reason: '', trig: null, log: null, ask: null, human: -1 };
   for (let p = 0; p < 2; p++) {
     const d = shuffle(Array.from({ length: 30 }, (_, i) => i));
     for (let s = 0; s < 3; s++) { const i = d.findIndex(c => S(c) === s); g.hand[p].push(d.splice(i, 1)[0]); }
@@ -72,7 +72,7 @@ function clone(g) {
   return { hp: [g.hp[0], g.hp[1]], deck: [g.deck[0].slice(), g.deck[1].slice()], hand: [g.hand[0].slice(), g.hand[1].slice()], disc: [g.disc[0].slice(), g.disc[1].slice()],
     eff: [g.eff[0], g.eff[1]], active: g.active, cnt: [g.cnt[0], g.cnt[1]], drawTrig: [g.drawTrig[0], g.drawTrig[1]], drawnN: [g.drawnN[0], g.drawnN[1]],
     dbl: [g.dbl[0], g.dbl[1]], dblNext: [g.dblNext[0], g.dblNext[1]], ban: [g.ban[0], g.ban[1]], nextBan: [g.nextBan[0], g.nextBan[1]], blocked: [g.blocked[0], g.blocked[1]], nextBlocked: [g.nextBlocked[0], g.nextBlocked[1]],
-    nextDraw: [g.nextDraw[0], g.nextDraw[1]], messUp: [g.messUp[0], g.messUp[1]], round: g.round, over: false, winner: -1, reason: '', trig: null, log: null, ask: null, human: -1 };
+    nextDraw: [g.nextDraw[0], g.nextDraw[1]], messUp: [g.messUp[0], g.messUp[1]], h9: [g.h9[0], g.h9[1]], round: g.round, over: false, winner: -1, reason: '', trig: null, log: null, ask: null, human: -1 };
 }
 const take = (arr, c) => { const i = arr.indexOf(c); if (i < 0) return false; arr.splice(i, 1); return true; };
 /* A card is "chosen to be discarded": an active Kéo 1 refuses (counter +1), an active Kéo 2 counts twice. Returns true if it really went to the pile. */
@@ -95,6 +95,15 @@ function millDeck(g, owner, k, on, picks) {
     take(g.deck[owner], c); discardCard(g, owner, c, true, on); n++;
   }
   return n;
+}
+/* Card movements caused by one effect (for the UI animations): draw = deck->hand, back = pile->hand, mill = deck->pile, drop = hand->pile. */
+function cardMoves(snap, g) {
+  const mv = [];
+  for (let q = 0; q < 2; q++) {
+    for (const c of g.hand[q]) if (!snap[q].includes(c)) mv.push({ k: snap[2 + q].includes(c) ? 'draw' : 'back', p: q, c });
+    for (const c of g.disc[q]) if (!snap[4 + q].includes(c)) mv.push({ k: snap[2 + q].includes(c) ? 'mill' : 'drop', p: q, c });
+  }
+  return mv;
 }
 /* Slot results before any effect: who wins each slot and the base damage (card vs card, or a direct hit on an empty slot). */
 function outcomes(rows) {
@@ -121,6 +130,9 @@ function resolve(g, rows) {
   const mark = (p, c) => { if (T) T[p][c] = (T[p][c] || 0) + 1; };
   const say = (p, c, i, t) => { if (L) L.push({ p, c, slot: i, t }); };
   const ask = (p, spec, auto) => (g.ask && p === g.human) ? g.ask(spec) : auto();
+  // Búa 9 only works the first time it is played: that play uses the effect up whether it wins, loses, ties or is blocked.
+  const h9first = [false, false];
+  for (let p = 0; p < 2; p++) if (rows[p].includes(H9) && (g.active[p] & bit(H9)) && !g.h9[p]) { h9first[p] = true; g.h9[p] = true; }
   for (let p = 0; p < 2; p++) if (blk[1 - p]) { mark(p, P5); say(p, P5, rows[p].indexOf(P5), 'Chặn mọi hiệu ứng bài của đối thủ trong round này'); }
   for (let i = 0; i < 3; i++) {
     const r = out[i]; if (!r || r[0] < 0) continue;
@@ -129,15 +141,19 @@ function resolve(g, rows) {
     if (c === S3 && isOn(w, c)) { let s = 0; for (const x of g.disc[w]) if (g.eff[w] & bit(x)) s += N(x); d += s; mark(w, c); say(w, c, i, 'Cộng ' + s + ' sát thương từ các lá đã bị discard do hiệu ứng'); }
     slotDmg[i] = d; dmgTo[1 - w] += d; wins[w]++;
   }
+  g.slotDmg = slotDmg; g.curSlot = -1;
   if (wins[0] === 3) dmgTo[1] += 5; if (wins[1] === 3) dmgTo[0] += 5;
   // effects: slot 1 -> 3, winner first then loser
   for (let i = 0; i < 3; i++) {
-    const r = out[i]; if (!r || r[0] < 0) continue;
+    const r = out[i]; g.curSlot = i;
+    for (let p = 0; p < 2; p++) if (rows[p][i] === H9 && h9first[p] && !(on[p] && r && r[0] === p)) say(p, H9, i, 'Lần đầu đánh xuống không thắng slot: hiệu ứng mất, từ giờ là bài thường');
+    if (!r || r[0] < 0) continue;
     const w = r[0];
     for (const p of [w, 1 - w]) {
       const c = rows[p][i]; if (c < 0 || !isOn(p, c)) continue;
       const won = p === w, o = 1 - p;
       let fired = false;
+      const snap = L ? [g.hand[0].slice(), g.hand[1].slice(), g.deck[0].slice(), g.deck[1].slice(), g.disc[0].slice(), g.disc[1].slice()] : null, L0 = L ? L.length : 0;
       switch (c) {
         case H0: if (won) { heal[p] += slotDmg[i]; fired = true; say(p, c, i, 'Hồi ' + slotDmg[i] + ' HP'); } break;
         case H1: if (won) {
@@ -176,7 +192,7 @@ function resolve(g, rows) {
           const auto = () => { const cs = [0, 0, 0]; for (const x of g.hand[p]) cs[S(x)]++; for (let j = 0; j < 3; j++) if (rows[p][j] >= 0) cs[S(rows[p][j])]++; let s = 0; for (let j = 1; j < 3; j++) if (cs[j] < cs[s]) s = j; return s; };
           const s = ask(p, { kind: 'suit', key: 'H8', title: 'Búa 8: chọn 1 chất bị cấm với cả hai ở round tiếp theo' }, auto);
           g.nextBan[0] |= 1 << s; g.nextBan[1] |= 1 << s; fired = true; say(p, c, i, 'Cấm chất ' + SUIT_VI[s] + ' với cả hai ở round tiếp theo'); } break;
-        case H9: if (won) { if (!g.dbl[p] && !g.dblNext[p]) { g.dblNext[p] = true; say(p, c, i, 'Từ round sau: nhân đôi sát thương gây ra và HP hồi'); } fired = true; } break;
+        case H9: if (won && h9first[p]) { g.dblNext[p] = true; say(p, c, i, 'Từ round sau: nhân đôi sát thương gây ra và HP hồi'); fired = true; } break;
         case P7: if (won) { const d = g.drawnN[p] > 0 ? g.drawnN[p] * 2 : 20; dmgTo[o] += d; fired = true; say(p, c, i, 'Gây thêm ' + d + ' sát thương'); } break;
         case P8: if (won) { let k = 0; for (const n of [9, 7]) { const l = g.deck[p].filter(x => N(x) === n); if (l.length) { const pk = ask(p, { kind: 'cards', key: 'P8' + n, title: 'Bao 8: tìm 1 lá số ' + n + ' trong deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); k += effTake(g, p, pk[0]); } } if (k) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Tìm ' + k + ' lá trong deck'); } } break;
         case P9: if (won) { let k = 0, dk = 0, j = 0; for (const n of [8, 8, 6]) { j++; const ld = g.deck[p].filter(x => N(x) === n), lp = g.disc[p].filter(x => N(x) === n), l = ld.concat(lp); if (!l.length) continue;
@@ -191,6 +207,7 @@ function resolve(g, rows) {
         case S9: if (won) { const n = millDeck(g, o, 3, on, null); g.cnt[p] += 3; const d = (3 - n) * 10; dmgTo[o] += d; fired = true; say(p, c, i, 'Discard ' + n + ' lá từ deck đối thủ' + (d ? ', thiếu bài gây thêm ' + d + ' sát thương' : '')); } break;
       }
       if (fired) mark(p, c);
+      if (L) { const mv = cardMoves(snap, g); if (mv.length) { if (L.length === L0) say(p, c, i, ''); L[L.length - 1].mv = mv; } }
     }
   }
   const pre = [dmgTo[0], dmgTo[1]];
