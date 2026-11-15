@@ -75,3 +75,15 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-fxlog.std-toast{cursor:pointer;max-height:none;width:min(360px,calc(100vw - 20px));padding:9px 12px 10px;font-size:15px;line-height:1.35;background:#120c26f5}
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
+.hand .card:hover:not(:disabled){transform:none}
+.slot .fx-trig{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);z-index:3;width:max-content;max-width:calc(100% + 14px);padding:4px 5px 3px;border-radius:5px;background:#1a1332;border:2px solid #ffcf33;box-shadow:0 2px 0 #0c0614;color:#ffcf33;font:700 8px/1.25 var(--pf,monospace);letter-spacing:.04em;text-align:center;white-space:normal;pointer-events:none;animation:fxTrig .32s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes fxTrig{from{transform:translate(-50%,-50%) rotate(-6deg) scale(.3);opacity:0}}
+@media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
+/* hand cards stay put when pressed / hovered (the press is for reading the effect) */
+.hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}
+.hand .hand-item:nth-child(1):hover,.hand .hand-item:nth-child(1):focus-within{transform:rotate(-12deg) translateY(14px)}
+.hand .hand-item:nth-child(2):hover,.hand .hand-item:nth-child(2):focus-within{transform:rotate(-6deg) translateY(4px)}
+.hand .hand-item:nth-child(3):hover,.hand .hand-item:nth-child(3):focus-within{transform:rotate(0)}
+.hand .hand-item:nth-child(4):hover,.hand .hand-item:nth-child(4):focus-within{transform:rotate(6deg) translateY(4px)}
+.hand .hand-item:nth-child(n+5):hover,.hand .hand-item:nth-child(n+5):focus-within{transform:rotate(12deg) translateY(14px)}
+.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}

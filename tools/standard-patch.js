@@ -185,7 +185,15 @@ async function newGame(){
  S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
  $('difficultyStatus').textContent='STANDARD · '+(STD.level==='easy'?'EASY':STD.level==='normal'?'NORMAL':'EXPERT');
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();$('overlay').hidden=true;$('stdBuilder').hidden=true;
- stdSync();renderHistory();renderPreviousRound();updateForfeitButton();render();stdFillHelp();
+ stdSync();renderHistory();renderPreviousRound();updateForfeitButton();stdFillHelp();
+ {const token=S.token,mine=S.hand[0].slice(),theirs=S.hand[1].slice(),zone=$('hand').closest('.hand-zone');
+  S.deck[0]=S.deck[0].concat(mine);S.deck[1]=S.deck[1].concat(theirs);S.hand=[[],[]];$('hand').innerHTML='';render();msg('Dealing the opening five cards…');if(zone)zone.classList.add('is-dealing');
+  for(let i=0;i<Math.max(mine.length,theirs.length);i++){
+   if(theirs[i]){S.hand[1].push(theirs[i]);S.deck[1]=S.deck[1].filter(x=>x!==theirs[i])}
+   const card=mine[i];if(card){card.origin='hand';S.hand[0].push(card);S.deck[0]=S.deck[0].filter(x=>x!==card)}
+   renderHud();if(card){renderHand();await animateDealtCard(card,token)}
+   if(token!==S.token)return;await sleep(reducedMotion()?0:110);if(token!==S.token)return}
+  if(zone)zone.classList.remove('is-dealing');stdSync()}
  await startRound(true);
 }
 //@@AIPLAY
@@ -221,29 +229,35 @@ async function reveal(timeout=false){
  const out=C.outcomes(rows),gen=++STD.anim,first=out.findIndex(Boolean);
  STD.h9show=[rows[0].includes(9)&&!g.h9[0],rows[1].includes(9)&&!g.h9[1]];
  const pill=(i,w,direct,d)=>{const v=$('vs'+i);v.className='versus '+(w===0?'me':w===1?'ai':'tie');v.innerHTML=`<span class="pill">${w<0?'Tie':(direct?'Direct hit ':w===0?'Deals ':'Received ')+d}</span>`};
- // Slot by slot: the clash, then that slot's effects (notice for 3 s + card animations) before the next slot.
- let shown=-1;const told=[0,0,0];
- const slotOf=log=>{const r=log.map(e=>e.c===15&&/^Chặn/.test(e.t)?first:e.slot);for(let k=r.length-1;k>=0;k--)if(r[k]<0)r[k]=k+1<r.length?r[k+1]:Math.max(0,shown);return r};
+ // 1) The three slots clash one after another. A card whose effect is going to fire gets an "EFFECT TRIGGERED" mark right at its clash.
+ const seed0=C.getSeed(),dry=C.clone(g);dry.log=[];C.resolve(dry,rows);C.setSeed(seed0);
+ const fired=[[false,false,false],[false,false,false]];
+ for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/hiệu ứng mất/.test(e.t))fired[e.p][e.slot]=true;
+ for(let i=0;i<3;i++){
+  const r=out[i];if(!r)continue;const a=S.slots[0][i],b=S.slots[1][i],d=r[0]<0?r[1]:dry.slotDmg[i];
+  const result={w:r[0],dmg:d,dbl:!!(a&&b&&a.suit!==b.suit&&a.n===b.n),direct:!(a&&b)};
+  if(a&&b)await animateClash(i,result,tok,a,b);else await animateDirectHit(result.w,i,a||b,result.dmg,tok);
+  if(tok!==S.token)return;
+  pill(i,result.w,result.direct,result.dmg);
+  if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
+  else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
+  for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='EFFECT TRIGGERED';s.appendChild(m)}}
+  await sleep(reducedMotion()?80:(fired[0][i]||fired[1][i]?520:260));if(tok!==S.token)return;
+ }
+ // 2) After all three clashes the effects resolve in order (slot 1 -> 3, winner first): a 3 s notice + card animations each, choice dialogs in between.
+ const told=[0,0,0];
+ const slotOf=log=>{const r=log.map(e=>e.c===15&&/^Chặn/.test(e.t)?first:e.slot);for(let k=r.length-1;k>=0;k--)if(r[k]<0)r[k]=k+1<r.length?r[k+1]:0;return r};
  const present=async(t,upto)=>{
   const log=t.log||[],where=slotOf(log);
   for(let i=0;i<=upto;i++){
-   const r=out[i];
-   if(i>shown){shown=i;if(r){const a=S.slots[0][i],b=S.slots[1][i],d=r[0]<0?r[1]:t.slotDmg[i];
-    const result={w:r[0],dmg:d,dbl:!!(a&&b&&a.suit!==b.suit&&a.n===b.n),direct:!(a&&b)};
-    if(a&&b)await animateClash(i,result,tok,a,b);else await animateDirectHit(result.w,i,a||b,result.dmg,tok);
-    if(tok!==S.token)return;
-    pill(i,result.w,result.direct,result.dmg);
-    if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
-    else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
-    await sleep(reducedMotion()?80:260);if(tok!==S.token)return}}
    const ents=log.filter((e,k)=>where[k]===i).slice(told[i]);if(!ents.length)continue;told[i]+=ents.length;
    const moves=(async()=>{for(const e of ents)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
    const skipped=await stdToast(i,ents.map(stdLine),3000);if(tok!==S.token)return;
    if(!skipped)await moves;if(tok!==S.token)return;
   }};
- // effects: may ask the player to choose; the board catches up to that slot first
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
  await present(t,2);if(tok!==S.token)return;
+ // 3) Only now the total damage / healing of the round is applied.
  const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
@@ -269,7 +283,9 @@ async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInter
  const log=g.log;g.log=null;
  S.animateHand.clear();
  for(const c of g.hand[0]){const o=objOf(0,c);o.origin=res.drawn[0].includes(c)||STD.fxNew.has(c)?'new':STD.rows[0].includes(c)?'returned':'hand';if(o.origin!=='hand')S.animateHand.add(o.id)}
+ for(const c of res.drawn[0])S.animateHand.delete(objOf(0,c).id);
  STD.fxNew.clear();STD.h9show=[false,false];S.slots=[[null,null,null],[null,null,null]];S.phase='dealing';stdSync();render();
+ for(const c of res.drawn[0]){if(!g.hand[0].includes(c))continue;await animateDealtCard(objOf(0,c),tok);if(tok!==S.token)return}
  const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>ĐỐI THỦ</b> '+esc(e.t)}:stdLine(e));
  STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));
  if(lines.length){await stdPanel('KẾT THÚC ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
