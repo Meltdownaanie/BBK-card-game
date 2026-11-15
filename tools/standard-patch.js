@@ -12,7 +12,7 @@ function stdCls(o){if(!STD.g||!/^[01]-/.test(String(o.id)))return '';const c=int
 function stdStar(o){return stdCls(o)?'<i class="fx-stars" aria-hidden="true">'+'<b>★</b>'.repeat(C.tier(intOf(o))+1)+'</i>':''}
 function stdTitle(o){return ''}
 /* Effect tooltip: finger down on an effect card (or mouse hover) shows what the card does. A quick tap still plays the card; a long hold only reads it. */
-const stdTip={el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
+const stdTip={timer:0,el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
 function stdTipFind(x,y){const t=document.elementFromPoint(x,y);return t&&t.closest?t.closest('.card.fx'):null}
 function stdTipShow(card){
@@ -22,13 +22,15 @@ function stdTipShow(card){
  const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let top=r.top-h-12;if(top<6)top=Math.min(innerHeight-h-6,r.bottom+12);
  el.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';el.style.top=Math.max(6,top)+'px';stdTip.card=card}
 function stdTipInit(){
- document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const card=stdTipFind(e.clientX,e.clientY);stdTip.block=false;if(!card){stdTipHide();return}
-  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTipShow(card)},true);
+ // Touch: tap and drag work exactly like Classic. The effect panel only opens after the finger rests on a card for a moment without moving.
+ const HOLD=280;
+ document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);stdTip.block=false;stdTipHide();const card=stdTipFind(e.clientX,e.clientY);if(!card)return;
+  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
  document.addEventListener('pointermove',e=>{
   if(e.pointerType==='mouse'){if(e.buttons){stdTipHide();return}const card=stdTipFind(e.clientX,e.clientY);if(card!==stdTip.card){if(card)stdTipShow(card);else stdTipHide()}return}
-  if(stdTip.card&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;stdTipHide()}},true);
- const up=e=>{if(e.pointerType==='mouse')return;if(stdTip.card&&!stdTip.moved&&performance.now()-stdTip.t0>=400){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
- document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse')stdTipHide()},true);
+  if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},true);
+ const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
+ document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse'){clearTimeout(stdTip.timer);stdTipHide()}},true);
  document.addEventListener('click',e=>{if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault()}},true);
  addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
@@ -241,7 +243,7 @@ async function reveal(timeout=false){
   pill(i,result.w,result.direct,result.dmg);
   if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
   else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
-  for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='EFFECT TRIGGERED';s.appendChild(m)}}
+  for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';s.appendChild(m)}}
   await sleep(reducedMotion()?80:(fired[0][i]||fired[1][i]?320:260));if(tok!==S.token)return;
  }
  // 2) After all three clashes the effects resolve in order (slot 1 -> 3, winner first): a 3 s notice + card animations each, choice dialogs in between.
