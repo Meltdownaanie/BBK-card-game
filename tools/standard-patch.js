@@ -1,7 +1,7 @@
 //@@HELPERS
 /* ===================== STANDARD MODE (TEST BUILD) ===================== */
 const C=window.Std184;
-const STD={h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
+const STD={hist:[],tap:{i:-1,t:0},h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
 const OBJ=[{},{}];
 function objOf(p,c){return OBJ[p][c]||(OBJ[p][c]={id:`${p}-${ORDER[C.S(c)]}-${C.N(c)}`,suit:ORDER[C.S(c)],n:C.N(c),origin:'hand'})}
 const intOf=o=>ORDER.indexOf(o.suit)*10+o.n;
@@ -31,7 +31,11 @@ function stdTipInit(){
   if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},true);
  const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
  document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse'){clearTimeout(stdTip.timer);stdTipHide()}},true);
- document.addEventListener('click',e=>{if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('click',e=>{
+  if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
+  if(S.phase==='discard'&&S.canPick&&e.isTrusted!==undefined){const sl=e.target.closest&&e.target.closest('.slot.mine');if(sl&&sl.querySelector('.card')){const i=+sl.id.slice(-1),now=performance.now();
+   if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
+   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Chạm nhanh 2 lần vào lá để discard · giữ để đọc hiệu ứng')}}},true);
  addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
 function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return 'Round này bạn bị cấm chất '+l.join(', ')}
@@ -42,7 +46,7 @@ function stdHud(){const g=STD.g;if(!g)return;
   if(!line){line=document.createElement('div');line.className='std-nameline';const name=id.querySelector('span');name.textContent=p===0?'YOU':'AI';id.insertBefore(line,name);line.appendChild(name);const t=document.createElement('span');t.className='std-tags';line.appendChild(t)}
   const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">×2</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">×2</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
-function stdAfterHand(){if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
+function stdAfterHand(){stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
 const STD_BACK='<div class="mu-back"></div>';
 function stdAnchor(p,what){const hud=p===0?'.player-hud':'.enemy-hud';
@@ -99,6 +103,16 @@ function stdToast(slot,lines,ms){return new Promise(res=>{
   document.body.appendChild(el);el.style.top='8px';
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
+/* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
+function stdLogPush(round,ents){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[]};STD.hist.push(h)}h.log=h.log.concat(l);const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
+function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
+function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
+function stdLogInit(){
+ const b=document.createElement('button');b.type='button';b.id='stdLogBtn';b.hidden=true;b.setAttribute('aria-label','Effect log');b.setAttribute('aria-expanded','false');b.innerHTML='<span aria-hidden="true">≡</span>';document.body.appendChild(b);
+ b.addEventListener('click',()=>stdLogToggle());
+ $('stdLog').addEventListener('click',e=>{if(e.target===$('stdLog')||e.target.closest('#stdLogClose'))stdLogToggle(false)});
+ addEventListener('resize',stdLogPos)}
 /* choice dialog for "tìm" effects, Bao 1, Búa 8 and Kéo 7 */
 function stdAsk(spec){return new Promise(res=>{
   const ov=$('stdModal'),box=ov.querySelector('.std-modal-box');
@@ -179,11 +193,11 @@ function stdInit(){
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
   $('stdStart').addEventListener('click',stdStartMatch);
-  stdTipInit();stdOpenBuilder()}
+  stdTipInit();stdLogInit();stdOpenBuilder()}
 //@@NEWGAME
 async function newGame(){
  S.token++;clearInterval(S.timer);C.setSeed((Date.now()^Math.floor(Math.random()*1e9))|0);
- OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.ctx=null;STD.rows=null;
+ OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.hist=[];STD.ctx=null;STD.rows=null;
  S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
  $('difficultyStatus').textContent='STANDARD · '+(STD.level==='easy'?'EASY':STD.level==='normal'?'NORMAL':'EXPERT');
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();$('overlay').hidden=true;$('stdBuilder').hidden=true;
@@ -260,7 +274,7 @@ async function reveal(timeout=false){
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
  await present(t,2);if(tok!==S.token)return;
  // 3) Only now the total damage / healing of the round is applied.
- const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();
+ const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log);
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();
@@ -289,6 +303,6 @@ async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInter
  STD.fxNew.clear();STD.h9show=[false,false];S.slots=[[null,null,null],[null,null,null]];S.phase='dealing';stdSync();render();
  for(const c of res.drawn[0]){if(!g.hand[0].includes(c))continue;await animateDealtCard(objOf(0,c),tok);if(tok!==S.token)return}
  const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>ĐỐI THỦ</b> '+esc(e.t)}:stdLine(e));
- STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));
+ STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));stdLogPush(g.round-1,log);
  if(lines.length){await stdPanel('KẾT THÚC ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
  startRound(false)}

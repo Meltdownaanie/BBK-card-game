@@ -363,8 +363,8 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 @media (hover:none){.hand .card:hover:not(:disabled){transform:none}}
-.slot .fx-trig{position:absolute;left:0;right:0;top:-7px;z-index:3;padding:2px 0;border-radius:4px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 8px/1.1 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.06em;text-align:center;white-space:nowrap;overflow:hidden;pointer-events:none;animation:fxTrig .25s ease-out both}
-@keyframes fxTrig{from{transform:scale(.4);opacity:0}}
+.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+@keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
 /* touch screens: hand cards stay put when pressed (no sticky hover lift); mouse keeps the Classic hover lift */
 @media (hover:none){
@@ -376,6 +376,20 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .hand .hand-item:nth-child(n+5):hover,.hand .hand-item:nth-child(n+5):focus-within{transform:rotate(12deg) translateY(14px)}
 .hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}
 }
+.std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
+#stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
+#stdLogBtn[hidden]{display:none}
+#stdLogBtn.new:after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ff5b5b;border:2px solid #0c0614}
+#stdLogBtn.open{z-index:1210;background:#ffcf33;color:#1a1332}
+.overlay.std-logov{justify-content:flex-start;padding-left:40px}
+.std-logov .std-modal-box{width:min(340px,100%);max-height:78vh}
+.std-log-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.std-log-h h3{margin:0}
+#stdLogClose{min-width:34px;min-height:34px;padding:0!important;border-radius:8px;border:2px solid #0c0614;background:#2c2152;color:#efe6ff;font:700 14px/1 system-ui,sans-serif;cursor:pointer}
+#stdLogBody h4{margin:12px 0 4px;font:700 11px/1 var(--pf,monospace);letter-spacing:.08em;color:#ffcf33}
+#stdLogBody h4:first-child{margin-top:2px}
+.std-log-empty{color:#b9a9e6;font-size:13px;margin:6px 0}
+.slot.mine .card.tap1{outline:3px solid #ffcf33!important;outline-offset:3px}
 </style>
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
@@ -415,6 +429,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
  <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ BẮT ĐẦU</button></div>
 </section></div>
 <div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
+<div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>
 <div id="forfeitOverlay" class="overlay forfeit-overlay" hidden>
  <section class="dialog forfeit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="forfeitTitle" aria-describedby="forfeitText">
   <h2 id="forfeitTitle">FORFEIT MATCH?</h2><p id="forfeitText">Leaving now counts as a loss. You will return to the main menu.</p>
@@ -734,7 +749,7 @@ function guideText(){
  }
  if(S.phase==='dealing')return 'Drawing cards for the next round';
  if(S.phase==='reveal')return 'Same slot fights · an empty slot takes a direct hit';
- if(S.phase==='discard')return S.canPick?'Round won · tap one of your played cards to discard it':'One of your played cards is discarded';
+ if(S.phase==='discard')return S.canPick?'Round won · double-tap a played card to discard it':'One of your played cards is discarded';
  return '';
 }
 function updateButton(){try{return updateButtonCore()}finally{$('mainButton').dataset.hint=guideText()}}
@@ -742,7 +757,7 @@ function updateButtonCore(){updateForfeitButton();const b=$('mainButton');b.clas
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
 /* ===================== STANDARD MODE (TEST BUILD) ===================== */
 const C=window.Std184;
-const STD={h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
+const STD={hist:[],tap:{i:-1,t:0},h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
 const OBJ=[{},{}];
 function objOf(p,c){return OBJ[p][c]||(OBJ[p][c]={id:`${p}-${ORDER[C.S(c)]}-${C.N(c)}`,suit:ORDER[C.S(c)],n:C.N(c),origin:'hand'})}
 const intOf=o=>ORDER.indexOf(o.suit)*10+o.n;
@@ -772,7 +787,11 @@ function stdTipInit(){
   if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},true);
  const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
  document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse'){clearTimeout(stdTip.timer);stdTipHide()}},true);
- document.addEventListener('click',e=>{if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('click',e=>{
+  if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
+  if(S.phase==='discard'&&S.canPick&&e.isTrusted!==undefined){const sl=e.target.closest&&e.target.closest('.slot.mine');if(sl&&sl.querySelector('.card')){const i=+sl.id.slice(-1),now=performance.now();
+   if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
+   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Chạm nhanh 2 lần vào lá để discard · giữ để đọc hiệu ứng')}}},true);
  addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
 function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return 'Round này bạn bị cấm chất '+l.join(', ')}
@@ -783,7 +802,7 @@ function stdHud(){const g=STD.g;if(!g)return;
   if(!line){line=document.createElement('div');line.className='std-nameline';const name=id.querySelector('span');name.textContent=p===0?'YOU':'AI';id.insertBefore(line,name);line.appendChild(name);const t=document.createElement('span');t.className='std-tags';line.appendChild(t)}
   const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">×2</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">×2</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
-function stdAfterHand(){if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
+function stdAfterHand(){stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
 const STD_BACK='<div class="mu-back"></div>';
 function stdAnchor(p,what){const hud=p===0?'.player-hud':'.enemy-hud';
@@ -840,6 +859,16 @@ function stdToast(slot,lines,ms){return new Promise(res=>{
   document.body.appendChild(el);el.style.top='8px';
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
+/* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
+function stdLogPush(round,ents){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[]};STD.hist.push(h)}h.log=h.log.concat(l);const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
+function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
+function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
+function stdLogInit(){
+ const b=document.createElement('button');b.type='button';b.id='stdLogBtn';b.hidden=true;b.setAttribute('aria-label','Effect log');b.setAttribute('aria-expanded','false');b.innerHTML='<span aria-hidden="true">≡</span>';document.body.appendChild(b);
+ b.addEventListener('click',()=>stdLogToggle());
+ $('stdLog').addEventListener('click',e=>{if(e.target===$('stdLog')||e.target.closest('#stdLogClose'))stdLogToggle(false)});
+ addEventListener('resize',stdLogPos)}
 /* choice dialog for "tìm" effects, Bao 1, Búa 8 and Kéo 7 */
 function stdAsk(spec){return new Promise(res=>{
   const ov=$('stdModal'),box=ov.querySelector('.std-modal-box');
@@ -920,10 +949,10 @@ function stdInit(){
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
   $('stdStart').addEventListener('click',stdStartMatch);
-  stdTipInit();stdOpenBuilder()}
+  stdTipInit();stdLogInit();stdOpenBuilder()}
 async function newGame(){
  S.token++;clearInterval(S.timer);C.setSeed((Date.now()^Math.floor(Math.random()*1e9))|0);
- OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.ctx=null;STD.rows=null;
+ OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.hist=[];STD.ctx=null;STD.rows=null;
  S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
  $('difficultyStatus').textContent='STANDARD · '+(STD.level==='easy'?'EASY':STD.level==='normal'?'NORMAL':'EXPERT');
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();$('overlay').hidden=true;$('stdBuilder').hidden=true;
@@ -1018,7 +1047,7 @@ async function reveal(timeout=false){
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
  await present(t,2);if(tok!==S.token)return;
  // 3) Only now the total damage / healing of the round is applied.
- const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();
+ const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log);
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();
@@ -1058,7 +1087,7 @@ async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInter
  STD.fxNew.clear();STD.h9show=[false,false];S.slots=[[null,null,null],[null,null,null]];S.phase='dealing';stdSync();render();
  for(const c of res.drawn[0]){if(!g.hand[0].includes(c))continue;await animateDealtCard(objOf(0,c),tok);if(tok!==S.token)return}
  const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>ĐỐI THỦ</b> '+esc(e.t)}:stdLine(e));
- STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));
+ STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));stdLogPush(g.round-1,log);
  if(lines.length){await stdPanel('KẾT THÚC ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
  startRound(false)}
 function canForfeit(){return S.phase==='plan'||S.phase==='dealing'||S.phase==='reveal'||S.phase==='discard'}

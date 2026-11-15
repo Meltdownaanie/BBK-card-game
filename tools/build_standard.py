@@ -34,6 +34,7 @@ rep("function placeCard(id,i){", "function placeCard(id,i){{const c0=S.hand[0].f
 rep(";updateHandSwipe();fitManyHand()}", ";updateHandSwipe();fitManyHand();stdAfterHand()}")
 rep("function renderHud(){", "function renderHud(){try{stdHud()}catch(e){}")
 rep("function showMenu(){", "function showMenu(){stdOpenBuilder();return;")
+rep("'Round won · tap one of your played cards to discard it'", "'Round won · double-tap a played card to discard it'")
 rep("  if(n===0&&locked.length)return", "  if(n===0&&stdBanText())return stdBanText();\n  if(n===0&&locked.length)return")
 # start-up
 a = s.rindex("})();\n</script>", 0, s.index("document.getElementById('menuBoard')"))
@@ -49,6 +50,7 @@ html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class
  <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ BẮT ĐẦU</button></div>
 </section></div>
 <div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
+<div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>
 '''
 rep('<div id="forfeitOverlay"', html + '<div id="forfeitOverlay"')
 css = open(os.path.join(root, 'tools', 'standard.css'), encoding='utf-8').read()

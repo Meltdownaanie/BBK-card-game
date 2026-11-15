@@ -74,8 +74,8 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 @media (hover:none){.hand .card:hover:not(:disabled){transform:none}}
-.slot .fx-trig{position:absolute;left:0;right:0;top:-7px;z-index:3;padding:2px 0;border-radius:4px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 8px/1.1 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.06em;text-align:center;white-space:nowrap;overflow:hidden;pointer-events:none;animation:fxTrig .25s ease-out both}
-@keyframes fxTrig{from{transform:scale(.4);opacity:0}}
+.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+@keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
 /* touch screens: hand cards stay put when pressed (no sticky hover lift); mouse keeps the Classic hover lift */
 @media (hover:none){
@@ -87,3 +87,17 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .hand .hand-item:nth-child(n+5):hover,.hand .hand-item:nth-child(n+5):focus-within{transform:rotate(12deg) translateY(14px)}
 .hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}
 }
+.std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
+#stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
+#stdLogBtn[hidden]{display:none}
+#stdLogBtn.new:after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ff5b5b;border:2px solid #0c0614}
+#stdLogBtn.open{z-index:1210;background:#ffcf33;color:#1a1332}
+.overlay.std-logov{justify-content:flex-start;padding-left:40px}
+.std-logov .std-modal-box{width:min(340px,100%);max-height:78vh}
+.std-log-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.std-log-h h3{margin:0}
+#stdLogClose{min-width:34px;min-height:34px;padding:0!important;border-radius:8px;border:2px solid #0c0614;background:#2c2152;color:#efe6ff;font:700 14px/1 system-ui,sans-serif;cursor:pointer}
+#stdLogBody h4{margin:12px 0 4px;font:700 11px/1 var(--pf,monospace);letter-spacing:.08em;color:#ffcf33}
+#stdLogBody h4:first-child{margin-top:2px}
+.std-log-empty{color:#b9a9e6;font-size:13px;margin:6px 0}
+.slot.mine .card.tap1{outline:3px solid #ffcf33!important;outline-offset:3px}
