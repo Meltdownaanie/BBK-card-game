@@ -9,8 +9,28 @@ const ownerOf=o=>String(o.id).charAt(0)==='1'?1:0;
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 function stdActive(p,c){return !!STD.g&&(STD.g.active[p]&C.bit(c))!==0}
 function stdCls(o){if(!STD.g||!/^[01]-/.test(String(o.id)))return '';const c=intOf(o);return stdActive(ownerOf(o),c)?'fx fx-t'+(C.tier(c)+1):''}
-function stdStar(o){return stdCls(o)?'<i class="fx-star" aria-hidden="true">★</i>':''}
-function stdTitle(o){if(!stdCls(o))return '';const f=C.FX[intOf(o)];return esc(f[0]+': '+f[1])}
+function stdStar(o){return stdCls(o)?'<i class="fx-tier" aria-hidden="true"><span>TIER </span>'+(C.tier(intOf(o))+1)+'</i>':''}
+function stdTitle(o){return ''}
+/* Effect tooltip: finger down on an effect card (or mouse hover) shows what the card does. A quick tap still plays the card; a long hold only reads it. */
+const stdTip={el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
+function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
+function stdTipFind(x,y){const t=document.elementFromPoint(x,y);return t&&t.closest?t.closest('.card.fx'):null}
+function stdTipShow(card){
+ const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3],f=C.FX[c];if(!f)return;
+ let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
+ const t=C.tier(c)+1;el.className='std-tip t'+t;el.innerHTML='<b>'+esc(C.VI(c))+'<span>TIER '+t+'</span></b><i>'+esc(f[0])+'</i>'+esc(f[1]);el.hidden=false;
+ const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let top=r.top-h-12;if(top<6)top=Math.min(innerHeight-h-6,r.bottom+12);
+ el.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';el.style.top=Math.max(6,top)+'px';stdTip.card=card}
+function stdTipInit(){
+ document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const card=stdTipFind(e.clientX,e.clientY);stdTip.block=false;if(!card){stdTipHide();return}
+  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTipShow(card)},true);
+ document.addEventListener('pointermove',e=>{
+  if(e.pointerType==='mouse'){if(e.buttons){stdTipHide();return}const card=stdTipFind(e.clientX,e.clientY);if(card!==stdTip.card){if(card)stdTipShow(card);else stdTipHide()}return}
+  if(stdTip.card&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;stdTipHide()}},true);
+ const up=e=>{if(e.pointerType==='mouse')return;if(stdTip.card&&!stdTip.moved&&performance.now()-stdTip.t0>=400){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350)}stdTipHide()};
+ document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse')stdTipHide()},true);
+ document.addEventListener('click',e=>{if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault()}},true);
+ addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
 function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return 'Round này bạn bị cấm chất '+l.join(', ')}
 function stdSync(){const g=STD.g;S.hp=[g.hp[0],g.hp[1]];for(let p=0;p<2;p++){S.hand[p]=g.hand[p].map(c=>objOf(p,c));S.deck[p]=g.deck[p].map(c=>objOf(p,c));S.discard[p]=g.disc[p].map(c=>objOf(p,c))}S.blocked=[g.blocked[0]<0?null:g.blocked[0],g.blocked[1]<0?null:g.blocked[1]];S.endgameBlocked=[];S.nextBlocked=[null,null]}
@@ -43,7 +63,7 @@ function stdAsk(spec){return new Promise(res=>{
   if(spec.kind==='suit'){html+='<div class="std-picks">'+[0,1,2].map(s=>'<button type="button" class="std-pick '+ORDER[s]+'" data-s="'+s+'">'+SUITS[ORDER[s]].icon+'<b>'+C.SUIT_VI[s]+'</b></button>').join('')+'</div>';box.innerHTML=html;
    box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>close(+b.dataset.s)));ov.hidden=false;return}
   const owner=spec.owner===undefined?0:spec.owner,k=Math.min(spec.k,spec.list.length),sel=new Set();
-  html+='<div class="std-picks">'+spec.list.map((c,i)=>{const on=stdActive(owner,c);return '<button type="button" class="std-pick '+ORDER[C.S(c)]+(on?' fx':'')+'" data-i="'+i+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b>'+(on?'<i class="fx-star">★</i>':'')+'</button>'}).join('')+'</div>';
+  html+='<div class="std-picks">'+spec.list.map((c,i)=>{const on=stdActive(owner,c);return '<button type="button" class="std-pick '+ORDER[C.S(c)]+(on?' fx fx-t'+(C.tier(c)+1):'')+'" data-i="'+i+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b>'+(on?'<i class="fx-tier">T'+(C.tier(c)+1)+'</i>':'')+'</button>'}).join('')+'</div>';
   html+='<p class="std-pick-info" id="stdPickInfo">Chọn '+k+' lá.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">BỎ QUA</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>XÁC NHẬN</button></div>';
   box.innerHTML=html;
   const info=$('stdPickInfo'),ok=$('stdOk');
@@ -106,7 +126,7 @@ function stdStartMatch(){
 function stdFillHelp(){
   const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>Không bật lá nào.</p>'};
   $('tutorialTitle').textContent='STANDARD · EFFECTS';
-  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Lá có dấu ★ là lá đã bật hiệu ứng. Hiệu ứng chạy khi lá thắng slot của nó (đánh thẳng vào slot trống cũng tính), theo thứ tự slot 1 → 2 → 3, thắng trước thua sau.';
+  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Lá có viền màu và chữ TIER là lá đã bật hiệu ứng (Tier 1 xanh, Tier 2 tím, Tier 3 vàng). Đặt ngón tay lên lá (hoặc rê chuột) để xem hiệu ứng. Hiệu ứng chạy khi lá thắng slot của nó (đánh thẳng vào slot trống cũng tính), theo thứ tự slot 1 → 2 → 3, thắng trước thua sau.';
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
   guide.innerHTML='<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA BẠN</h3>'+mk(0)+'<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA AI ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">HIỆU ỨNG ROUND VỪA RỒI</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
@@ -115,7 +135,7 @@ function stdInit(){
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
   $('stdStart').addEventListener('click',stdStartMatch);
-  stdOpenBuilder()}
+  stdTipInit();stdOpenBuilder()}
 //@@NEWGAME
 async function newGame(){
  S.token++;clearInterval(S.timer);C.setSeed((Date.now()^Math.floor(Math.random()*1e9))|0);

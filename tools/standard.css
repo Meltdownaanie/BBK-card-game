@@ -1,8 +1,20 @@
 /* Standard mode TEST build: extra styles only (the Classic skin is untouched) */
-.card .fx-star{position:absolute;top:9px;right:4px;width:17px;height:17px;border-radius:50%;background:#1a1332;display:grid;place-items:center;font:700 11px/1 system-ui,sans-serif;font-style:normal;color:#ffcf33;box-shadow:0 0 0 2px #fff7e8;pointer-events:none;z-index:1}
-.card.fx-t2 .fx-star{color:#4fdcff}
-.card.fx-t3 .fx-star{color:#ff7ad9}
-.slot .card .fx-star,.hand[data-many="1"] .card .fx-star{top:7px;right:3px;width:14px;height:14px;font-size:9px}
+.card.fx,.std-pick.fx,.std-tip{--tc:#2f9bff}
+.card.fx-t2,.std-pick.fx-t2,.std-tip.t2{--tc:#a45cff}
+.card.fx-t3,.std-pick.fx-t3,.std-tip.t3{--tc:#ffc21a}
+.card.fx{box-shadow:0 0 0 3px var(--tc),0 0 0 5px var(--c-line),0 5px 0 5px var(--c-line),inset 0 7px 0 var(--sc)!important}
+.card.fx.win{box-shadow:0 0 0 3px var(--tc),0 0 0 5px var(--c-line),0 0 0 8px var(--c-gold),0 5px 0 5px var(--c-line),inset 0 7px 0 var(--sc)!important}
+.card .fx-tier{position:absolute;left:4px;bottom:4px;padding:2px 4px;border-radius:4px;background:var(--tc);color:#fff;font:800 8px/1 system-ui,-apple-system,'Segoe UI',sans-serif;font-style:normal;letter-spacing:.04em;white-space:nowrap;pointer-events:none;z-index:1}
+.card.fx-t3 .fx-tier,.std-pick.fx-t3 .fx-tier{color:#2a1a00}
+.hand .card .fx-tier{font-size:9px;padding:2px 3px}
+.hand .card .fx-tier span{display:none}.hand .card .fx-tier:before{content:"T"}
+.std-tip{position:fixed;z-index:1300;width:max-content;max-width:min(280px,calc(100vw - 12px));padding:8px 10px;border-radius:10px;background:#150f2bf7;border:3px solid var(--tc);box-shadow:0 4px 0 #0c0614;color:#efe6ff;font:13px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif;pointer-events:none}
+.std-tip[hidden]{display:none}
+.std-tip b{display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:700;color:#fff7e8}
+.std-tip b span{flex:0 0 auto;padding:2px 5px;border-radius:4px;background:var(--tc);color:#fff;font-size:10px;letter-spacing:.04em}
+.std-tip.t3 b span{color:#2a1a00}
+.std-tip i{display:block;font-style:normal;font-weight:700;color:var(--tc);margin:3px 0 1px}
+.hand .card,.slot .card{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .hand .card.std-banned{filter:grayscale(1) brightness(.55)!important;cursor:not-allowed}
 .std-nameline{display:flex;align-items:center;gap:4px;min-width:0;white-space:nowrap}
 .std-nameline>span:first-child{flex:0 0 auto}
@@ -45,7 +57,8 @@
 .std-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
 .std-pick{position:relative;height:56px;cursor:pointer;font-size:22px;outline:3px solid transparent;outline-offset:1px}
 .std-pick.sel{outline-color:#ffcf33;background:#fff}
-.std-pick .fx-star{position:absolute;top:2px;right:3px;width:15px;height:15px;border-radius:50%;background:#1a1332;display:grid;place-items:center;font:700 10px/1 system-ui,sans-serif;font-style:normal;color:#ffcf33}
+.std-pick.fx{box-shadow:0 0 0 3px var(--tc)}
+.std-pick .fx-tier{position:absolute;top:2px;right:3px;padding:1px 3px;border-radius:3px;background:var(--tc);color:#fff;font:800 8px/1 system-ui,sans-serif;font-style:normal}
 .std-pick-info{min-height:2.7em;margin:10px 0 8px;font-size:13px;color:#cdbfe8}
 .std-modal-actions{display:flex;gap:8px;justify-content:flex-end}
 .std-modal-actions button{min-height:42px;padding:8px 16px!important}
