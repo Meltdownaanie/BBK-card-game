@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261115a">
+<link rel="stylesheet" href="./crt-game.css?v=20261115b">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
@@ -353,6 +353,7 @@ body{padding:8px 12px 12px}
 </div>
 <div id="aiPane" class="pane" hidden>
 <a href="./online.html" id="practiceDone" class="primary" hidden>▶ GO TO MULTIPLAYER</a>
+<div id="matchStats" class="match-stats" hidden></div>
 <button type="button" id="startButton" class="primary">↻ PLAY AGAIN</button>
 <button type="button" id="backToMenu" class="secondary">☰ MAIN MENU · change difficulty</button>
 </div>
@@ -567,7 +568,7 @@ function draw(p){if(S.deck[p].length){const c=S.deck[p].pop();c.origin='new';S.h
 // Ensure each player starts with one card of every suit.
 function initialThree(p){const taken=[];for(const suit of ORDER){const idx=S.deck[p].findIndex(c=>c.suit===suit);if(idx<0)throw Error('Deck is missing suit '+suit);taken.push(S.deck[p].splice(idx,1)[0])}return shuffle(taken)}
 function exhausted(){return S.deck.every(d=>d.length===0)&&S.hand.every(h=>h.length===0)}
-function showHpFinish(){S.phase='over';clearInterval(S.timer);render();let title,description;
+function showHpFinish(){S.phase='over';if(S.stats)S.stats.finish='cards';clearInterval(S.timer);render();let title,description;
  if(S.hp[0]===S.hp[1]){title='DRAW · OUT OF CARDS';description=`Both players are out of cards, tied at ${Math.max(0,S.hp[0])} HP.`}
  else if(S.hp[0]>S.hp[1]){title='🏆 YOU WIN · OUT OF CARDS';description=`No cards remain. You: ${Math.max(0,S.hp[0])} HP · AI: ${Math.max(0,S.hp[1])} HP.`}
  else{title='AI WINS · OUT OF CARDS';description=`No cards remain. AI: ${Math.max(0,S.hp[1])} HP · You: ${Math.max(0,S.hp[0])} HP.`}
@@ -641,7 +642,7 @@ function updateButtonCore(){updateForfeitButton();const b=$('mainButton');b.clas
 function render(){renderHud();renderSlots();renderHand();updateButton();$('round').textContent=Math.max(1,S.round);$('limit').textContent=`/ ${S.duration}s`}
 async function newGame(){
  S.token++;const token=S.token;clearInterval(S.timer);S.hp=[100,100];S.deck=[makeDeck(0),makeDeck(1)];S.discard=[[],[]];S.hand=[[],[]];S.slots=[[null,null,null],[null,null,null]];
- S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty=$('aiDifficulty').value;$('difficultyStatus').textContent=S.difficulty==='hard'?'SUXVAT':S.difficulty.toUpperCase();S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;
+ S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty=$('aiDifficulty').value;$('difficultyStatus').textContent=S.difficulty==='hard'?'SUXVAT':S.difficulty.toUpperCase();S.dragId=null;S.animateHand.clear();S.blocked=[null,null];S.nextBlocked=[null,null];S.endgameBlocked=[];S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;resetStats();
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();renderHistory();renderPreviousRound();$('overlay').hidden=true;updateForfeitButton();$('hand').innerHTML='';$('handCount').textContent='0 cards';render();msg('Dealing the opening five cards…');$('hand').closest('.hand-zone').classList.add('is-dealing');
  const firstCards=[initialThree(0),initialThree(1)];
  for(let i=0;i<5;i++){
@@ -739,10 +740,12 @@ async function endReveal(wins,outcomes){
   renderHistory();renderPreviousRound();
   const winner=roundWinner(wins,outcomes),fullSweep=wins[0]===3||wins[1]===3;
   if(fullSweep){const loser=wins[0]===3?1:0,before=S.hp[loser];S.hp[loser]-=5;renderHud();animateHpHit(loser,5,before);msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');await sleep(reducedMotion()?100:650);}
+  recordRound(wins,outcomes,winner,fullSweep);
   // Secret victory combo wins the match; risky combo doubles round damage and grants an extra draw.
   const packWinner=[0,1].find(p=>winner===p&&isTriple(p,7));
   const kiantsLoser=undefined;   // KIANTS GILLER (999) has been removed from the game
   if(packWinner!==undefined){
+    countCombo(packWinner,'777');S.stats.finish='777';
     const desc=packWinner===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens — instant victory!';
     if(!await celebrateCombo('pack',packWinner,desc,S.token))return;
     S.phase='over';clearInterval(S.timer);updateButton();showDialog('🏆 PACK JOT WIN!',desc);return;
@@ -763,7 +766,7 @@ async function endReveal(wins,outcomes){
   if(S.hp[0]<=0||S.hp[1]<=0){S.phase='over';updateButton();let title,text;if(S.hp[0]<=0&&S.hp[1]<=0){title='DRAW!';text='Both players ran out of HP.'}else if(S.hp[1]<=0){title='YOU WIN!';text='You defeated the AI.'}else{title='AI WINS!';text='Play again for a rematch.'}showDialog(title,text);return}
   let zeroText='';
   for(let p=0;p<2;p++)if(winner===p&&isTriple(p,0)){
-    const target=1-p;const slot=Math.floor(Math.random()*3);S.nextBlocked[target]=slot;
+    countCombo(p,'000');const target=1-p;const slot=Math.floor(Math.random()*3);S.nextBlocked[target]=slot;
     zeroText=`ZERO TO HERO CALL! ${target===0?"Your":"The AI’s"} slot ${slot+1} will be locked next round.`;
   }
   if(zeroText){
@@ -772,12 +775,12 @@ async function endReveal(wins,outcomes){
   // CHARGE!!! (rising straight, any suits) and MESS UP!!! (falling straight, one suit) fire whether or not the round was won.
   if(!TUT.on||TUT.L[TUT.k].combos)for(let p=0;p<2;p++){
     if(isChargeLine(p)){
-      S.nextDraws[p]=Math.max(S.nextDraws[p],2);
+      S.nextDraws[p]=Math.max(S.nextDraws[p],2);countCombo(p,'CHARGE!!!');
       msg(`CHARGE!!! ${p===0?'You draw':'The AI draws'} 2 cards next round.`);
       if(!await flashCombo('charge',S.token))return;
     }
     if(isMessUpLine(p)){
-      S.messUp[1-p]=true;
+      S.messUp[1-p]=true;countCombo(p,'MESS UP!!!');
       msg(`MESS UP!!! ${p===0?'A random card from the AI’s hand':'A random card from your hand'} goes back into its deck.`);
       if(!await flashCombo('messup',S.token))return;
     }
@@ -846,14 +849,37 @@ function confirmForfeit(){
 }
 function updateForfeitButton(){$('forfeitButton').hidden=!canForfeit()||!$('overlay').hidden}
 function showPane(name){$('menuPane').hidden=name!=='menu';$('aiPane').hidden=name!=='ai'}
-function showMenu(){practice=false;$('dialogTitle').innerHTML='<span class="h">1</span><span class="p">8</span><span class="s">4</span>';$('dialogText').textContent='CARD DUEL';$('startButton').textContent='▶ START GAME';showPane('menu');$('overlay').hidden=false;$('menuAI').focus()}
+function showMenu(){practice=false;$('dialogTitle').innerHTML='<span class="h">1</span><span class="p">8</span><span class="s">4</span>';$('dialogText').textContent='CARD DUEL';$('startButton').textContent='▶ START GAME';$('matchStats').hidden=true;showPane('menu');$('overlay').hidden=false;$('menuAI').focus()}
 let practice=false;
+// Match stats shown on the result screen. Combos are listed only once performed, so undiscovered secret combos stay hidden.
+const COMBO_ORDER=['777','000','CHARGE!!!','MESS UP!!!'];
+function resetStats(){S.stats={start:Date.now(),rounds:0,dealt:[0,0],rw:[0,0],ties:0,slots:[0,0],slotFights:0,best:[0,0],sweeps:[0,0],doubles:[0,0],direct:[0,0],combos:[{},{}],finish:'hp'}}
+function recordRound(wins,outcomes,winner,sweep){const st=S.stats;if(!st)return;st.rounds++;
+ for(let p=0;p<2;p++)st.dealt[p]+=Math.max(0,S.roundHpStart[1-p]-S.hp[1-p]);
+ if(winner===0||winner===1)st.rw[winner]++;else st.ties++;
+ st.slots[0]+=wins[0];st.slots[1]+=wins[1];st.slotFights+=outcomes.length;
+ for(const o of outcomes)if(o.w===0||o.w===1){st.best[o.w]=Math.max(st.best[o.w],o.dmg);if(o.dbl)st.doubles[o.w]++;if(o.direct)st.direct[o.w]++}
+ if(sweep)st.sweeps[wins[0]===3?0:1]++}
+function countCombo(p,name){if(!S.stats)return;const c=S.stats.combos[p];c[name]=(c[name]||0)+1}
+function comboText(p){const c=S.stats.combos[p],list=COMBO_ORDER.filter(k=>c[k]).map(k=>`${k}${c[k]>1?' ×'+c[k]:''}`);return list.length?list.join(' · '):'—'}
+function renderStats(){const box=$('matchStats'),st=S.stats;if(!box)return;if(!st||!st.rounds){box.hidden=true;box.innerHTML='';return}
+ const secs=Math.round((Date.now()-st.start)/1000),pct=st.slotFights?Math.round(st.slots[0]/st.slotFights*100):0;
+ const finish={hp:'HP KO','777':'777 COMBO',cards:'OUT OF CARDS'}[st.finish]||'HP KO';
+ const tile=(label,val,cls='')=>`<div class="ms-tile ${cls}"><span>${label}</span><b>${val}</b></div>`;
+ box.innerHTML=`<div class="ms-head"><span>MATCH STATS</span><small>${finish}</small></div><div class="ms-grid">`+
+  tile('ROUNDS',st.rounds)+tile('TIME',fmt(secs))+
+  tile('DMG DEALT',st.dealt[0],'good')+tile('DMG TAKEN',st.dealt[1],'bad')+
+  tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('SLOTS',`${st.slots[0]}/${st.slotFights} <small>${pct}%</small>`)+
+  tile('BIGGEST HIT',st.best[0])+tile('SWEEPS',st.sweeps[0])+
+  tile('DOUBLE HITS',st.doubles[0])+tile('DIRECT HITS',st.direct[0])+
+  `</div><div class="ms-combos"><div><span>YOUR COMBOS</span><b>${comboText(0)}</b></div><div><span>AI COMBOS</span><b>${comboText(1)}</b></div></div>`;
+ box.hidden=false}
 function showDialog(title,text){
  const won=/^(🏆 )?YOU WIN/.test(title)||/^You won the round with three sevens/.test(text);
  const doneLink=$('practiceDone');doneLink.hidden=true;
  if(practice&&won&&window.BBK){title='🏆 TUTORIAL COMPLETE!';text='You beat the training bot. Ranked matches are now unlocked.';doneLink.hidden=false;BBK.tutorial.set(5)}
  else if(practice)text+=' Win this match to finish the tutorial.';
- $('dialogTitle').textContent=title;$('dialogText').textContent=text;$('startButton').textContent='↻ PLAY AGAIN';showPane('ai');$('overlay').hidden=false}
+ $('dialogTitle').textContent=title;$('dialogText').textContent=text;$('startButton').textContent='↻ PLAY AGAIN';renderStats();showPane('ai');$('overlay').hidden=false}
 $('hand').addEventListener('click',e=>{const b=e.target.closest('button.card');if(!suppressClick&&b&&!b.disabled)onHand(b.dataset.id)});for(let i=0;i<3;i++)$('slot0'+i).addEventListener('click',()=>onSlot(i));$('mainButton').addEventListener('click',()=>{if(S.phase==='plan'&&(playedCards(0)===requiredCards(0)||!TUT.on))reveal(false);});   /* empty slots are allowed: they take direct hits */document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{
   const d=button.dataset.difficulty;$('aiDifficulty').value=d;
   document.querySelectorAll('.difficulty-option').forEach(b=>{const chosen=b===button;b.classList.toggle('selected',chosen);b.setAttribute('aria-pressed',String(chosen))});
