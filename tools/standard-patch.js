@@ -46,7 +46,8 @@ function stdHud(){const g=STD.g;if(!g)return;
   if(!line){line=document.createElement('div');line.className='std-nameline';const name=id.querySelector('span');name.textContent=p===0?'YOU':'AI';id.insertBefore(line,name);line.appendChild(name);const t=document.createElement('span');t.className='std-tags';line.appendChild(t)}
   const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">×2</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">×2</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
-function stdAfterHand(){stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
+function stdFan(){const h=$('hand'),it=[...h.children],n=it.length,many=h.dataset.many==='1';it.forEach((el,i)=>{const k=i-(n-1)/2,a=Math.abs(k);el.style.setProperty('--r',(many?0:k*6)+'deg');el.style.setProperty('--y',(many?0:Math.round(3.5*a*a))+'px')})}
+function stdAfterHand(){stdFan();stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
 const STD_BACK='<div class="mu-back"></div>';
 function stdAnchor(p,what){const hud=p===0?'.player-hud':'.enemy-hud';
@@ -104,8 +105,8 @@ function stdToast(slot,lines,ms){return new Promise(res=>{
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
-function stdLogPush(round,ents){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[]};STD.hist.push(h)}h.log=h.log.concat(l);const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
-function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
+function stdLogPush(round,ents,sum){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length&&!sum)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[],sum:null};STD.hist.push(h)}h.log=h.log.concat(l);if(sum)h.sum=sum;const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Gây <b>'+h.sum.deal+'</b> sát thương · Nhận <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · Bạn hồi <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI hồi <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">Không có hiệu ứng nào.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
 function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
 function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
 function stdLogInit(){
@@ -274,7 +275,7 @@ async function reveal(timeout=false){
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
  await present(t,2);if(tok!==S.token)return;
  // 3) Only now the total damage / healing of the round is applied.
- const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log);
+ const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log,{deal:ctx.dmg[1],take:ctx.dmg[0],heal:[ctx.heal[0],ctx.heal[1]],hp:[Math.max(0,t.hp[0]),Math.max(0,t.hp[1])]});
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();

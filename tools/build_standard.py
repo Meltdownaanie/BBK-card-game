@@ -54,6 +54,7 @@ html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class
 '''
 rep('<div id="forfeitOverlay"', html + '<div id="forfeitOverlay"')
 css = open(os.path.join(root, 'tools', 'standard.css'), encoding='utf-8').read()
+assert css.count('{') == css.count('}'), 'standard.css: unbalanced braces'
 rep('</head><body>', '<style id="std-style">\n' + css + '</style>\n</head><body>')
 open(os.path.join(root, 'standard.html'), 'w', encoding='utf-8').write(s)
 print('standard.html written', len(s))

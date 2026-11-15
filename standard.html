@@ -366,16 +366,20 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
 @keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
-/* touch screens: hand cards stay put when pressed (no sticky hover lift); mouse keeps the Classic hover lift */
-@media (hover:none){
-.hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}
-.hand .hand-item:nth-child(1):hover,.hand .hand-item:nth-child(1):focus-within{transform:rotate(-12deg) translateY(14px)}
-.hand .hand-item:nth-child(2):hover,.hand .hand-item:nth-child(2):focus-within{transform:rotate(-6deg) translateY(4px)}
-.hand .hand-item:nth-child(3):hover,.hand .hand-item:nth-child(3):focus-within{transform:rotate(0)}
-.hand .hand-item:nth-child(4):hover,.hand .hand-item:nth-child(4):focus-within{transform:rotate(6deg) translateY(4px)}
-.hand .hand-item:nth-child(n+5):hover,.hand .hand-item:nth-child(n+5):focus-within{transform:rotate(12deg) translateY(14px)}
-.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}
-}
+/* Hand always tidy: a symmetric fan for any number of cards (JS sets --r / --y per card), and draw / return animations end on the card's own fan position. */
+.hand:not([data-many="1"]) .hand-item{transform:rotate(var(--r,0deg)) translateY(var(--y,0px))}
+@media (hover:hover){.hand:not([data-many="1"]) .hand-item:hover,.hand:not([data-many="1"]) .hand-item:focus-within{transform:rotate(0) translateY(-10px)}}
+@media (hover:none){.hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}}
+@keyframes stdDraw{from{opacity:0;transform:translate(70px,-90px) rotate(11deg) scale(.7)}}
+@keyframes stdReturn{from{opacity:.2;transform:translateY(-120px) rotate(-8deg) scale(.82)}}
+.hand-item.card-drawn{animation-name:stdDraw}.hand-item.card-returned{animation-name:stdReturn}
+/* the TRIGGERED tag bobs together with its card in the discard step and leaves with a discarded card */
+@keyframes stdTagBob{50%{transform:translateX(-50%) translateY(-5px)}}
+.slot:has(.card.pick) .fx-trig{animation:stdTagBob 1s infinite}
+.slot:has(.card.discarded) .fx-trig{display:none}
+@media(prefers-reduced-motion:reduce){.slot:has(.card.pick) .fx-trig{animation:none}}
+.std-log-sum{margin:2px 0 6px;font-size:12px;color:#ffe9a6}
+.std-log-sum b{color:#fff}
 .std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
 #stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
 #stdLogBtn[hidden]{display:none}
@@ -802,7 +806,8 @@ function stdHud(){const g=STD.g;if(!g)return;
   if(!line){line=document.createElement('div');line.className='std-nameline';const name=id.querySelector('span');name.textContent=p===0?'YOU':'AI';id.insertBefore(line,name);line.appendChild(name);const t=document.createElement('span');t.className='std-tags';line.appendChild(t)}
   const t=line.querySelector('.std-tags'),tags=[];if(g.dbl[p])tags.push('<b class="t2x">×2</b>');else if(g.dblNext[p])tags.push('<b class="t2x soon">×2</b>');if(g.cnt[p]>0)tags.push('<b class="tdc">D'+g.cnt[p]+'</b>');
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
-function stdAfterHand(){stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
+function stdFan(){const h=$('hand'),it=[...h.children],n=it.length,many=h.dataset.many==='1';it.forEach((el,i)=>{const k=i-(n-1)/2,a=Math.abs(k);el.style.setProperty('--r',(many?0:k*6)+'deg');el.style.setProperty('--y',(many?0:Math.round(3.5*a*a))+'px')})}
+function stdAfterHand(){stdFan();stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
 const STD_BACK='<div class="mu-back"></div>';
 function stdAnchor(p,what){const hud=p===0?'.player-hud':'.enemy-hud';
@@ -860,8 +865,8 @@ function stdToast(slot,lines,ms){return new Promise(res=>{
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
-function stdLogPush(round,ents){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[]};STD.hist.push(h)}h.log=h.log.concat(l);const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
-function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
+function stdLogPush(round,ents,sum){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length&&!sum)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[],sum:null};STD.hist.push(h)}h.log=h.log.concat(l);if(sum)h.sum=sum;const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=STD.hist.length?STD.hist.slice().reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Gây <b>'+h.sum.deal+'</b> sát thương · Nhận <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · Bạn hồi <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI hồi <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">Không có hiệu ứng nào.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có hiệu ứng nào được kích hoạt.</p>'}
 function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
 function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
 function stdLogInit(){
@@ -1047,7 +1052,7 @@ async function reveal(timeout=false){
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
  await present(t,2);if(tok!==S.token)return;
  // 3) Only now the total damage / healing of the round is applied.
- const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log);
+ const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log,{deal:ctx.dmg[1],take:ctx.dmg[0],heal:[ctx.heal[0],ctx.heal[1]],hp:[Math.max(0,t.hp[0]),Math.max(0,t.hp[1])]});
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();

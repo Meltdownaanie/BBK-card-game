@@ -77,16 +77,20 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
 @keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
-/* touch screens: hand cards stay put when pressed (no sticky hover lift); mouse keeps the Classic hover lift */
-@media (hover:none){
-.hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}
-.hand .hand-item:nth-child(1):hover,.hand .hand-item:nth-child(1):focus-within{transform:rotate(-12deg) translateY(14px)}
-.hand .hand-item:nth-child(2):hover,.hand .hand-item:nth-child(2):focus-within{transform:rotate(-6deg) translateY(4px)}
-.hand .hand-item:nth-child(3):hover,.hand .hand-item:nth-child(3):focus-within{transform:rotate(0)}
-.hand .hand-item:nth-child(4):hover,.hand .hand-item:nth-child(4):focus-within{transform:rotate(6deg) translateY(4px)}
-.hand .hand-item:nth-child(n+5):hover,.hand .hand-item:nth-child(n+5):focus-within{transform:rotate(12deg) translateY(14px)}
-.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}
-}
+/* Hand always tidy: a symmetric fan for any number of cards (JS sets --r / --y per card), and draw / return animations end on the card's own fan position. */
+.hand:not([data-many="1"]) .hand-item{transform:rotate(var(--r,0deg)) translateY(var(--y,0px))}
+@media (hover:hover){.hand:not([data-many="1"]) .hand-item:hover,.hand:not([data-many="1"]) .hand-item:focus-within{transform:rotate(0) translateY(-10px)}}
+@media (hover:none){.hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}.hand[data-many="1"] .hand-item:hover,.hand[data-many="1"] .hand-item:focus-within{transform:none!important}}
+@keyframes stdDraw{from{opacity:0;transform:translate(70px,-90px) rotate(11deg) scale(.7)}}
+@keyframes stdReturn{from{opacity:.2;transform:translateY(-120px) rotate(-8deg) scale(.82)}}
+.hand-item.card-drawn{animation-name:stdDraw}.hand-item.card-returned{animation-name:stdReturn}
+/* the TRIGGERED tag bobs together with its card in the discard step and leaves with a discarded card */
+@keyframes stdTagBob{50%{transform:translateX(-50%) translateY(-5px)}}
+.slot:has(.card.pick) .fx-trig{animation:stdTagBob 1s infinite}
+.slot:has(.card.discarded) .fx-trig{display:none}
+@media(prefers-reduced-motion:reduce){.slot:has(.card.pick) .fx-trig{animation:none}}
+.std-log-sum{margin:2px 0 6px;font-size:12px;color:#ffe9a6}
+.std-log-sum b{color:#fff}
 .std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
 #stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
 #stdLogBtn[hidden]{display:none}
