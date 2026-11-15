@@ -587,3 +587,24 @@ body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not
 
 /* Main button while fewer cards than the maximum are placed: still clickable, but quieter than the gold "all set" state */
 #mainButton.partial:not(:disabled){background:#4b3c86!important;color:#efe6ff!important;box-shadow:0 4px 0 #241a42!important}
+
+/* V24: match stats on the AI result screen */
+.match-stats{display:flex;flex-direction:column;gap:7px;padding:10px;margin:0 0 4px;background:var(--c-panel);border-radius:12px;box-shadow:0 0 0 3px var(--c-line),inset 0 0 0 2px var(--c-panel-in);font-family:var(--pf);text-align:left}
+.match-stats .ms-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:var(--c-gold);font-size:13px;letter-spacing:.14em;text-shadow:2px 2px 0 var(--c-line)}
+.match-stats .ms-head small{color:var(--c-lilac);font-size:11px;letter-spacing:.06em}
+.match-stats .ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.match-stats .ms-tile,.match-stats .ms-combos>div{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 8px;background:#1b0d22;border-radius:7px;min-width:0}
+.match-stats span{color:var(--c-mute);font-size:11px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-stats b{color:var(--c-ink);font-size:15px;white-space:nowrap}
+.match-stats b small{color:var(--c-mute);font-size:10px}
+.match-stats .good b{color:var(--c-scissors)}.match-stats .bad b{color:var(--c-coral)}
+.match-stats .ms-combos{display:flex;flex-direction:column;gap:5px}
+.match-stats .ms-combos b{color:var(--c-gold);font-size:13px;white-space:normal;text-align:right}
+.match-stats .ms-combos>div>span{flex:0 0 auto}
+/* result screen with stats: drop the decorative card fan, shrink the title, and let the overlay scroll on short phones */
+.overlay:has(#matchStats:not([hidden])){align-items:flex-start;overflow-y:auto}
+.overlay:has(#matchStats:not([hidden])) .dialog{margin:auto 0;gap:12px;padding-top:20px;padding-bottom:20px}
+.dialog:has(#matchStats:not([hidden])) .emblems{display:none!important}
+.dialog:has(#matchStats:not([hidden])) h1{font-size:clamp(28px,8.5vw,40px)!important;padding:8px 20px 6px!important;margin-bottom:10px!important}
+.dialog:has(#matchStats:not([hidden])) #dialogText{font-size:13px}
+@media (max-width:330px){.match-stats .ms-grid{grid-template-columns:1fr}}
