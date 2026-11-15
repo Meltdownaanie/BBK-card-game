@@ -608,3 +608,9 @@ body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not
 .dialog:has(#matchStats:not([hidden])) h1{font-size:clamp(28px,8.5vw,40px)!important;padding:8px 20px 6px!important;margin-bottom:10px!important}
 .dialog:has(#matchStats:not([hidden])) #dialogText{font-size:13px}
 @media (max-width:330px){.match-stats .ms-grid{grid-template-columns:1fr}}
+/* V24.1: stat numbers use the same pixel digit font as the HP / deck counters (Pixelify's 8, 0 and S looked alike) */
+.match-stats b{font-family:var(--pn)!important;font-weight:400!important;font-size:12px!important;letter-spacing:0!important;-webkit-font-smoothing:none}
+.match-stats b small{font-family:var(--pn)!important;font-size:8px!important}
+.match-stats .ms-combos b{font-size:10px!important;line-height:1.5}
+@media (max-width:400px){.match-stats .ms-tile{padding:5px 6px}.match-stats .ms-tile b{font-size:11px!important}.match-stats .ms-tile b small{display:none}}
+.match-stats .ms-head small{font-family:var(--pn)!important;font-size:8px!important;letter-spacing:.02em}
