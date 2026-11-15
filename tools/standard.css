@@ -2,10 +2,9 @@
 .card.fx,.std-pick.fx,.std-tip{--tc:#3aa8ff}
 .card.fx-t2,.std-pick.fx-t2,.std-tip.t2{--tc:#b277ff}
 .card.fx-t3,.std-pick.fx-t3,.std-tip.t3{--tc:#ffc21a}
-.card .fx-stars{position:absolute;left:0;right:0;bottom:1px;text-align:center;color:var(--tc);font:700 11px/1 system-ui,-apple-system,'Segoe UI Symbol',sans-serif;font-style:normal;letter-spacing:1px;-webkit-text-stroke:2.5px #1a1332;paint-order:stroke fill;pointer-events:none;z-index:1}
-.slot .card .fx-stars{font-size:12px;bottom:2px}
-.card.fx .number{translate:0 -6px}.card.fx .symbol{translate:0 -4px}
-.hand[data-many="1"] .card.fx .number{translate:0 -9px}.hand[data-many="1"] .card.fx .symbol{translate:0 -3px}.hand[data-many="1"] .card .fx-stars{font-size:10px;bottom:1px}
+.card .fx-stars{position:absolute;left:3px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--tc);font:700 10px/1 system-ui,-apple-system,'Segoe UI Symbol',sans-serif;font-style:normal;-webkit-text-stroke:2.5px #1a1332;paint-order:stroke fill;pointer-events:none;z-index:1}
+.card .fx-stars b{display:block;font-weight:700;line-height:1}
+.slot .card .fx-stars{font-size:11px;left:3px}
 .std-tip{position:fixed;z-index:1300;box-sizing:border-box;width:min(380px,calc(100vw - 16px));padding:12px 14px 13px;border-radius:14px;background:#120c26;border:3px solid var(--tc);box-shadow:0 5px 0 #0c0614,0 0 0 2px #0c0614;color:#fff7e8;font:16px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;pointer-events:none}
 .std-tip[hidden]{display:none}
 .std-tip b{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:18px;font-weight:800;color:#fff}
@@ -76,8 +75,8 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .hand .card:hover:not(:disabled){transform:none}
-.slot .fx-trig{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);z-index:3;width:max-content;max-width:calc(100% + 14px);padding:4px 5px 3px;border-radius:5px;background:#1a1332;border:2px solid #ffcf33;box-shadow:0 2px 0 #0c0614;color:#ffcf33;font:700 8px/1.25 var(--pf,monospace);letter-spacing:.04em;text-align:center;white-space:normal;pointer-events:none;animation:fxTrig .32s cubic-bezier(.2,1.6,.4,1) both}
-@keyframes fxTrig{from{transform:translate(-50%,-50%) rotate(-6deg) scale(.3);opacity:0}}
+.slot .fx-trig{position:absolute;left:50%;top:-7px;transform:translateX(-50%);z-index:3;width:max-content;max-width:calc(100% + 18px);padding:2px 3px;border-radius:4px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(6.2px,1.85vw,7.5px)/1.1 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+@keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
 /* hand cards stay put when pressed / hovered (the press is for reading the effect) */
 .hand .hand-item:hover,.hand .hand-item:focus-within{z-index:auto}

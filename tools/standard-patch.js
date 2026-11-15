@@ -9,7 +9,7 @@ const ownerOf=o=>String(o.id).charAt(0)==='1'?1:0;
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 function stdActive(p,c){return !!STD.g&&(STD.g.active[p]&C.bit(c))!==0}
 function stdCls(o){if(!STD.g||!/^[01]-/.test(String(o.id)))return '';const c=intOf(o),p=ownerOf(o);if(c===9&&STD.g.h9[p]&&!STD.h9show[p])return '';return stdActive(p,c)?'fx fx-t'+(C.tier(c)+1):''}
-function stdStar(o){return stdCls(o)?'<i class="fx-stars" aria-hidden="true">'+'★'.repeat(C.tier(intOf(o))+1)+'</i>':''}
+function stdStar(o){return stdCls(o)?'<i class="fx-stars" aria-hidden="true">'+'<b>★</b>'.repeat(C.tier(intOf(o))+1)+'</i>':''}
 function stdTitle(o){return ''}
 /* Effect tooltip: finger down on an effect card (or mouse hover) shows what the card does. A quick tap still plays the card; a long hold only reads it. */
 const stdTip={el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
@@ -54,7 +54,7 @@ async function stdFly(html,from,to,cls){
  const w=54,h=75,el=document.createElement('div');el.className='std-fly '+(cls||'');el.style.cssText=`position:fixed;left:${a.left+a.width/2-w/2}px;top:${a.top+a.height/2-h/2}px;width:${w}px;height:${h}px;z-index:1000;pointer-events:none`;
  el.innerHTML=html;const inner=el.firstElementChild;if(inner){inner.style.cssText+=';width:100%!important;height:100%!important;min-width:0;position:static'}document.body.appendChild(el);
  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2),lift=dy>0?-16:16;
- try{await el.animate([{transform:'translate(0,0) scale(.35)',opacity:.2,offset:0},{transform:`translate(${dx*.12}px,${dy*.12+lift}px) scale(1.15) rotate(-5deg)`,opacity:1,offset:.28},{transform:`translate(${dx*.2}px,${dy*.2+lift}px) scale(1.15) rotate(5deg)`,opacity:1,offset:.55},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${dx<0?-160:160}deg)`,opacity:.35,offset:1}],{duration:820,easing:'ease-in-out',fill:'forwards'}).finished}catch(e){}
+ try{await el.animate([{transform:'translate(0,0) scale(.35)',opacity:.2,offset:0},{transform:`translate(${dx*.12}px,${dy*.12+lift}px) scale(1.15) rotate(-5deg)`,opacity:1,offset:.28},{transform:`translate(${dx*.2}px,${dy*.2+lift}px) scale(1.15) rotate(5deg)`,opacity:1,offset:.55},{transform:`translate(${dx}px,${dy}px) scale(.3) rotate(${dx<0?-160:160}deg)`,opacity:.35,offset:1}],{duration:560,easing:'ease-in-out',fill:'forwards'}).finished}catch(e){}
  el.remove();stdBump(to)}
 /* a card arrives in the player's hand from the deck or the discard pile */
 async function stdToHand(o,src){
@@ -62,7 +62,7 @@ async function stdToHand(o,src){
  const end=target.getBoundingClientRect(),start=src.getBoundingClientRect();if(!end.width||!start.width)return;
  const {copy}=flightCopy(target);target.style.visibility='hidden';const x0=start.left+start.width/2-end.width/2,y0=start.top+start.height/2-end.height/2;
  copy.style.left=x0+'px';copy.style.top=y0+'px';copy.classList.add('std-gain');const dx=end.left-x0,dy=end.top-y0;
- try{await copy.animate([{transform:'translate(0,0) rotate(-14deg) scale(.4)',opacity:.15},{transform:`translate(${dx*.5}px,${dy*.5-22}px) rotate(8deg) scale(1.15)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(0) scale(1)`,opacity:1}],{duration:720,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).finished}catch(e){}
+ try{await copy.animate([{transform:'translate(0,0) rotate(-14deg) scale(.4)',opacity:.15},{transform:`translate(${dx*.5}px,${dy*.5-22}px) rotate(8deg) scale(1.15)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) rotate(0) scale(1)`,opacity:1}],{duration:520,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'}).finished}catch(e){}
  copy.remove();target.style.visibility=''}
 function stdShift(p,c,from,to){const o=objOf(p,c);S[from][p]=S[from][p].filter(x=>x!==o);if(!S[to][p].includes(o))S[to][p].push(o);return o}
 async function stdMove(m,gen,tok){
@@ -92,9 +92,9 @@ function stdLine(e){const who=e.p===0?'BẠN':'ĐỐI THỦ';return {cls:e.p===0
 /* effect notice: appears right when a slot clashes, stays 3 s (tap to close) */
 function stdToast(slot,lines,ms){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
-  const v=$('vs'+slot).getBoundingClientRect(),el=document.createElement('div');el.className='std-fxlog std-toast';el.setAttribute('role','status');
+  const el=document.createElement('div');el.className='std-fxlog std-toast';el.setAttribute('role','status');
   el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · HIỆU ỨNG</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
-  document.body.appendChild(el);const h=el.offsetHeight;el.style.top=Math.max(8,Math.min(innerHeight-h-8,v.top+v.height/2-h/2))+'px';
+  document.body.appendChild(el);el.style.top='8px';
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* choice dialog for "tìm" effects, Bao 1, Búa 8 and Kéo 7 */
@@ -242,7 +242,7 @@ async function reveal(timeout=false){
   if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
   else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
   for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='EFFECT TRIGGERED';s.appendChild(m)}}
-  await sleep(reducedMotion()?80:(fired[0][i]||fired[1][i]?520:260));if(tok!==S.token)return;
+  await sleep(reducedMotion()?80:(fired[0][i]||fired[1][i]?320:260));if(tok!==S.token)return;
  }
  // 2) After all three clashes the effects resolve in order (slot 1 -> 3, winner first): a 3 s notice + card animations each, choice dialogs in between.
  const told=[0,0,0];
@@ -252,7 +252,7 @@ async function reveal(timeout=false){
   for(let i=0;i<=upto;i++){
    const ents=log.filter((e,k)=>where[k]===i).slice(told[i]);if(!ents.length)continue;told[i]+=ents.length;
    const moves=(async()=>{for(const e of ents)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
-   const skipped=await stdToast(i,ents.map(stdLine),3000);if(tok!==S.token)return;
+   const skipped=await stdToast(i,ents.map(stdLine),1600);if(tok!==S.token)return;
    if(!skipped)await moves;if(tok!==S.token)return;
   }};
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
