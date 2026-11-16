@@ -614,3 +614,4 @@ body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not
 .match-stats .ms-combos b{font-size:10px!important;line-height:1.5}
 @media (max-width:400px){.match-stats .ms-tile{padding:5px 6px}.match-stats .ms-tile b{font-size:11px!important}.match-stats .ms-tile b small{display:none}}
 .match-stats .ms-head small{font-family:var(--pn)!important;font-size:8px!important;letter-spacing:.02em}
+.match-stats .ms-tile.wide{grid-column:1/-1}.match-stats .ms-tile.wide b{color:var(--c-gold)}

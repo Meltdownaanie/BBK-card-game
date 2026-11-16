@@ -285,7 +285,7 @@ body{padding:8px 12px 12px}
 }
 @media(max-width:400px){.bottom-hud .who span{font-size:9px;letter-spacing:0}.bottom-hud .who strong{font-size:24px}.bottom-hud .who strong small{font-size:9px}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./crt-game.css?v=20261115c">
+<link rel="stylesheet" href="./crt-game.css?v=20261116a">
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
 <script src="./pixel-icons.js?v=20261105c"></script>
@@ -863,16 +863,14 @@ function recordRound(wins,outcomes,winner,sweep){const st=S.stats;if(!st)return;
 function countCombo(p,name){if(!S.stats)return;const c=S.stats.combos[p];c[name]=(c[name]||0)+1}
 function comboText(p){const c=S.stats.combos[p],list=COMBO_ORDER.filter(k=>c[k]).map(k=>`${k}${c[k]>1?' ×'+c[k]:''}`);return list.length?list.join(' · '):'—'}
 function renderStats(){const box=$('matchStats'),st=S.stats;if(!box)return;if(!st||!st.rounds){box.hidden=true;box.innerHTML='';return}
- const secs=Math.round((Date.now()-st.start)/1000),pct=st.slotFights?Math.round(st.slots[0]/st.slotFights*100):0;
+ const secs=Math.round((Date.now()-st.start)/1000);
  const finish={hp:'HP KO','777':'777 COMBO',cards:'OUT OF CARDS'}[st.finish]||'HP KO';
  const tile=(label,val,cls='')=>`<div class="ms-tile ${cls}"><span>${label}</span><b>${val}</b></div>`;
- box.innerHTML=`<div class="ms-head"><span>MATCH STATS</span><small>${finish}</small></div><div class="ms-grid">`+
+ box.innerHTML=`<div class="ms-head"><span>MATCH STATS</span></div><div class="ms-grid">`+tile('FINISH',finish,'wide')+
   tile('ROUNDS',st.rounds)+tile('TIME',fmt(secs))+
   tile('DMG DEALT',st.dealt[0],'good')+tile('DMG TAKEN',st.dealt[1],'bad')+
-  tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('SLOTS',`${st.slots[0]}/${st.slotFights} <small>${pct}%</small>`)+
-  tile('BIGGEST HIT',st.best[0])+tile('SWEEPS',st.sweeps[0])+
-  tile('DOUBLE HITS',st.doubles[0])+tile('DIRECT HITS',st.direct[0])+
-  `</div><div class="ms-combos"><div><span>YOUR COMBOS</span><b>${comboText(0)}</b></div><div><span>AI COMBOS</span><b>${comboText(1)}</b></div></div>`;
+  tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+
+  `</div>`;
  box.hidden=false}
 function showDialog(title,text){
  const won=/^(🏆 )?YOU WIN/.test(title)||/^You won the round with three sevens/.test(text);
