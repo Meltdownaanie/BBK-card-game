@@ -35,10 +35,10 @@ function stdTipInit(){
   if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
   if(S.phase==='discard'&&S.canPick&&e.isTrusted!==undefined){const sl=e.target.closest&&e.target.closest('.slot.mine');if(sl&&sl.querySelector('.card')){const i=+sl.id.slice(-1),now=performance.now();
    if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
-   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Chạm nhanh 2 lần vào lá để discard · giữ để đọc hiệu ứng')}}},true);
+   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Double-tap a card to discard it · hold to read its effect')}}},true);
  addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
-function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return 'Round này bạn bị cấm chất '+l.join(', ')}
+function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return l.join(', ')+' is banned for you this round'}
 function stdSyncCards(){const g=STD.g;for(let p=0;p<2;p++){S.hand[p]=g.hand[p].map(c=>objOf(p,c));S.deck[p]=g.deck[p].map(c=>objOf(p,c));S.discard[p]=g.disc[p].map(c=>objOf(p,c))}}
 function stdSync(){const g=STD.g;S.hp=[g.hp[0],g.hp[1]];stdSyncCards();S.blocked=[g.blocked[0]<0?null:g.blocked[0],g.blocked[1]<0?null:g.blocked[1]];S.endgameBlocked=[];S.nextBlocked=[null,null]}
 function stdHud(){const g=STD.g;if(!g)return;
@@ -87,7 +87,7 @@ function stdPanel(title,lines,opt={}){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
   const board=document.querySelector('.board').getBoundingClientRect();
   const el=document.createElement('div');el.className='std-fxlog';el.style.top=Math.max(8,board.top+8)+'px';
-  el.innerHTML='<div class="std-fxlog-h">'+esc(title)+'</div><div class="std-fxlog-b"></div>'+(opt.block?'<div class="std-fxlog-f">chạm để tiếp tục</div>':'');
+  el.innerHTML='<div class="std-fxlog-h">'+esc(title)+'</div><div class="std-fxlog-b"></div>'+(opt.block?'<div class="std-fxlog-f">tap to continue</div>':'');
   document.body.appendChild(el);const body=el.querySelector('.std-fxlog-b');
   let i=0,done=false,timer=null,skipped=false;const step=reducedMotion()?60:(opt.step||650),hold=opt.hold||1300;
   const finish=()=>{if(done)return;done=true;clearTimeout(timer);el.remove();res()};
@@ -95,24 +95,24 @@ function stdPanel(title,lines,opt={}){return new Promise(res=>{
   const add=()=>{if(done)return;if(i<lines.length){const d=document.createElement('div');d.className='std-line '+(lines[i].cls||'');d.innerHTML=lines[i].html;body.appendChild(d);const ln=lines[i];i++;if(ln.mv&&opt.onLine){Promise.resolve(opt.onLine(ln)).catch(()=>{}).then(()=>{if(!done&&!skipped)timer=setTimeout(add,Math.min(step,300))})}else timer=setTimeout(add,step)}else timer=setTimeout(finish,hold)};
   el.addEventListener('click',()=>{if(i<lines.length){skipped=true;if(opt.onSkip)opt.onSkip();while(i<lines.length){const d=document.createElement('div');d.className='std-line '+(lines[i].cls||'');d.innerHTML=lines[i].html;body.appendChild(d);i++}clearTimeout(timer);timer=setTimeout(finish,hold)}else finish()});
   add()})}
-function stdLine(e){const who=e.p===0?'BẠN':'ĐỐI THỦ';return {cls:e.p===0?'me':'ai',html:'<b>'+who+' · '+esc(C.VI(e.c))+(e.sys?'':' ★')+'</b> '+esc(e.t||'Hiệu ứng kích hoạt')}}
+function stdLine(e){const who=e.p===0?'YOU':'AI';return {cls:e.p===0?'me':'ai',html:'<b>'+who+' · '+esc(C.VI(e.c))+(e.sys?'':' ★')+'</b> '+esc(e.t||'Effect triggered')}}
 /* effect notice: appears right when a slot clashes, stays 3 s (tap to close) */
 function stdToast(slot,lines,ms){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
   const el=document.createElement('div');el.className='std-fxlog std-toast';el.setAttribute('role','status');
-  el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · HIỆU ỨNG</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
+  el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · EFFECT</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
   document.body.appendChild(el);el.style.top='8px';
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
 /* counters and lasting effects, for the battle log: discard counter, draw counter (Bao 7), Búa 9 */
-function stdStat(g){const h9=p=>!(g.active[p]&C.bit(9))?null:g.dbl[p]?'đang bật: +10 sát thương, +10 hồi máu mỗi round':g.dblNext[p]?'đã kích hoạt, có tác dụng từ round sau':g.h9[p]?'đã đánh lần đầu mà không thắng: mất hiệu ứng':'chưa đánh xuống';
+function stdStat(g){const h9=p=>!(g.active[p]&C.bit(9))?null:g.dbl[p]?'on':g.dblNext[p]?'on from next round':g.h9[p]?'lost':'not played yet';
  return {dn:[g.dn[0],g.dn[1]],od:[g.cnt[0]-g.dn[0],g.cnt[1]-g.dn[1]],cnt:[g.cnt[0],g.cnt[1]],drawn:[g.drawnN[0],g.drawnN[1]],h9:[h9(0),h9(1)],on:[g.dbl[0]?1:g.dblNext[0]?2:0,g.dbl[1]?1:g.dblNext[1]?2:0]}}
-function stdStatHTML(st){const who=['Bạn','AI'];
- return '<div class="std-stat">'+[0,1].map(p=>'<div class="std-stat-row '+(p?'ai':'me')+'"><span>'+who[p]+'</span><em>Draw <b>'+st.drawn[p]+'</b></em><em>Discard <b>'+st.cnt[p]+'</b></em><em>Passive <b class="'+(st.on[p]?'on':'off')+'">'+(st.on[p]===2?'ON từ round sau':st.on[p]?'ON':'OFF')+'</b></em></div>').join('')+'</div>'}
+function stdStatHTML(st){const who=['You','AI'];
+ return '<div class="std-stat">'+[0,1].map(p=>'<div class="std-stat-row '+(p?'ai':'me')+'"><span>'+who[p]+'</span><em>Draw <b>'+st.drawn[p]+'</b></em><em>Discard <b>'+st.cnt[p]+'</b></em><em>Passive <b class="'+(st.on[p]?'on':'off')+'">'+(st.on[p]===2?'NEXT':st.on[p]?'ON':'OFF')+'</b></em></div>').join('')+'</div>'}
 function stdLogStat(round){const h=STD.hist.find(x=>x.round===round);if(h&&STD.g)h.stat=stdStat(STD.g)}
 function stdLogPush(round,ents,sum){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length&&!sum)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[],sum:null};STD.hist.push(h)}h.log=h.log.concat(l);if(sum)h.sum=sum;const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
-function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=(STD.g?'<h4>HIỆN TẠI</h4>'+stdStatHTML(stdStat(STD.g)):'')+(STD.hist.length?STD.hist.slice(-3).reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Gây <b>'+h.sum.deal+'</b> sát thương · Nhận <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · Bạn hồi <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI hồi <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">Không có hiệu ứng nào.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có round nào.</p>')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=(STD.g?'<h4>NOW</h4>'+stdStatHTML(stdStat(STD.g)):'')+(STD.hist.length?STD.hist.slice(-3).reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Dealt <b>'+h.sum.deal+'</b> · Taken <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · You healed <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI healed <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">No effects this round.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">No rounds played yet.</p>')}
 function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
 function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
 function stdLogInit(){
@@ -129,15 +129,15 @@ function stdAsk(spec){return new Promise(res=>{
    box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>close(+b.dataset.s)));ov.hidden=false;return}
   const owner=spec.owner===undefined?0:spec.owner,k=Math.min(spec.k,spec.list.length),sel=new Set();
   html+='<div class="std-picks">'+spec.list.map((c,i)=>{const on=stdActive(owner,c);return '<button type="button" class="std-pick '+ORDER[C.S(c)]+(on?' fx fx-t'+(C.tier(c)+1):'')+'" data-i="'+i+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b>'+(on?'<i class="fx-stars">'+'★'.repeat(C.tier(c)+1)+'</i>':'')+'</button>'}).join('')+'</div>';
-  html+='<p class="std-pick-info" id="stdPickInfo">Chọn '+k+' lá.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">BỎ QUA</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>XÁC NHẬN</button></div>';
+  html+='<p class="std-pick-info" id="stdPickInfo">Choose '+k+' card'+(k>1?'s':'')+'.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">SKIP</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>CONFIRM</button></div>';
   box.innerHTML=html;
   const info=$('stdPickInfo'),ok=$('stdOk');
   box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else{if(k===1)sel.clear();if(sel.size<k)sel.add(i)}
     box.querySelectorAll('.std-pick').forEach(x=>x.classList.toggle('sel',sel.has(+x.dataset.i)));ok.disabled=sel.size!==k;
-    const c=spec.list[i],f=C.FX[c];info.textContent=C.VI(c)+(stdActive(owner,c)&&f?' ★ '+f[0]+': '+f[1]:' (bài thường)')}));
+    const c=spec.list[i],f=C.FX[c];info.textContent=C.VI(c)+(stdActive(owner,c)&&f?' ★ '+f[0]+': '+f[1]:' (plain card)')}));
   ok.addEventListener('click',()=>close([...sel].map(i=>spec.list[i])));
   if(spec.optional)$('stdSkip').addEventListener('click',()=>close([]));
-  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.textContent='Chỉ có '+k+' lá phù hợp.'}
+  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.textContent='Only '+k+' matching card'+(k>1?'s':'')+'.'}
   ov.hidden=false})}
 /* run the round on a copy; whenever an effect needs the player's choice, ask, then replay with the answers so far */
 async function stdResolve(rows,onNeed){
@@ -152,10 +152,10 @@ async function stdResolve(rows,onNeed){
 }
 function stdGameOver(){const g=STD.g;S.phase='over';clearInterval(S.timer);render();
   let title,text;
-  if(g.reason==='pack'){title=g.winner===0?'🏆 PACK JOT WIN!':'AI WINS!';text=g.winner===0?'Bạn thắng round với ba lá 7: thắng ngay!':'AI thắng round với ba lá 7.'}
-  else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Hết bài, hai bên bằng HP.':'Cả hai cùng hết HP.'}
-  else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Hết bài: bạn nhiều HP hơn.':'Bạn đã hạ AI.'}
-  else{title='AI WINS!';text=g.reason==='cards'?'Hết bài: AI nhiều HP hơn.':'Thử lại nhé.'}
+  if(g.reason==='pack'){title=g.winner===0?'🏆 PACK JOT WIN!':'AI WINS!';text=g.winner===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens.'}
+  else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Out of cards with equal HP.':'Both players ran out of HP.'}
+  else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Out of cards: you have more HP.':'You defeated the AI.'}
+  else{title='AI WINS!';text=g.reason==='cards'?'Out of cards: the AI has more HP.':'Try again.'}
   showDialog(title,text)}
 /* ---------- deck builder ---------- */
 const STD_KEY='bbk.std.deck.v1';
@@ -171,32 +171,32 @@ function stdBuilderRender(){
       html+='<button type="button" class="std-row'+(on?' on':'')+'" data-c="'+c+'" aria-pressed="'+on+'"><span class="std-chip '+ORDER[C.S(c)]+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b></span><span class="txt"><small>'+esc(C.VI(c))+' · '+esc(f[0])+'</small>'+esc(f[1])+'</span><span class="std-check" aria-hidden="true">'+(on?'★':'')+'</span></button>'}
   }
   $('stdRows').innerHTML=html;
-  $('stdStart').disabled=over;$('stdCount').textContent=over?'Vượt giới hạn: bỏ bớt lá':'Đã bật '+list.length+' lá hiệu ứng · còn lại là bài thường';
+  $('stdStart').disabled=over;$('stdCount').textContent=over?'Over the limit: turn some cards off':list.length+' effect card'+(list.length===1?'':'s')+' on · the rest are plain';
   $('stdRows').querySelectorAll('.std-row').forEach(b=>b.addEventListener('click',()=>{const c=+b.dataset.c;if(stdSel.has(c))stdSel.delete(c);else stdSel.add(c);const y=$('stdBuilder').scrollTop;stdBuilderRender();$('stdBuilder').scrollTop=y}));
 }
 function stdOpenBuilder(){
   S.token++;clearInterval(S.timer);S.phase='idle';$('overlay').hidden=true;$('forfeitOverlay').hidden=true;closeDiscardPile();updateForfeitButton();
   stdSel=new Set(stdLoadDeck());
   const names=Object.keys(C.PRESETS);
-  $('stdPreset').innerHTML='<option value="">Deck mẫu…</option>'+names.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')+'<option value="none">Tắt hết (bài thường)</option>';
-  $('stdAi').innerHTML='<option value="rand">AI: deck mẫu ngẫu nhiên</option>'+names.map((n,i)=>'<option value="'+i+'">AI: '+esc(n)+'</option>').join('')+'<option value="none">AI: bài thường</option>';
+  $('stdPreset').innerHTML='<option value="">Preset deck…</option>'+names.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')+'<option value="none">All off (plain cards)</option>';
+  $('stdAi').innerHTML='<option value="rand">AI: random preset</option>'+names.map((n,i)=>'<option value="'+i+'">AI: '+esc(n)+'</option>').join('')+'<option value="none">AI: plain cards</option>';
   stdBuilderRender();$('stdBuilder').hidden=false;$('stdBuilder').scrollTop=0}
 function stdStartMatch(){
   const list=[...stdSel];if(!C.validDeck(list))return;
   try{localStorage.setItem(STD_KEY,JSON.stringify(list))}catch(e){}
-  const names=Object.keys(C.PRESETS),a=$('stdAi').value;let ai=[],nm='Bài thường';
+  const names=Object.keys(C.PRESETS),a=$('stdAi').value;let ai=[],nm='Plain cards';
   if(a!=='none'){const i=a==='rand'?Math.floor(Math.random()*names.length):+a;nm=names[i];ai=C.PRESETS[nm].map(C.parse)}
   STD.mine=C.mask(list);STD.theirs=C.mask(ai);STD.theirName=nm;STD.level=$('stdLevel').value;
   $('stdBuilder').hidden=true;newGame()}
 function stdFillHelp(){
-  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>Không bật lá nào.</p>'};
+  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>No effect cards.</p>'};
   $('tutorialTitle').textContent='STANDARD · EFFECTS';
-  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Lá có sao là lá đã bật hiệu ứng: 1 sao xanh = Tier 1, 2 sao tím = Tier 2, 3 sao vàng = Tier 3. Đặt ngón tay lên lá (hoặc rê chuột) để đọc hiệu ứng; giữ lâu thì bảng ở lại cho tới lần chạm kế tiếp. Hiệu ứng chạy khi lá thắng slot của nó (đánh thẳng vào slot trống cũng tính), theo thứ tự slot 1 → 2 → 3, thắng trước thua sau.';
+  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Cards with stars have their effect on: 1 blue star = Tier 1, 2 purple stars = Tier 2, 3 gold stars = Tier 3. Hold a card (or hover) to read its effect. Effects trigger right after their slot is decided (a direct hit on an empty slot counts as a win), in order slot 1 → 2 → 3, winner before loser. Damage is totalled after slot 3.';
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
-  guide.innerHTML='<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA BẠN</h3>'+mk(0)+'<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA AI ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">HIỆU ỨNG ROUND VỪA RỒI</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
+  guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
   $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync};   // test hook (test build only)
-  $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ ĐỔI DECK / ĐỘ KHÓ';
+  $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
   $('stdStart').addEventListener('click',stdStartMatch);
@@ -234,9 +234,9 @@ async function startRound(first=false){
  aiPlay();S.duration=roundTime();S.deadline=Date.now()+S.duration*1000;S.phase='plan';
  $('clock').classList.remove('urgent');S.timer=setInterval(tick,150);render();tick();
  const lines=[];const bt=stdBanText();if(bt)lines.push({cls:'ai',html:esc(bt)});
- if(g.ban[1])lines.push({cls:'me',html:'AI bị cấm chất '+[0,1,2].filter(s=>g.ban[1]&(1<<s)).map(s=>C.SUIT_VI[s]).join(', ')});
- if(g.blocked[0]>=0)lines.push({cls:'ai',html:'Slot '+(g.blocked[0]+1)+' của bạn bị khóa round này'});
- if(g.blocked[1]>=0)lines.push({cls:'me',html:'Slot '+(g.blocked[1]+1)+' của AI bị khóa round này'});
+ if(g.ban[1])lines.push({cls:'me',html:[0,1,2].filter(s=>g.ban[1]&(1<<s)).map(s=>C.SUIT_VI[s]).join(', ')+' is banned for the AI'});
+ if(g.blocked[0]>=0)lines.push({cls:'ai',html:'Your slot '+(g.blocked[0]+1)+' is locked this round'});
+ if(g.blocked[1]>=0)lines.push({cls:'me',html:'AI slot '+(g.blocked[1]+1)+' is locked this round'});
  if(lines.length)stdPanel('ROUND '+g.round,lines,{step:250,hold:1800});
 }
 //@@REVEAL
@@ -256,7 +256,7 @@ async function reveal(timeout=false){
  // A dry run tells which cards will fire, so the TRIGGERED tag can show at the clash.
  const seed0=C.getSeed(),dry=C.clone(g);dry.log=[];C.resolve(dry,rows);C.setSeed(seed0);
  const fired=[[false,false,false],[false,false,false]];
- for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/hiệu ứng mất/.test(e.t))fired[e.p][e.slot]=true;
+ for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/effect lost/.test(e.t))fired[e.p][e.slot]=true;
  let shown=-1;const told=[0,0,0];
  const slotOf=log=>{const r=log.map(e=>e.slot);for(let k=r.length-1;k>=0;k--)if(r[k]<0)r[k]=k+1<r.length?r[k+1]:Math.max(0,shown);return r};
  const present=async(t,upto)=>{
@@ -310,7 +310,7 @@ async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInter
  for(const c of res.drawn[0])S.animateHand.delete(objOf(0,c).id);
  STD.fxNew.clear();STD.h9show=[false,false];S.slots=[[null,null,null],[null,null,null]];S.phase='dealing';stdSync();render();
  for(const c of res.drawn[0]){if(!g.hand[0].includes(c))continue;await animateDealtCard(objOf(0,c),tok);if(tok!==S.token)return}
- const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>ĐỐI THỦ</b> '+esc(e.t)}:stdLine(e));
+ const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>AI</b> '+esc(e.t)}:stdLine(e));
  STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));stdLogPush(g.round-1,log);stdLogStat(g.round-1);
- if(lines.length){await stdPanel('KẾT THÚC ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
+ if(lines.length){await stdPanel('END OF ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
  startRound(false)}

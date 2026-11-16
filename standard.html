@@ -291,10 +291,10 @@ body{padding:8px 12px 12px}
 .card.fx,.std-pick.fx,.std-tip{--tc:#3aa8ff}
 .card.fx-t2,.std-pick.fx-t2,.std-tip.t2{--tc:#b277ff}
 .card.fx-t3,.std-pick.fx-t3,.std-tip.t3{--tc:#ffc21a}
-.card .fx-stars{position:absolute;left:3px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--tc);font:700 10px/1 system-ui,-apple-system,'Segoe UI Symbol',sans-serif;font-style:normal;-webkit-text-stroke:2.5px #1a1332;paint-order:stroke fill;pointer-events:none;z-index:1}
+.card .fx-stars{position:absolute;left:3px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--tc);font:700 10px/1 var(--pf),system-ui,'Segoe UI Symbol',sans-serif;font-style:normal;-webkit-text-stroke:2.5px #1a1332;paint-order:stroke fill;pointer-events:none;z-index:1}
 .card .fx-stars b{display:block;font-weight:700;line-height:1}
 .slot .card .fx-stars{font-size:11px;left:3px}
-.std-tip{position:fixed;z-index:1300;box-sizing:border-box;width:min(380px,calc(100vw - 16px));padding:12px 14px 13px;border-radius:14px;background:#120c26;border:3px solid var(--tc);box-shadow:0 5px 0 #0c0614,0 0 0 2px #0c0614;color:#fff7e8;font:16px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;pointer-events:none}
+.std-tip{position:fixed;z-index:1300;box-sizing:border-box;width:min(380px,calc(100vw - 16px));padding:12px 14px 13px;border-radius:14px;background:#120c26;border:3px solid var(--tc);box-shadow:0 5px 0 #0c0614,0 0 0 2px #0c0614;color:#fff7e8;font:16px/1.4 var(--pf),system-ui,sans-serif;pointer-events:none}
 .std-tip[hidden]{display:none}
 .std-tip b{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:18px;font-weight:800;color:#fff}
 .std-tip b span{flex:0 0 auto;font-size:13px;letter-spacing:.03em;color:var(--tc);white-space:nowrap}
@@ -308,7 +308,7 @@ body{padding:8px 12px 12px}
 .std-tags b{padding:2px 3px;border-radius:3px;font-weight:700}
 .std-tags .t2x{background:#ffcf33;color:#2a1a00}.std-tags .t2x.soon{background:#6b5a1a;color:#ffe9a6}
 .std-tags .tdc{background:#4b3c86;color:#efe6ff}
-.std-fxlog{position:fixed;left:50%;transform:translateX(-50%);width:min(380px,calc(100vw - 20px));max-height:60vh;overflow:auto;z-index:1040;background:#150f2bf2;border:3px solid #0c0614;border-radius:12px;box-shadow:0 5px 0 #0c0614,0 0 0 2px #4b3c86 inset;padding:8px 10px;font:13px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif;color:#efe6ff;cursor:pointer}
+.std-fxlog{position:fixed;left:50%;transform:translateX(-50%);width:min(380px,calc(100vw - 20px));max-height:60vh;overflow:auto;z-index:1040;background:#150f2bf2;border:3px solid #0c0614;border-radius:12px;box-shadow:0 5px 0 #0c0614,0 0 0 2px #4b3c86 inset;padding:8px 10px;font:13px/1.35 var(--pf),system-ui,sans-serif;color:#efe6ff;cursor:pointer}
 .std-fxlog-h{font:700 10px/1 var(--pf,monospace);letter-spacing:.08em;color:#ffcf33;margin-bottom:6px}
 .std-fxlog-f{font-size:10px;color:#9c8fc7;text-align:right;margin-top:4px}
 .std-line{padding:3px 0 3px 8px;border-left:3px solid #4b3c86;margin:3px 0}
@@ -316,7 +316,7 @@ body{padding:8px 12px 12px}
 .std-line b{font-weight:700}
 .overlay.std-builder{display:block;overflow:auto;padding:10px 8px 0;z-index:140;-webkit-overflow-scrolling:touch}
 .overlay.std-builder[hidden],.overlay.std-modal[hidden]{display:none!important}
-.std-panel{width:min(720px,100%);margin:0 auto;background:#1c1533;border:3px solid #0c0614;border-radius:16px;padding:14px 12px 0;box-shadow:0 6px 0 #0c0614;color:#efe6ff;font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}
+.std-panel{width:min(720px,100%);margin:0 auto;background:#1c1533;border:3px solid #0c0614;border-radius:16px;padding:14px 12px 0;box-shadow:0 6px 0 #0c0614;color:#efe6ff;font:14px/1.35 var(--pf),system-ui,sans-serif}
 .std-panel h2{margin:0 0 6px;font:700 22px/1.1 var(--pn,var(--pf,monospace));letter-spacing:.04em;color:#fff7e8}
 .std-panel h2 .h{color:var(--c-hammer,#ff6b4a)}.std-panel h2 .p{color:var(--c-paper,#4aa3e8)}.std-panel h2 .s{color:var(--c-scissors,#4fc76a)}
 .std-panel h2 small{font-size:11px;background:#ffcf33;color:#2a1a00;padding:2px 6px;border-radius:5px;vertical-align:middle}
@@ -332,17 +332,17 @@ body{padding:8px 12px 12px}
 .std-chip,.std-pick{--sc:#ccc;display:flex;align-items:center;justify-content:center;gap:5px;height:38px;border-radius:8px;background:#fff7e8;color:#1a1332;border:0;border-top:6px solid var(--sc);font:700 18px/1 var(--pn,var(--pf,monospace))}
 .std-chip.hammer,.std-pick.hammer{--sc:var(--c-hammer,#ff6b4a)}.std-chip.paper,.std-pick.paper{--sc:var(--c-paper,#4aa3e8)}.std-chip.scissors,.std-pick.scissors{--sc:var(--c-scissors,#4fc76a)}
 .std-chip svg,.std-chip img,.std-pick svg,.std-pick img{width:18px;height:18px;flex:0 0 auto}
-.std-check{font:700 18px/1 system-ui,sans-serif;color:#ffcf33;text-align:center}
+.std-check{font:700 18px/1 var(--pf),system-ui,sans-serif;color:#ffcf33;text-align:center}
 .std-bar{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;justify-content:space-between;margin:10px -12px 0;padding:10px 12px;background:#150f2b;border-top:3px solid #0c0614;border-radius:0 0 13px 13px}
 .std-bar span{font-size:12px;color:#cdbfe8;min-width:0}
 .std-bar .primary{flex:0 0 auto;min-height:44px;padding:8px 18px!important;font-size:16px!important}
 .overlay.std-modal{z-index:1200;padding:12px;display:flex;align-items:center;justify-content:center;background:#07040fd9!important}
-.std-modal-box{width:min(520px,100%);max-height:86vh;overflow:auto;background:#1c1533;border:3px solid #0c0614;border-radius:14px;box-shadow:0 6px 0 #0c0614;padding:14px;color:#efe6ff;font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}
+.std-modal-box{width:min(520px,100%);max-height:86vh;overflow:auto;background:#1c1533;border:3px solid #0c0614;border-radius:14px;box-shadow:0 6px 0 #0c0614;padding:14px;color:#efe6ff;font:14px/1.35 var(--pf),system-ui,sans-serif}
 .std-modal-box h3{margin:0 0 10px;font-size:15px;color:#ffcf33}
 .std-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
 .std-pick{position:relative;height:56px;cursor:pointer;font-size:22px;outline:3px solid transparent;outline-offset:1px}
 .std-pick.sel{outline-color:#ffcf33;background:#fff}
-.std-pick .fx-stars{position:absolute;top:1px;right:3px;color:var(--tc);font:700 9px/1 system-ui,sans-serif;font-style:normal;text-shadow:0 0 1px #1a1332,0 0 1px #1a1332,0 0 2px #1a1332}
+.std-pick .fx-stars{position:absolute;top:1px;right:3px;color:var(--tc);font:700 9px/1 var(--pf),system-ui,sans-serif;font-style:normal;text-shadow:0 0 1px #1a1332,0 0 1px #1a1332,0 0 2px #1a1332}
 .std-pick-info{min-height:2.7em;margin:10px 0 8px;font-size:13px;color:#cdbfe8}
 .std-modal-actions{display:flex;gap:8px;justify-content:flex-end}
 .std-modal-actions button{min-height:42px;padding:8px 16px!important}
@@ -363,7 +363,7 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 @media (hover:none){.hand .card:hover:not(:disabled){transform:none}}
-.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 var(--pf),system-ui,sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
 @keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
 /* Hand always tidy: a symmetric fan for any number of cards (JS sets --r / --y per card), and draw / return animations end on the card's own fan position. */
@@ -381,7 +381,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .std-log-sum{margin:2px 0 6px;font-size:12px;color:#ffe9a6}
 .std-log-sum b{color:#fff}
 .std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
-#stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
+#stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 var(--pf),system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
 #stdLogBtn[hidden]{display:none}
 #stdLogBtn.new:after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ff5b5b;border:2px solid #0c0614}
 #stdLogBtn.open{z-index:1210;background:#ffcf33;color:#1a1332}
@@ -389,15 +389,15 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .std-logov .std-modal-box{width:min(340px,100%);max-height:78vh}
 .std-log-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .std-log-h h3{margin:0}
-#stdLogClose{min-width:34px;min-height:34px;padding:0!important;border-radius:8px;border:2px solid #0c0614;background:#2c2152;color:#efe6ff;font:700 14px/1 system-ui,sans-serif;cursor:pointer}
+#stdLogClose{min-width:34px;min-height:34px;padding:0!important;border-radius:8px;border:2px solid #0c0614;background:#2c2152;color:#efe6ff;font:700 14px/1 var(--pf),system-ui,sans-serif;cursor:pointer}
 #stdLogBody h4{margin:12px 0 4px;font:700 11px/1 var(--pf,monospace);letter-spacing:.08em;color:#ffcf33}
 #stdLogBody h4:first-child{margin-top:2px}
 .std-log-empty{color:#b9a9e6;font-size:13px;margin:6px 0}
 .slot.mine .card.tap1{outline:3px solid #ffcf33!important;outline-offset:3px}
 .std-stat{margin:4px 0 8px;padding:4px 8px;border-radius:8px;background:#ffffff10;font-size:13px;line-height:1.4}
-.std-stat-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;padding:3px 0}
+.std-stat-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:3px 0;font-size:12px}
 .std-stat-row+.std-stat-row{border-top:1px solid #ffffff18}
-.std-stat-row span{flex:0 0 34px;font-weight:700;color:#ffcf33}
+.std-stat-row span{flex:0 0 26px;font-weight:700;color:#ffcf33}
 .std-stat-row.ai span{color:#ffb3b3}
 .std-stat-row em{font-style:normal;color:#d9cdf5;white-space:nowrap}
 .std-stat-row em b{color:#fff}
@@ -437,10 +437,10 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 </div>
 <div class="overlay std-builder" id="stdBuilder" hidden><section class="std-panel" role="dialog" aria-modal="true" aria-labelledby="stdTitle">
  <h2 id="stdTitle"><span class="h">1</span><span class="p">8</span><span class="s">4</span> STANDARD <small>TEST</small></h2>
- <p class="std-intro">Deck luôn đủ 30 lá. Chọn lá nào được bật hiệu ứng: tối đa 9 lá Tier 1, 6 lá Tier 2, 3 lá Tier 3 (4 lá nếu bật Búa 2). Lá không bật là bài thường.</p>
- <div class="std-controls"><select id="stdPreset" aria-label="Deck mẫu"></select><select id="stdAi" aria-label="Deck của AI"></select><select id="stdLevel" aria-label="Độ khó"><option value="expert">Độ khó: EXPERT</option><option value="normal">Độ khó: NORMAL</option><option value="easy">Độ khó: EASY</option></select></div>
+ <p class="std-intro">Your deck always has all 30 cards. Choose which cards have their effect on: up to 9 Tier 1, 6 Tier 2 and 3 Tier 3 (4 with Hammer 2 on). Cards left off are plain.</p>
+ <div class="std-controls"><select id="stdPreset" aria-label="Preset deck"></select><select id="stdAi" aria-label="AI deck"></select><select id="stdLevel" aria-label="Level"><option value="expert">Level: EXPERT</option><option value="normal">Level: NORMAL</option><option value="easy">Level: EASY</option></select></div>
  <div id="stdRows"></div>
- <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ BẮT ĐẦU</button></div>
+ <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ START</button></div>
 </section></div>
 <div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
 <div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>
@@ -805,10 +805,10 @@ function stdTipInit(){
   if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
   if(S.phase==='discard'&&S.canPick&&e.isTrusted!==undefined){const sl=e.target.closest&&e.target.closest('.slot.mine');if(sl&&sl.querySelector('.card')){const i=+sl.id.slice(-1),now=performance.now();
    if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
-   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Chạm nhanh 2 lần vào lá để discard · giữ để đọc hiệu ứng')}}},true);
+   STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Double-tap a card to discard it · hold to read its effect')}}},true);
  addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
-function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return 'Round này bạn bị cấm chất '+l.join(', ')}
+function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return l.join(', ')+' is banned for you this round'}
 function stdSyncCards(){const g=STD.g;for(let p=0;p<2;p++){S.hand[p]=g.hand[p].map(c=>objOf(p,c));S.deck[p]=g.deck[p].map(c=>objOf(p,c));S.discard[p]=g.disc[p].map(c=>objOf(p,c))}}
 function stdSync(){const g=STD.g;S.hp=[g.hp[0],g.hp[1]];stdSyncCards();S.blocked=[g.blocked[0]<0?null:g.blocked[0],g.blocked[1]<0?null:g.blocked[1]];S.endgameBlocked=[];S.nextBlocked=[null,null]}
 function stdHud(){const g=STD.g;if(!g)return;
@@ -857,7 +857,7 @@ function stdPanel(title,lines,opt={}){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
   const board=document.querySelector('.board').getBoundingClientRect();
   const el=document.createElement('div');el.className='std-fxlog';el.style.top=Math.max(8,board.top+8)+'px';
-  el.innerHTML='<div class="std-fxlog-h">'+esc(title)+'</div><div class="std-fxlog-b"></div>'+(opt.block?'<div class="std-fxlog-f">chạm để tiếp tục</div>':'');
+  el.innerHTML='<div class="std-fxlog-h">'+esc(title)+'</div><div class="std-fxlog-b"></div>'+(opt.block?'<div class="std-fxlog-f">tap to continue</div>':'');
   document.body.appendChild(el);const body=el.querySelector('.std-fxlog-b');
   let i=0,done=false,timer=null,skipped=false;const step=reducedMotion()?60:(opt.step||650),hold=opt.hold||1300;
   const finish=()=>{if(done)return;done=true;clearTimeout(timer);el.remove();res()};
@@ -865,24 +865,24 @@ function stdPanel(title,lines,opt={}){return new Promise(res=>{
   const add=()=>{if(done)return;if(i<lines.length){const d=document.createElement('div');d.className='std-line '+(lines[i].cls||'');d.innerHTML=lines[i].html;body.appendChild(d);const ln=lines[i];i++;if(ln.mv&&opt.onLine){Promise.resolve(opt.onLine(ln)).catch(()=>{}).then(()=>{if(!done&&!skipped)timer=setTimeout(add,Math.min(step,300))})}else timer=setTimeout(add,step)}else timer=setTimeout(finish,hold)};
   el.addEventListener('click',()=>{if(i<lines.length){skipped=true;if(opt.onSkip)opt.onSkip();while(i<lines.length){const d=document.createElement('div');d.className='std-line '+(lines[i].cls||'');d.innerHTML=lines[i].html;body.appendChild(d);i++}clearTimeout(timer);timer=setTimeout(finish,hold)}else finish()});
   add()})}
-function stdLine(e){const who=e.p===0?'BẠN':'ĐỐI THỦ';return {cls:e.p===0?'me':'ai',html:'<b>'+who+' · '+esc(C.VI(e.c))+(e.sys?'':' ★')+'</b> '+esc(e.t||'Hiệu ứng kích hoạt')}}
+function stdLine(e){const who=e.p===0?'YOU':'AI';return {cls:e.p===0?'me':'ai',html:'<b>'+who+' · '+esc(C.VI(e.c))+(e.sys?'':' ★')+'</b> '+esc(e.t||'Effect triggered')}}
 /* effect notice: appears right when a slot clashes, stays 3 s (tap to close) */
 function stdToast(slot,lines,ms){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
   const el=document.createElement('div');el.className='std-fxlog std-toast';el.setAttribute('role','status');
-  el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · HIỆU ỨNG</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
+  el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · EFFECT</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
   document.body.appendChild(el);el.style.top='8px';
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
 /* counters and lasting effects, for the battle log: discard counter, draw counter (Bao 7), Búa 9 */
-function stdStat(g){const h9=p=>!(g.active[p]&C.bit(9))?null:g.dbl[p]?'đang bật: +10 sát thương, +10 hồi máu mỗi round':g.dblNext[p]?'đã kích hoạt, có tác dụng từ round sau':g.h9[p]?'đã đánh lần đầu mà không thắng: mất hiệu ứng':'chưa đánh xuống';
+function stdStat(g){const h9=p=>!(g.active[p]&C.bit(9))?null:g.dbl[p]?'on':g.dblNext[p]?'on from next round':g.h9[p]?'lost':'not played yet';
  return {dn:[g.dn[0],g.dn[1]],od:[g.cnt[0]-g.dn[0],g.cnt[1]-g.dn[1]],cnt:[g.cnt[0],g.cnt[1]],drawn:[g.drawnN[0],g.drawnN[1]],h9:[h9(0),h9(1)],on:[g.dbl[0]?1:g.dblNext[0]?2:0,g.dbl[1]?1:g.dblNext[1]?2:0]}}
-function stdStatHTML(st){const who=['Bạn','AI'];
- return '<div class="std-stat">'+[0,1].map(p=>'<div class="std-stat-row '+(p?'ai':'me')+'"><span>'+who[p]+'</span><em>Draw <b>'+st.drawn[p]+'</b></em><em>Discard <b>'+st.cnt[p]+'</b></em><em>Passive <b class="'+(st.on[p]?'on':'off')+'">'+(st.on[p]===2?'ON từ round sau':st.on[p]?'ON':'OFF')+'</b></em></div>').join('')+'</div>'}
+function stdStatHTML(st){const who=['You','AI'];
+ return '<div class="std-stat">'+[0,1].map(p=>'<div class="std-stat-row '+(p?'ai':'me')+'"><span>'+who[p]+'</span><em>Draw <b>'+st.drawn[p]+'</b></em><em>Discard <b>'+st.cnt[p]+'</b></em><em>Passive <b class="'+(st.on[p]?'on':'off')+'">'+(st.on[p]===2?'NEXT':st.on[p]?'ON':'OFF')+'</b></em></div>').join('')+'</div>'}
 function stdLogStat(round){const h=STD.hist.find(x=>x.round===round);if(h&&STD.g)h.stat=stdStat(STD.g)}
 function stdLogPush(round,ents,sum){const l=ents.filter(e=>!e.sys&&e.t);if(!l.length&&!sum)return;let h=STD.hist.find(x=>x.round===round);if(!h){h={round,log:[],sum:null};STD.hist.push(h)}h.log=h.log.concat(l);if(sum)h.sum=sum;const b=$('stdLogBtn');if(b&&$('stdLog').hidden)b.classList.add('new')}
-function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=(STD.g?'<h4>HIỆN TẠI</h4>'+stdStatHTML(stdStat(STD.g)):'')+(STD.hist.length?STD.hist.slice(-3).reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Gây <b>'+h.sum.deal+'</b> sát thương · Nhận <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · Bạn hồi <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI hồi <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">Không có hiệu ứng nào.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">Chưa có round nào.</p>')}
+function stdLogRender(){const box=$('stdLogBody');if(!box)return;box.innerHTML=(STD.g?'<h4>NOW</h4>'+stdStatHTML(stdStat(STD.g)):'')+(STD.hist.length?STD.hist.slice(-3).reverse().map(h=>'<h4>ROUND '+h.round+'</h4>'+(h.sum?'<p class="std-log-sum">Dealt <b>'+h.sum.deal+'</b> · Taken <b>'+h.sum.take+'</b>'+(h.sum.heal[0]?' · You healed <b>'+h.sum.heal[0]+'</b>':'')+(h.sum.heal[1]?' · AI healed <b>'+h.sum.heal[1]+'</b>':'')+' · HP '+h.sum.hp[0]+' / '+h.sum.hp[1]+'</p>':'')+(h.log.length?'':'<p class="std-log-empty">No effects this round.</p>')+h.log.map(e=>{const l=stdLine(e);return '<div class="std-line '+l.cls+'">'+l.html+'</div>'}).join('')).join(''):'<p class="std-log-empty">No rounds played yet.</p>')}
 function stdLogToggle(open){const ov=$('stdLog'),b=$('stdLogBtn');const show=open===undefined?ov.hidden:open;if(show){stdLogRender();b.classList.remove('new')}ov.hidden=!show;b.classList.toggle('open',show);b.setAttribute('aria-expanded',show?'true':'false')}
 function stdLogPos(){const b=$('stdLogBtn'),v=$('vs0'),bd=document.querySelector('.board');if(!b||!v||!bd)return;const r=v.getBoundingClientRect(),br=bd.getBoundingClientRect();b.style.left=Math.max(2,br.left+2)+'px';b.style.top=(r.top+r.height/2-11)+'px';b.hidden=!STD.g}
 function stdLogInit(){
@@ -899,15 +899,15 @@ function stdAsk(spec){return new Promise(res=>{
    box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>close(+b.dataset.s)));ov.hidden=false;return}
   const owner=spec.owner===undefined?0:spec.owner,k=Math.min(spec.k,spec.list.length),sel=new Set();
   html+='<div class="std-picks">'+spec.list.map((c,i)=>{const on=stdActive(owner,c);return '<button type="button" class="std-pick '+ORDER[C.S(c)]+(on?' fx fx-t'+(C.tier(c)+1):'')+'" data-i="'+i+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b>'+(on?'<i class="fx-stars">'+'★'.repeat(C.tier(c)+1)+'</i>':'')+'</button>'}).join('')+'</div>';
-  html+='<p class="std-pick-info" id="stdPickInfo">Chọn '+k+' lá.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">BỎ QUA</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>XÁC NHẬN</button></div>';
+  html+='<p class="std-pick-info" id="stdPickInfo">Choose '+k+' card'+(k>1?'s':'')+'.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">SKIP</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>CONFIRM</button></div>';
   box.innerHTML=html;
   const info=$('stdPickInfo'),ok=$('stdOk');
   box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else{if(k===1)sel.clear();if(sel.size<k)sel.add(i)}
     box.querySelectorAll('.std-pick').forEach(x=>x.classList.toggle('sel',sel.has(+x.dataset.i)));ok.disabled=sel.size!==k;
-    const c=spec.list[i],f=C.FX[c];info.textContent=C.VI(c)+(stdActive(owner,c)&&f?' ★ '+f[0]+': '+f[1]:' (bài thường)')}));
+    const c=spec.list[i],f=C.FX[c];info.textContent=C.VI(c)+(stdActive(owner,c)&&f?' ★ '+f[0]+': '+f[1]:' (plain card)')}));
   ok.addEventListener('click',()=>close([...sel].map(i=>spec.list[i])));
   if(spec.optional)$('stdSkip').addEventListener('click',()=>close([]));
-  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.textContent='Chỉ có '+k+' lá phù hợp.'}
+  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.textContent='Only '+k+' matching card'+(k>1?'s':'')+'.'}
   ov.hidden=false})}
 /* run the round on a copy; whenever an effect needs the player's choice, ask, then replay with the answers so far */
 async function stdResolve(rows,onNeed){
@@ -922,10 +922,10 @@ async function stdResolve(rows,onNeed){
 }
 function stdGameOver(){const g=STD.g;S.phase='over';clearInterval(S.timer);render();
   let title,text;
-  if(g.reason==='pack'){title=g.winner===0?'🏆 PACK JOT WIN!':'AI WINS!';text=g.winner===0?'Bạn thắng round với ba lá 7: thắng ngay!':'AI thắng round với ba lá 7.'}
-  else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Hết bài, hai bên bằng HP.':'Cả hai cùng hết HP.'}
-  else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Hết bài: bạn nhiều HP hơn.':'Bạn đã hạ AI.'}
-  else{title='AI WINS!';text=g.reason==='cards'?'Hết bài: AI nhiều HP hơn.':'Thử lại nhé.'}
+  if(g.reason==='pack'){title=g.winner===0?'🏆 PACK JOT WIN!':'AI WINS!';text=g.winner===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens.'}
+  else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Out of cards with equal HP.':'Both players ran out of HP.'}
+  else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Out of cards: you have more HP.':'You defeated the AI.'}
+  else{title='AI WINS!';text=g.reason==='cards'?'Out of cards: the AI has more HP.':'Try again.'}
   showDialog(title,text)}
 /* ---------- deck builder ---------- */
 const STD_KEY='bbk.std.deck.v1';
@@ -941,32 +941,32 @@ function stdBuilderRender(){
       html+='<button type="button" class="std-row'+(on?' on':'')+'" data-c="'+c+'" aria-pressed="'+on+'"><span class="std-chip '+ORDER[C.S(c)]+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b></span><span class="txt"><small>'+esc(C.VI(c))+' · '+esc(f[0])+'</small>'+esc(f[1])+'</span><span class="std-check" aria-hidden="true">'+(on?'★':'')+'</span></button>'}
   }
   $('stdRows').innerHTML=html;
-  $('stdStart').disabled=over;$('stdCount').textContent=over?'Vượt giới hạn: bỏ bớt lá':'Đã bật '+list.length+' lá hiệu ứng · còn lại là bài thường';
+  $('stdStart').disabled=over;$('stdCount').textContent=over?'Over the limit: turn some cards off':list.length+' effect card'+(list.length===1?'':'s')+' on · the rest are plain';
   $('stdRows').querySelectorAll('.std-row').forEach(b=>b.addEventListener('click',()=>{const c=+b.dataset.c;if(stdSel.has(c))stdSel.delete(c);else stdSel.add(c);const y=$('stdBuilder').scrollTop;stdBuilderRender();$('stdBuilder').scrollTop=y}));
 }
 function stdOpenBuilder(){
   S.token++;clearInterval(S.timer);S.phase='idle';$('overlay').hidden=true;$('forfeitOverlay').hidden=true;closeDiscardPile();updateForfeitButton();
   stdSel=new Set(stdLoadDeck());
   const names=Object.keys(C.PRESETS);
-  $('stdPreset').innerHTML='<option value="">Deck mẫu…</option>'+names.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')+'<option value="none">Tắt hết (bài thường)</option>';
-  $('stdAi').innerHTML='<option value="rand">AI: deck mẫu ngẫu nhiên</option>'+names.map((n,i)=>'<option value="'+i+'">AI: '+esc(n)+'</option>').join('')+'<option value="none">AI: bài thường</option>';
+  $('stdPreset').innerHTML='<option value="">Preset deck…</option>'+names.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')+'<option value="none">All off (plain cards)</option>';
+  $('stdAi').innerHTML='<option value="rand">AI: random preset</option>'+names.map((n,i)=>'<option value="'+i+'">AI: '+esc(n)+'</option>').join('')+'<option value="none">AI: plain cards</option>';
   stdBuilderRender();$('stdBuilder').hidden=false;$('stdBuilder').scrollTop=0}
 function stdStartMatch(){
   const list=[...stdSel];if(!C.validDeck(list))return;
   try{localStorage.setItem(STD_KEY,JSON.stringify(list))}catch(e){}
-  const names=Object.keys(C.PRESETS),a=$('stdAi').value;let ai=[],nm='Bài thường';
+  const names=Object.keys(C.PRESETS),a=$('stdAi').value;let ai=[],nm='Plain cards';
   if(a!=='none'){const i=a==='rand'?Math.floor(Math.random()*names.length):+a;nm=names[i];ai=C.PRESETS[nm].map(C.parse)}
   STD.mine=C.mask(list);STD.theirs=C.mask(ai);STD.theirName=nm;STD.level=$('stdLevel').value;
   $('stdBuilder').hidden=true;newGame()}
 function stdFillHelp(){
-  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>Không bật lá nào.</p>'};
+  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>No effect cards.</p>'};
   $('tutorialTitle').textContent='STANDARD · EFFECTS';
-  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Lá có sao là lá đã bật hiệu ứng: 1 sao xanh = Tier 1, 2 sao tím = Tier 2, 3 sao vàng = Tier 3. Đặt ngón tay lên lá (hoặc rê chuột) để đọc hiệu ứng; giữ lâu thì bảng ở lại cho tới lần chạm kế tiếp. Hiệu ứng chạy khi lá thắng slot của nó (đánh thẳng vào slot trống cũng tính), theo thứ tự slot 1 → 2 → 3, thắng trước thua sau.';
+  const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Cards with stars have their effect on: 1 blue star = Tier 1, 2 purple stars = Tier 2, 3 gold stars = Tier 3. Hold a card (or hover) to read its effect. Effects trigger right after their slot is decided (a direct hit on an empty slot counts as a win), in order slot 1 → 2 → 3, winner before loser. Damage is totalled after slot 3.';
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
-  guide.innerHTML='<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA BẠN</h3>'+mk(0)+'<h3 class="std-help-h">BÀI HIỆU ỨNG CỦA AI ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">HIỆU ỨNG ROUND VỪA RỒI</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
+  guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
   $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync};   // test hook (test build only)
-  $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ ĐỔI DECK / ĐỘ KHÓ';
+  $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
   $('stdStart').addEventListener('click',stdStartMatch);
@@ -1016,14 +1016,14 @@ async function startRound(first=false){
  aiPlay();S.duration=roundTime();S.deadline=Date.now()+S.duration*1000;S.phase='plan';
  $('clock').classList.remove('urgent');S.timer=setInterval(tick,150);render();tick();
  const lines=[];const bt=stdBanText();if(bt)lines.push({cls:'ai',html:esc(bt)});
- if(g.ban[1])lines.push({cls:'me',html:'AI bị cấm chất '+[0,1,2].filter(s=>g.ban[1]&(1<<s)).map(s=>C.SUIT_VI[s]).join(', ')});
- if(g.blocked[0]>=0)lines.push({cls:'ai',html:'Slot '+(g.blocked[0]+1)+' của bạn bị khóa round này'});
- if(g.blocked[1]>=0)lines.push({cls:'me',html:'Slot '+(g.blocked[1]+1)+' của AI bị khóa round này'});
+ if(g.ban[1])lines.push({cls:'me',html:[0,1,2].filter(s=>g.ban[1]&(1<<s)).map(s=>C.SUIT_VI[s]).join(', ')+' is banned for the AI'});
+ if(g.blocked[0]>=0)lines.push({cls:'ai',html:'Your slot '+(g.blocked[0]+1)+' is locked this round'});
+ if(g.blocked[1]>=0)lines.push({cls:'me',html:'AI slot '+(g.blocked[1]+1)+' is locked this round'});
  if(lines.length)stdPanel('ROUND '+g.round,lines,{step:250,hold:1800});
 }
 function tick(){if(S.phase==='discard'){const left=Math.max(0,(S.discardDeadline-Date.now())/1000),sec=Math.ceil(left);$('time').textContent=fmt(sec);$('limit').textContent='/ 50s to discard';$('timerFill').style.width=(left/S.discardDuration*100)+'%';$('clock').classList.toggle('urgent',sec<=5);if(left<=0)completeDiscardSelection(true);return}if(S.phase!=='plan')return;const left=Math.max(0,(S.deadline-Date.now())/1000),sec=Math.ceil(left);$('time').textContent=fmt(sec);$('timerFill').style.width=(left/S.duration*100)+'%';$('clock').classList.toggle('urgent',sec<=10);if(left<=0)reveal(true)}
 function autoFill(){for(let i=0;i<3;i++)if(!isBlocked(0,i)&&!S.slots[0][i]&&S.hand[0].length){const k=Math.floor(Math.random()*S.hand[0].length);S.slots[0][i]=S.hand[0].splice(k,1)[0]}}
-function placeCard(id,i){{const c0=S.hand[0].find(x=>x.id===id);if(c0&&stdBanned(0,c0)){stdPanel('BỊ CẤM',[{cls:'ai',html:esc(stdBanText())}],{step:100,hold:1100});return false}}if(TUT.on&&!TUT.allow(id))return false;if(S.phase!=='plan'||i<0||i>=3||isBlocked(0,i))return false;const c=S.hand[0].find(x=>x.id===id);if(!c)return false;const replaced=S.slots[0][i];if(replaced)S.hand[0].push(replaced);S.slots[0][i]=c;S.hand[0]=S.hand[0].filter(x=>x!==c);S.target=null;renderSlots();renderHand();updateButton();return true}
+function placeCard(id,i){{const c0=S.hand[0].find(x=>x.id===id);if(c0&&stdBanned(0,c0)){stdPanel('BANNED',[{cls:'ai',html:esc(stdBanText())}],{step:100,hold:1100});return false}}if(TUT.on&&!TUT.allow(id))return false;if(S.phase!=='plan'||i<0||i>=3||isBlocked(0,i))return false;const c=S.hand[0].find(x=>x.id===id);if(!c)return false;const replaced=S.slots[0][i];if(replaced)S.hand[0].push(replaced);S.slots[0][i]=c;S.hand[0]=S.hand[0].filter(x=>x!==c);S.target=null;renderSlots();renderHand();updateButton();return true}
 function onHand(id){if(S.phase!=='plan'||(TUT.on&&!TUT.allow(id)))return;const c=S.hand[0].find(x=>x.id===id);if(!c)return;const i=S.target!==null&&!isBlocked(0,S.target)&&!S.slots[0][S.target]?S.target:S.slots[0].findIndex((x,j)=>!x&&!isBlocked(0,j));if(i<0){msg('All available slots are full. Return a card to your hand to make space.');return}placeCard(id,i)}
 function returnCard(i){if(S.phase!=='plan'||i<0||i>=3)return false;const c=S.slots[0][i];if(!c)return false;S.slots[0][i]=null;S.hand[0].push(c);S.animateHand.add(c.id);S.target=i;renderSlots();renderHand();updateButton();return true}
 function onSlot(i){if(S.phase==='plan'){if(isBlocked(0,i)){msg('This slot is locked.');return}const c=S.slots[0][i];if(c){returnCard(i)}else{S.target=S.target===i?null:i;renderSlots();renderHand();updateButton()}}else if(S.phase==='discard'&&S.canPick&&S.slots[0][i]){S.pickIdx[0]=i;completeDiscardSelection(false)}}
@@ -1043,7 +1043,7 @@ async function reveal(timeout=false){
  // A dry run tells which cards will fire, so the TRIGGERED tag can show at the clash.
  const seed0=C.getSeed(),dry=C.clone(g);dry.log=[];C.resolve(dry,rows);C.setSeed(seed0);
  const fired=[[false,false,false],[false,false,false]];
- for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/hiệu ứng mất/.test(e.t))fired[e.p][e.slot]=true;
+ for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/effect lost/.test(e.t))fired[e.p][e.slot]=true;
  let shown=-1;const told=[0,0,0];
  const slotOf=log=>{const r=log.map(e=>e.slot);for(let k=r.length-1;k>=0;k--)if(r[k]<0)r[k]=k+1<r.length?r[k+1]:Math.max(0,shown);return r};
  const present=async(t,upto)=>{
@@ -1108,9 +1108,9 @@ async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInter
  for(const c of res.drawn[0])S.animateHand.delete(objOf(0,c).id);
  STD.fxNew.clear();STD.h9show=[false,false];S.slots=[[null,null,null],[null,null,null]];S.phase='dealing';stdSync();render();
  for(const c of res.drawn[0]){if(!g.hand[0].includes(c))continue;await animateDealtCard(objOf(0,c),tok);if(tok!==S.token)return}
- const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>ĐỐI THỦ</b> '+esc(e.t)}:stdLine(e));
+ const lines=log.filter(e=>e.p===0||!e.sys||/MESS UP/.test(e.t)).map(e=>e.p===1&&e.sys?{cls:'ai',html:'<b>AI</b> '+esc(e.t)}:stdLine(e));
  STD.lastLog=STD.lastLog.concat(log.filter(e=>e.p===0||!e.sys));stdLogPush(g.round-1,log);stdLogStat(g.round-1);
- if(lines.length){await stdPanel('KẾT THÚC ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
+ if(lines.length){await stdPanel('END OF ROUND',lines,{step:300,hold:1400});if(tok!==S.token)return}
  startRound(false)}
 function canForfeit(){return S.phase==='plan'||S.phase==='dealing'||S.phase==='reveal'||S.phase==='discard'}
 function requestForfeit(){

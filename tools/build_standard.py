@@ -30,7 +30,7 @@ rep('class="card ${c.suit} ${extra}" data-id="${c.id}" aria-label="${cardName(c)
 # bans: banned suits cannot be placed and do not count as playable
 rep('function requiredCards(p){return Math.min(openSlots(p).length,S.hand[p].length+playedCards(p))}',
     'function requiredCards(p){return Math.min(openSlots(p).length,S.hand[p].filter(c=>!stdBanned(p,c)).length+playedCards(p))}')
-rep("function placeCard(id,i){", "function placeCard(id,i){{const c0=S.hand[0].find(x=>x.id===id);if(c0&&stdBanned(0,c0)){stdPanel('BỊ CẤM',[{cls:'ai',html:esc(stdBanText())}],{step:100,hold:1100});return false}}")
+rep("function placeCard(id,i){", "function placeCard(id,i){{const c0=S.hand[0].find(x=>x.id===id);if(c0&&stdBanned(0,c0)){stdPanel('BANNED',[{cls:'ai',html:esc(stdBanText())}],{step:100,hold:1100});return false}}")
 rep(";updateHandSwipe();fitManyHand()}", ";updateHandSwipe();fitManyHand();stdAfterHand()}")
 rep("function renderHud(){", "function renderHud(){try{stdHud()}catch(e){}")
 rep("function showMenu(){", "function showMenu(){stdOpenBuilder();return;")
@@ -44,10 +44,10 @@ rep('<title>184 — Tactical Card Duel</title>', '<title>184 Standard Test</titl
 rep('<script src="./bot-brain.js', '<script src="./std-core.js?v=20261115a"></script>\n<script src="./bot-brain.js')
 html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class="std-panel" role="dialog" aria-modal="true" aria-labelledby="stdTitle">
  <h2 id="stdTitle"><span class="h">1</span><span class="p">8</span><span class="s">4</span> STANDARD <small>TEST</small></h2>
- <p class="std-intro">Deck luôn đủ 30 lá. Chọn lá nào được bật hiệu ứng: tối đa 9 lá Tier 1, 6 lá Tier 2, 3 lá Tier 3 (4 lá nếu bật Búa 2). Lá không bật là bài thường.</p>
- <div class="std-controls"><select id="stdPreset" aria-label="Deck mẫu"></select><select id="stdAi" aria-label="Deck của AI"></select><select id="stdLevel" aria-label="Độ khó"><option value="expert">Độ khó: EXPERT</option><option value="normal">Độ khó: NORMAL</option><option value="easy">Độ khó: EASY</option></select></div>
+ <p class="std-intro">Your deck always has all 30 cards. Choose which cards have their effect on: up to 9 Tier 1, 6 Tier 2 and 3 Tier 3 (4 with Hammer 2 on). Cards left off are plain.</p>
+ <div class="std-controls"><select id="stdPreset" aria-label="Preset deck"></select><select id="stdAi" aria-label="AI deck"></select><select id="stdLevel" aria-label="Level"><option value="expert">Level: EXPERT</option><option value="normal">Level: NORMAL</option><option value="easy">Level: EASY</option></select></div>
  <div id="stdRows"></div>
- <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ BẮT ĐẦU</button></div>
+ <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ START</button></div>
 </section></div>
 <div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
 <div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>
