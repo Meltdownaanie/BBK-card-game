@@ -105,11 +105,13 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 #stdLogBody h4:first-child{margin-top:2px}
 .std-log-empty{color:#b9a9e6;font-size:13px;margin:6px 0}
 .slot.mine .card.tap1{outline:3px solid #ffcf33!important;outline-offset:3px}
-.std-stat{margin:4px 0 8px;padding:6px 8px;border-radius:8px;background:#ffffff10;font-size:12px;line-height:1.35}
-.std-stat-row{display:flex;flex-wrap:wrap;gap:2px 10px;padding:2px 0}
-.std-stat-row+.std-stat-row{border-top:1px solid #ffffff18;margin-top:2px;padding-top:4px}
-.std-stat-row span{flex:0 0 100%;font-weight:700;color:#ffcf33;font-size:11px;letter-spacing:.03em;text-transform:uppercase}
-.std-stat-row em{font-style:normal;flex:1 1 100%;color:#efe6ff}
-.std-stat-row em.ai{color:#ffb3b3}
+.std-stat{margin:4px 0 8px;padding:4px 8px;border-radius:8px;background:#ffffff10;font-size:13px;line-height:1.4}
+.std-stat-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;padding:3px 0}
+.std-stat-row+.std-stat-row{border-top:1px solid #ffffff18}
+.std-stat-row span{flex:0 0 34px;font-weight:700;color:#ffcf33}
+.std-stat-row.ai span{color:#ffb3b3}
+.std-stat-row em{font-style:normal;color:#d9cdf5;white-space:nowrap}
 .std-stat-row em b{color:#fff}
+.std-stat-row em b.on{color:#7dff9a}
+.std-stat-row em b.off{color:#a79bc4}
 .std-stat-cap{margin:6px 0 0;font-size:11px;color:#b9a9e6}
