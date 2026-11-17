@@ -1067,7 +1067,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    st.classList.add('spin');
    st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');stdAura(c,extra);
     c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
-  if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:350);if(!live())return end();
+  if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:1000);if(!live())return end();
   // banner, 7.77 s
   clones.forEach(c=>c.classList.add('behind'));document.querySelectorAll('.jp-aura').forEach(a=>a.classList.add('behind'));
   // JACKPOT! WIN sign (pixel art) with 184 on top; the three 7s sit in a panel of card-shaped gold frames
