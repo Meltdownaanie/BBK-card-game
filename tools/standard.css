@@ -134,9 +134,13 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .card.jp-card.glow{filter:drop-shadow(0 0 10px #ffd84a) drop-shadow(0 0 26px #ffb100)}
 .jp-reel-win{position:fixed;z-index:1201;transform-origin:center;overflow:hidden;pointer-events:none;transition:opacity .4s ease}
 .jp-reel-mask{position:absolute;inset:0;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
-.jp-reel-win.stopped .jp-reel-mask{-webkit-mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent)}
-.jp-reel-win.stopped .card.jp-item{filter:drop-shadow(0 0 8px #ffd84a) drop-shadow(0 0 18px #ffb100)}
-.jp-reel-win.behind{opacity:.35}
+.card.jp-card.aura{transition:none;filter:drop-shadow(0 0 8px #fff3b0) drop-shadow(0 0 22px #ffd23a) drop-shadow(0 0 40px #ffb100)}
+@keyframes jpAura{from{filter:drop-shadow(0 0 6px #fff3b0) drop-shadow(0 0 16px #ffd23a) drop-shadow(0 0 30px #ffb100)}to{filter:drop-shadow(0 0 10px #fffbe0) drop-shadow(0 0 26px #ffd23a) drop-shadow(0 0 48px #ffb100)}}
+.card.jp-card.aura .number{color:#b8860b!important;text-shadow:0 0 6px #ffe680}
+.card.jp-card.behind{opacity:.4!important;transition:opacity .4s ease}
+#overlay .emblems.jp-777 .mini{box-shadow:0 0 14px #ffcf33,0 0 28px #ffb10088}
+#overlay .emblems.jp-777 .mini b{color:#b8860b}
+@media(prefers-reduced-motion:reduce){.card.jp-card.aura{animation:none;filter:drop-shadow(0 0 10px #ffd23a) drop-shadow(0 0 26px #ffb100)}}
 .jp-strip{position:absolute;left:0;right:0;top:0;will-change:transform}
 .jp-strip.spin{filter:blur(1.2px)}
 .card.jp-item{position:absolute!important;left:6px;margin:0!important;transform:none!important;pointer-events:none}
@@ -148,7 +152,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-congrats,.jp-win,.jp-cards,.jp-sub,.jp-who{position:relative}
 .jp-congrats,.jp-win,.jp-sub,.jp-who{font-family:var(--pn);font-weight:400;-webkit-text-stroke:0;paint-order:stroke fill}
 .jp-congrats{font-size:clamp(11px,3.4vw,15px);line-height:1.2;color:#fff;text-shadow:0 2px 0 #7a3e00,2px 0 0 #7a3e00,-2px 0 0 #7a3e00,0 -2px 0 #7a3e00,0 0 10px #fff6c8;animation:jpIn .45s .15s ease-out both}
-.jp-win{margin-top:12px;font-size:clamp(19px,6.2vw,28px);line-height:1.15;color:transparent;background:linear-gradient(100deg,#fff8d6 0%,#ffffff 20%,#ffe14d 40%,#ffffff 50%,#ffe14d 60%,#fff8d6 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 3px 0 #7a3e00) drop-shadow(2px 0 0 #7a3e00) drop-shadow(-2px 0 0 #7a3e00) drop-shadow(0 -2px 0 #7a3e00) drop-shadow(0 0 10px #fff3b0);animation:jpIn .45s .3s ease-out both,jpShine 1.6s 1s linear infinite}
+.jp-win{margin-top:12px;font-size:clamp(19px,6.2vw,28px);line-height:1.15;color:transparent;background:linear-gradient(100deg,#fff8d6 0%,#ffffff 20%,#ffe14d 40%,#ffffff 50%,#ffe14d 60%,#fff8d6 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:1.2px #7a3e00;paint-order:stroke fill;animation:jpIn .45s .3s ease-out both,jpShine 1.6s 1s linear infinite}
 @keyframes jpShine{to{background-position:-220% 0}}
 .jp-cards{margin-top:14px;display:flex;justify-content:center;gap:10px;min-height:96px;align-items:flex-end}
 .card.jp-mini{position:relative!important;width:clamp(56px,16vw,72px)!important;height:clamp(78px,22vw,100px)!important;margin:0!important;flex:0 0 auto;pointer-events:none;filter:drop-shadow(0 0 8px #fff6c8) drop-shadow(0 4px 0 #7a3e00);animation:jpIn .4s ease-out both,jpHop .9s ease-in-out infinite}
@@ -162,4 +166,4 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
 @media(prefers-reduced-motion:reduce){.jp-rays,.jp-win,.jp-spark,.jp-pop,.jp-congrats,.card.jp-mini,.jp-sub,.jp-who{animation:none}}
-.jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none}
+.jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none;image-rendering:pixelated}

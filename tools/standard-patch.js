@@ -116,34 +116,35 @@ async function stdH9Spend(slot,used){
  card.classList.add('std-spending');await sleep(reducedMotion()?200:950);
  if(stars)stars.remove();card.classList.remove('fx','fx-t1','fx-t2','fx-t3','std-spending');
  setTimeout(()=>tag.remove(),reducedMotion()?600:1400)}
-/* Coin rain for the jackpot: gold coins stamped with the Hammer / Paper / Scissors icon pour from the top of the screen,
-   very dense at first then thinning out, and pile up along the bottom. Drawn on one canvas that sits behind the banner. */
+/* Coin rain for the jackpot: thick pixel-art gold coins stamped with the Hammer / Paper / Scissors icon pour from the top,
+   very dense at first then thinning out, tumbling and spilling out past the bottom of the screen. One canvas behind the banner. */
 function stdCoinRain(){
  const cv=document.createElement('canvas');cv.className='jp-coins';cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
- const ctx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1);let W=0,H=0;
- const size=()=>{W=innerWidth;H=innerHeight;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)};size();
- const D=Math.round(Math.max(22,Math.min(40,W*.075))),R=D/2;
- // coin sprites: one per suit, drawn once
- const sprite=suit=>{const c=document.createElement('canvas'),s=Math.ceil(D*dpr)+4;c.width=s;c.height=s;const x=c.getContext('2d'),r=s/2-2;
-  const g=x.createRadialGradient(s*.38,s*.32,r*.1,s/2,s/2,r);g.addColorStop(0,'#fff6b0');g.addColorStop(.45,'#ffd23a');g.addColorStop(.85,'#e09a12');g.addColorStop(1,'#a8650a');
-  x.fillStyle='#6b3d04';x.beginPath();x.arc(s/2,s/2+1,r,0,7);x.fill();x.fillStyle=g;x.beginPath();x.arc(s/2,s/2,r,0,7);x.fill();
-  x.strokeStyle='#fff3a0';x.lineWidth=Math.max(1,r*.09);x.beginPath();x.arc(s/2,s/2,r*.78,0,7);x.stroke();
-  const img=new Image();img.onload=()=>{const t=document.createElement('canvas');t.width=t.height=s;const y=t.getContext('2d'),q=r*1.05;y.imageSmoothingEnabled=false;y.drawImage(img,s/2-q/2,s/2-q/2,q,q);y.globalCompositeOperation='source-in';y.fillStyle='#9a5c06';y.fillRect(0,0,s,s);
-   x.globalAlpha=.9;x.drawImage(t,0,0);x.globalAlpha=1};img.src='./icons/'+suit+'.png';return c};
- const sp=['hammer','paper','scissors'].map(sprite);
- const cols=Math.ceil(W/(R*.9))+1,floor=new Float32Array(cols).fill(0),maxPile=H*.34;
- const fall=[],pile=document.createElement('canvas');pile.width=cv.width;pile.height=cv.height;const pctx=pile.getContext('2d');pctx.setTransform(dpr,0,0,dpr,0,0);
- let t0=performance.now(),last=t0,acc=0,alive=true,raf=0;
- const spawn=()=>{fall.push({x:Math.random()*W,y:-D-Math.random()*H*.25,vy:120+Math.random()*180,vx:(Math.random()-.5)*60,a:Math.random()*6.28,va:(Math.random()-.5)*8,flip:Math.random()*6.28,vf:6+Math.random()*8,s:Math.floor(Math.random()*3),z:.8+Math.random()*.45})};
- const draw=(c,o,x,y,sx,rot,z)=>{const s=sp[o],w=D*z;c.save();c.translate(x,y);c.rotate(rot);c.scale(sx,1);c.drawImage(s,-w/2,-w/2,w,w);c.restore()};
- const settle=o=>{const w=D*o.z,i0=Math.max(0,Math.floor((o.x-w*.45)/(R*.9))),i1=Math.min(cols-1,Math.floor((o.x+w*.45)/(R*.9)));let top=0;for(let i=i0;i<=i1;i++)top=Math.max(top,floor[i]);
-  const h=top+w*.3;for(let i=i0;i<=i1;i++)floor[i]=Math.max(floor[i],h);for(let j=1;j<=3;j++){const dh=h-j*w*.22;if(i0-j>=0)floor[i0-j]=Math.max(floor[i0-j],dh);if(i1+j<cols)floor[i1+j]=Math.max(floor[i1+j],dh)}const y=H-top-w*.38;draw(pctx,o.s,o.x,y,.55+Math.abs(Math.cos(o.flip))*.45,(Math.random()-.5)*.9,o.z)};
+ const ctx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=innerWidth,H=innerHeight;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;
+ const D=Math.round(Math.max(26,Math.min(44,W*.085))),G=20;   // coin drawn on a 20 x 20 pixel grid, scaled up crisp
+ const px=(x,c,x0,y0,w,h)=>{x.fillStyle=c;x.fillRect(x0,y0,w,h)};
+ const disc=(x,fill,edge)=>{for(let y=0;y<G;y++)for(let i=0;i<G;i++){const dx=i+.5-G/2,dy=y+.5-G/2,d=Math.hypot(dx,dy);if(d<=G/2-.2)px(x,d>G/2-1.4?edge:fill,i,y,1,1)}};
+ const mk=()=>{const c=document.createElement('canvas');c.width=c.height=G;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return [c,x]};
+ // rim (side of the coin) and face sprites
+ const [rim,rx]=mk();disc(rx,'#b8700c','#5a3203');
+ const face=suit=>{const [c,x]=mk();
+  for(let y=0;y<G;y++)for(let i=0;i<G;i++){const dx=i+.5-G/2,dy=y+.5-G/2,d=Math.hypot(dx,dy);if(d>G/2-.2)continue;
+   let col=d>G/2-1.4?'#5a3203':d>G/2-2.4?'#e0a020':'#ffd23a';if(d<=G/2-2.4&&dx+dy<-3.5)col='#ffef8a';if(d<=G/2-2.4&&d>G/2-3.4&&dx+dy>2)col='#e8a91f';px(x,col,i,y,1,1)}
+  px(x,'#fffbd0',5,4,2,1);px(x,'#fffbd0',4,5,1,2);
+  const img=new Image();img.onload=()=>{const t=document.createElement('canvas');t.width=t.height=G;const y=t.getContext('2d');y.imageSmoothingEnabled=false;y.drawImage(img,4,4,12,12);y.globalCompositeOperation='source-in';y.fillStyle='#8a4f05';y.fillRect(0,0,G,G);x.drawImage(t,0,0)};img.src='./icons/'+suit+'.png';return c};
+ const faces=['hammer','paper','scissors'].map(face);
+ const fall=[];let t0=performance.now(),last=t0,acc=0,alive=true,raf=0;
+ const spawn=el=>{const z=.75+Math.random()*.5;fall.push({x:Math.random()*W,y:-D*z-Math.random()*D*2,vy:(el<.4?260:120)+Math.random()*200,vx:(Math.random()-.5)*70,a:(Math.random()-.5)*.8,va:(Math.random()-.5)*3,flip:Math.random()*6.28,vf:(4+Math.random()*7)*(Math.random()<.5?-1:1),s:Math.floor(Math.random()*3),z})};
+ const draw=o=>{const w=D*o.z,c=Math.cos(o.flip),sx=Math.max(.08,Math.abs(c)),th=w*.2*Math.sqrt(1-c*c),dir=c>=0?1:-1,ca=Math.cos(o.a),sa=Math.sin(o.a);
+  // thickness: the rim drawn twice behind the face, shifted toward the side the coin is turning to
+  for(const f of [1,.5]){const ox=dir*th*f;ctx.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*(o.x+ox*ca),dpr*(o.y+ox*sa));ctx.drawImage(rim,-w/2,-w/2,w,w)}
+  ctx.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*o.x,dpr*o.y);ctx.drawImage(faces[o.s],-w/2,-w/2,w,w)};
  const tick=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000),el=(now-t0)/1000;last=now;
-  const rate=el<7?260*Math.exp(-el/1.7)+8:0;acc+=rate*dt;while(acc>=1){acc--;spawn()}
-  for(let k=fall.length-1;k>=0;k--){const o=fall[k];o.vy+=900*dt;o.y+=o.vy*dt;o.x+=o.vx*dt;o.a+=o.va*dt;o.flip+=o.vf*dt;
-   const i=Math.max(0,Math.min(cols-1,Math.floor(o.x/(R*.9)))),landY=H-floor[i]-D*o.z*.38;
-   if(o.y>=landY){if(floor[i]<maxPile)settle(o);fall.splice(k,1)}}
-  ctx.clearRect(0,0,W,H);ctx.drawImage(pile,0,0,W,H);for(const o of fall)draw(ctx,o.s,o.x,o.y,Math.cos(o.flip),o.a,o.z);
+  const rate=el<7.6?220*Math.exp(-el/1.6)+7:0;acc+=rate*dt;while(acc>=1){acc--;spawn(el)}
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.imageSmoothingEnabled=false;
+  for(let k=fall.length-1;k>=0;k--){const o=fall[k];o.vy=Math.min(1100,o.vy+820*dt);o.y+=o.vy*dt;o.x+=o.vx*dt;o.a+=o.va*dt;o.flip+=o.vf*dt;
+   if(o.y-D>H){fall.splice(k,1);continue}draw(o)}
   raf=requestAnimationFrame(tick)};
  raf=requestAnimationFrame(tick);
  return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
@@ -181,13 +182,13 @@ function stdJackpot(w,token){return new Promise(res=>{
   clones.forEach(c=>c.style.opacity='0');
   ov.classList.add('reels');
   await Promise.all(reels.map((reel,k)=>new Promise(r2=>{const st=reel._strip,from=-reel._n*pitch;st.style.transform=`translateY(${from}px)`;
-   if(rm){st.style.transform='translateY(0)';reel.classList.add('stopped');return r2()}
+   if(rm){reel.style.visibility='hidden';clones[k].style.opacity='1';clones[k].classList.add('aura');reel.classList.add('stopped');return r2()}
    st.classList.add('spin');
-   st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');
-    reel.animate([{transform:`scale(${sc})`},{transform:`scale(${sc*1.08})`},{transform:`scale(${sc})`}],{duration:280,easing:'ease-out'});r2()},()=>r2())})));
+   st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');
+    c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
   if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:350);if(!live())return end();
   // banner, 7.77 s
-  reels.forEach(r=>r.classList.add('behind'));
+  clones.forEach(c=>c.classList.add('behind'));
   const pop=document.createElement('div');pop.className='jp-pop';
   pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-cards"></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
   const row=pop.querySelector('.jp-cards');cards.forEach(({el},k)=>{const c=plain(el.cloneNode(true));c.className=c.className.replace(/\bjp-card\b|\bglow\b/g,'').trim()+' jp-mini';c.style.cssText='animation-delay:'+(.5+k*.15)+'s,'+(1.1+k*.12)+'s';row.appendChild(c)});
@@ -201,7 +202,7 @@ function stdJackpot(w,token){return new Promise(res=>{
   await sleep(7770);end()};
  step()})}
 /* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */
-async function stdDemo777(who){
+async function stdDemo777(who){stdEmblems(false);
  STD.mine=0;STD.theirs=0;STD.theirName='Plain cards';STD.level='easy';$('stdBuilder').hidden=true;newGame();
  const tok=S.token;for(let k=0;k<200;k++){if(tok!==S.token)return;if(S.phase==='plan'&&/REVEAL/.test($('mainButton').textContent))break;await sleep(60)}
  const g=STD.g,me=who===0?[7,17,27]:[1,12,23],ai=who===0?[1,12,23]:[7,17,27];
@@ -268,7 +269,8 @@ function stdGameOver(){const g=STD.g;S.phase='over';clearInterval(S.timer);rende
   else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Out of cards with equal HP.':'Both players ran out of HP.'}
   else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Out of cards: you have more HP.':'You defeated the AI.'}
   else{title='AI WINS!';text=g.reason==='cards'?'Out of cards: the AI has more HP.':'Try again.'}
-  showDialog(title,text)}
+  stdEmblems(g.reason==='pack');showDialog(title,text)}
+function stdEmblems(seven){document.querySelectorAll('#overlay .emblems .mini b').forEach((b,k)=>{b.textContent=seven?'7':['1','8','4'][k]});const e=document.querySelector('#overlay .emblems');if(e)e.classList.toggle('jp-777',!!seven)}
 /* ---------- deck builder ---------- */
 const STD_KEY='bbk.std.deck.v1';
 function stdLoadDeck(){try{const l=JSON.parse(localStorage.getItem(STD_KEY)||'null');if(Array.isArray(l)&&C.validDeck(l))return l}catch(e){}return Object.values(C.PRESETS)[0].map(C.parse)}
@@ -293,7 +295,7 @@ function stdOpenBuilder(){
   $('stdPreset').innerHTML='<option value="">Preset deck…</option>'+names.map((n,i)=>'<option value="'+i+'">'+esc(n)+'</option>').join('')+'<option value="none">All off (plain cards)</option>';
   $('stdAi').innerHTML='<option value="rand">AI: random preset</option>'+names.map((n,i)=>'<option value="'+i+'">AI: '+esc(n)+'</option>').join('')+'<option value="none">AI: plain cards</option>';
   stdBuilderRender();$('stdBuilder').hidden=false;$('stdBuilder').scrollTop=0}
-function stdStartMatch(){
+function stdStartMatch(){stdEmblems(false);
   const list=[...stdSel];if(!C.validDeck(list))return;
   try{localStorage.setItem(STD_KEY,JSON.stringify(list))}catch(e){}
   const names=Object.keys(C.PRESETS),a=$('stdAi').value;let ai=[],nm='Plain cards';
