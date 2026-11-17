@@ -197,7 +197,7 @@ function stdJackpot(w,token){return new Promise(res=>{
   pop.innerHTML='<div class="jps-float"><div class="jps-art"><img class="sign" src="./jackpot-sign.webp" alt="JACKPOT! WIN">'
    +'<div class="jps-184">184</div><div class="jps-panel"></div>'
    +'<i class="jps-tw t1"></i><i class="jps-tw t2"></i><i class="jps-tw t3"></i><i class="jps-tw t4"></i><i class="jps-tw t5"></i><i class="jps-tw t6"></i>'
-   +'<div class="jps-shine" aria-hidden="true"></div><div class="jps-congrats">CONGRATULATION!!!</div></div>'
+   +'<div class="jps-shine" aria-hidden="true"></div>'+(w===0?'<div class="jps-congrats">CONGRATULATION!!!</div>':'')+'</div>'
    +'<div class="jps-sub">7 HEAVEN</div><div class="jps-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
   const row=pop.querySelector('.jps-panel');
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
