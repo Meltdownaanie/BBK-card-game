@@ -150,35 +150,47 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 @keyframes jpAuraPulse{to{transform:translate(-50%,-50%) scale(1.12)}}
 .jp-pop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1203;text-align:center;animation:jpPop .55s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes jpPop{from{transform:translate(-50%,-50%) scale(.2);opacity:0}}
-.jp-sign{width:min(450px,calc(100vw - 12px));padding:0;filter:drop-shadow(0 6px 0 #2a0006) drop-shadow(0 0 26px #ffb10099)}
-.jp-board{position:absolute;left:0;right:0;top:18px;bottom:0}
-.jp-board-red,.jp-board-white{position:absolute;inset:0;clip-path:polygon(0 50%,10% 14%,50% 0,90% 14%,100% 50%,90% 86%,50% 100%,10% 86%)}
-.jp-board-red{background:#e3122b;box-shadow:inset 0 -6px 0 #9c0a1e}
-.jp-board-white{inset:20px 34px;background:#fffdf5;background-image:repeating-linear-gradient(0deg,#00000008 0 2px,transparent 2px 4px)}
-.jp-bulbs{position:absolute;inset:0;pointer-events:none}
-.jp-bulbs i{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:#fff6c8;box-shadow:0 0 0 1px #8a4f05,0 0 8px #ffe066;animation:jpBulb .54s steps(1) infinite}
+.jp-sign2{width:min(470px,calc(100vw - 8px));padding-top:clamp(64px,19vw,86px);--g:#ffc21a;--gd:#b8700c;--rd:#5c0412}
+.jp2-rays{position:absolute;left:50%;top:0;width:clamp(120px,36vw,170px);transform:translateX(-50%);z-index:0;animation:jpRays 1s steps(2) infinite}
+@keyframes jpRays{50%{opacity:.55}}
+.jp2-fan{position:absolute;top:clamp(10px,3vw,16px);z-index:0;width:40%;height:clamp(64px,18vw,84px)}
+.jp2-fan.l{left:3%}.jp2-fan.r{right:3%}
+.jp2-fan .card{position:absolute!important;bottom:0;width:clamp(40px,11.5vw,52px)!important;height:clamp(56px,16vw,72px)!important;margin:0!important;pointer-events:none;box-shadow:0 3px 0 #2a0006!important}
+.jp2-fan .card .number{font-size:clamp(17px,5vw,22px)!important}
+.jp2-fan.l .card:nth-child(1){left:18%;transform:rotate(-24deg)}.jp2-fan.l .card:nth-child(2){left:44%;transform:rotate(-10deg) translateY(-6px)}
+.jp2-fan.r .card:nth-child(1){right:44%;transform:rotate(10deg) translateY(-6px)}.jp2-fan.r .card:nth-child(2){right:18%;transform:rotate(24deg)}
+.jp2-congrats{position:absolute;z-index:2;left:50%;top:clamp(38px,11vw,52px);transform:translateX(-50%);white-space:nowrap;font:400 clamp(9px,2.8vw,12px)/1.2 var(--pn);color:#fff6c8;text-shadow:2px 2px 0 #7a1e00,-2px 2px 0 #7a1e00,2px -2px 0 #7a1e00,-2px -2px 0 #7a1e00,0 0 10px #ffd23a;animation:jpIn .45s .2s ease-out both}
+.jp2-rib{position:absolute;z-index:0;top:calc(clamp(64px,19vw,86px) + 40%);width:26%;height:clamp(34px,10vw,46px);background:linear-gradient(#e3122b,#a70d22);box-shadow:inset 0 -4px 0 #7a0a18,inset 0 3px 0 #ff5a6a}
+.jp2-rib.l{left:-4px;clip-path:polygon(0 0,100% 12%,100% 100%,0 88%,14% 50%)}.jp2-rib.r{right:-4px;clip-path:polygon(0 12%,100% 0,86% 50%,100% 88%,0 100%)}
+.jp2-frame{position:relative;z-index:1;margin:0 7%;padding:clamp(18px,5vw,24px) 12px clamp(18px,5vw,22px);border-radius:16px;background:radial-gradient(ellipse at 50% 35%,#8c0a1c,#4a030e 75%);background-image:repeating-conic-gradient(#ffffff0a 0 25%,transparent 0 50%),radial-gradient(ellipse at 50% 35%,#8c0a1c,#4a030e 75%);background-size:6px 6px,auto;background-color:#4a030e;border:5px solid var(--g);box-shadow:inset 0 0 0 3px var(--gd),inset 0 0 0 16px #00000033,0 0 0 3px var(--gd),0 0 0 6px #2a0006,0 0 26px #ffb10099}
+.jp2-bulbs{position:absolute;inset:0;pointer-events:none}
+.jp2-bulbs i{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:#fff6c8;box-shadow:0 0 0 1px #8a4f05,0 0 8px #ffe066;animation:jpBulb .54s steps(1) infinite}
 @keyframes jpBulb{0%{background:#fff6c8;box-shadow:0 0 0 1px #8a4f05,0 0 8px #fff,0 0 14px #ffd23a}33%{background:#c98a10;box-shadow:0 0 0 1px #6b3d04}66%{background:#c98a10;box-shadow:0 0 0 1px #6b3d04}}
-.jp-burst{position:absolute;z-index:1;left:-1%;top:-44px;width:clamp(54px,16vw,74px);height:auto;filter:drop-shadow(0 0 8px #ffb100);animation:jpBurstSpin 1.4s steps(4) infinite}
-@keyframes jpBurstSpin{50%{transform:rotate(22.5deg) scale(1.08)}}
-.jp-discs{position:relative;z-index:2;display:flex;justify-content:center;gap:clamp(1px,.6vw,3px);margin:0 auto;padding-left:6%}
-.jp-discs span{display:grid;place-items:center;width:clamp(25px,7.6vw,35px);height:clamp(25px,7.6vw,35px);border-radius:50%;background:radial-gradient(circle at 38% 32%,#fff4a8 0 22%,#ffc21a 23% 100%);border:3px solid #c43a00;box-shadow:0 3px 0 #7a1e00,0 0 10px #ffd23a;font:400 clamp(12px,3.8vw,17px)/1 var(--pn);color:#e3122b;text-shadow:1px 1px 0 #fff6c8;animation:jpIn .35s ease-out both,jpDisc 1.08s 1.2s steps(1) infinite}
-.jp-discs span:nth-child(even){animation-delay:.25s,1.74s}
-@keyframes jpDisc{50%{background:radial-gradient(circle at 38% 32%,#ffffff 0 24%,#ffe14d 25% 100%);box-shadow:0 3px 0 #7a1e00,0 0 18px #fff3b0}}
-.jp-discs em{width:clamp(4px,1.6vw,8px)}
-.jp-face{position:relative;z-index:1;padding:clamp(18px,5vw,24px) 22% clamp(30px,8vw,40px)}
-.jp-congrats,.jp-cards,.jp-sub,.jp-who{position:relative}
-.jp-congrats,.jp-sub,.jp-who{font-family:var(--pn);font-weight:400}
-.jp-congrats{font-size:clamp(10px,3.1vw,14px);line-height:1.3;color:#0a7fc2;text-shadow:1px 1px 0 #bfe8ff;white-space:nowrap;animation:jpIn .45s .35s ease-out both}
-.jp-cards{margin-top:clamp(8px,2.4vw,12px);display:flex;justify-content:center;gap:8px;align-items:flex-end}
-.card.jp-mini{position:relative!important;width:clamp(48px,13.5vw,62px)!important;height:clamp(66px,18.5vw,86px)!important;margin:0!important;flex:0 0 auto;pointer-events:none;box-shadow:0 0 0 3px #ffcf33,0 0 12px #ffd23a,0 4px 0 3px #9c0a1e!important;animation:jpIn .4s ease-out both,jpHop .9s ease-in-out infinite}
-.card.jp-mini .number{font-size:clamp(22px,6.2vw,28px)!important}
-@keyframes jpHop{0%,100%{transform:translateY(0)}35%{transform:translateY(-8px)}55%{transform:translateY(0)}70%{transform:translateY(-3px)}}
-.jp-sub{margin-top:clamp(10px,3vw,14px);font-size:clamp(19px,6vw,28px);line-height:1.1;color:#e3122b;text-shadow:3px 3px 0 #ffc21a,0 0 10px #ff6b6b66;white-space:nowrap;animation:jpIn .45s .95s ease-out both,jpNeon 1.2s 1.4s steps(1) infinite}
-@keyframes jpNeon{50%{color:#ff2e4a;text-shadow:3px 3px 0 #ffe14d,0 0 16px #ff6b6baa}}
-.jp-who{margin-top:clamp(7px,2vw,10px);font-size:clamp(8px,2.4vw,10px);line-height:1.2;color:#0a7fc2;letter-spacing:.08em;white-space:nowrap;animation:jpIn .45s 1.1s ease-out both}
+.jp2-spark{position:absolute;font-style:normal;color:#fff3b0;font-size:clamp(11px,3.4vw,16px);text-shadow:0 0 8px #ffd23a;animation:jpSpark 1.4s ease-in-out infinite}
+.jp2-spark.a{left:7%;top:28%}.jp2-spark.b{right:7%;top:28%;animation-delay:.7s}
+.jp2-title{position:relative;font:400 clamp(28px,9.4vw,44px)/1 var(--pn);letter-spacing:.02em;color:var(--g);background:radial-gradient(circle,#fff8d0 0 1.2px,transparent 1.6px) 0 0/6px 6px,linear-gradient(#ffe36a,#ffb81c 60%,#f08a00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(1px 1px 0 #c0290a) drop-shadow(1px 1px 0 #a01d06) drop-shadow(1px 1px 0 #7a1200) drop-shadow(2px 2px 0 #3a0600) drop-shadow(0 0 10px #ffb10066);animation:jpIn .45s .25s ease-out both}
+.jp2-combo{position:relative;margin-top:clamp(8px,2.4vw,12px);display:flex;align-items:center;justify-content:center;gap:10px;font:400 clamp(11px,3.4vw,15px)/1 var(--pn);color:#fff1cf;text-shadow:2px 2px 0 #3a0008}
+.jp2-combo::before,.jp2-combo::after{content:'';flex:0 1 22%;height:2px;background:var(--g);box-shadow:0 2px 0 #7a3e00}
+.jp2-combo i{font-style:normal;color:var(--g);font-size:.8em}
+.jp2-slots{position:relative;margin-top:clamp(10px,3vw,14px);display:flex;justify-content:center;align-items:center;gap:clamp(6px,2vw,10px)}
+.jp2-win{position:relative;display:grid;place-items:center;width:clamp(58px,16.5vw,76px);height:clamp(76px,21.5vw,98px);border-radius:8px;background:linear-gradient(#fff9e8,#e9d3a4);box-shadow:inset 0 0 0 3px var(--gd),inset 0 6px 0 #00000022,0 0 0 2px #2a0006;overflow:hidden}
+.jp2-win::after{content:'';position:absolute;inset:0;background:#fffbe0;opacity:0;animation:jpFlash .5s var(--d,0s) ease-out both;pointer-events:none}
+@keyframes jpFlash{0%{opacity:0}40%{opacity:.9}100%{opacity:0}}
+.card.jp2-seven{position:relative!important;width:clamp(48px,13.6vw,62px)!important;height:clamp(66px,18.6vw,86px)!important;margin:0!important;pointer-events:none;animation:jp2Land .5s cubic-bezier(.3,1.55,.5,1) both}
+.card.jp2-seven .number{font-size:clamp(22px,6.2vw,28px)!important}
+@keyframes jp2Land{0%{transform:translateY(-120%);opacity:0}60%{opacity:1}}
+.jp2-laurel{width:clamp(12px,3.6vw,16px);flex:0 0 auto}.jp2-laurel svg{display:block;width:100%;height:auto}.jp2-laurel.r{transform:scaleX(-1)}
+.jp2-stack{position:absolute;bottom:clamp(8px,2.4vw,12px);width:clamp(20px,6vw,28px);height:clamp(16px,4.6vw,22px)}
+.jp2-stack.l{left:clamp(12px,3.4vw,18px)}.jp2-stack.r{right:clamp(12px,3.4vw,18px)}
+.jp2-stack b{position:absolute;left:0;right:0;height:34%;border-radius:50%/60%;background:linear-gradient(#ffe36a,#d48a10);box-shadow:0 2px 0 #7a3e00}
+.jp2-stack b:nth-child(1){bottom:0}.jp2-stack b:nth-child(2){bottom:30%}.jp2-stack b:nth-child(3){bottom:60%}
+.jp2-gem{position:relative;z-index:2;display:block;margin:-14px auto 0;width:clamp(20px,6vw,28px);height:auto;filter:drop-shadow(0 0 8px #ffd23a)}
+.jp2-sub{position:relative;margin-top:4px;font:400 clamp(16px,5vw,23px)/1.1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;white-space:nowrap;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
+@keyframes jpNeon{50%{color:#fff6c8}}
+.jp2-who{position:relative;margin-top:8px;font:400 clamp(8px,2.4vw,10px)/1.2 var(--pn);color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;white-space:nowrap;animation:jpIn .45s 1.45s ease-out both}
 @keyframes jpIn{from{opacity:0;transform:translateY(10px) scale(.8)}}
 .jp-star{position:fixed;z-index:1204;font-style:normal;font-weight:700;line-height:1;-webkit-text-stroke:3px #1a1332;paint-order:stroke fill;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
-@media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-congrats,.card.jp-mini,.jp-sub,.jp-who,.jp-bulbs i,.jp-aura,.jp-burst,.jp-discs span{animation:none}}
+@media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-bulbs i,.jp-aura,.jp2-rays,.jp2-congrats,.jp2-bulbs i,.jp2-spark,.jp2-title,.card.jp2-seven,.jp2-win::after,.jp2-sub,.jp2-who{animation:none}}
 .jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none;image-rendering:pixelated}
