@@ -117,37 +117,50 @@ async function stdH9Spend(slot,used){
  if(stars)stars.remove();card.classList.remove('fx','fx-t1','fx-t2','fx-t3','std-spending');
  setTimeout(()=>tag.remove(),reducedMotion()?600:1400)}
 /* Coin rain for the jackpot: thick pixel-art gold coins stamped with the Hammer / Paper / Scissors icon pour from the top,
-   very dense at first then thinning out, tumbling and spilling out past the bottom of the screen. One canvas behind the banner. */
+   very dense at first then thinning out, and heap up into a mountain of coins along the bottom. One canvas behind the banner. */
 function stdCoinRain(){
  const cv=document.createElement('canvas');cv.className='jp-coins';cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
  const ctx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1),W=innerWidth,H=innerHeight;
- cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=false;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';
  const D=Math.round(Math.max(26,Math.min(44,W*.085))),G=20;   // coin drawn on a 20 x 20 pixel grid, scaled up crisp
  const px=(x,c,x0,y0,w,h)=>{x.fillStyle=c;x.fillRect(x0,y0,w,h)};
- const disc=(x,fill,edge)=>{for(let y=0;y<G;y++)for(let i=0;i<G;i++){const dx=i+.5-G/2,dy=y+.5-G/2,d=Math.hypot(dx,dy);if(d<=G/2-.2)px(x,d>G/2-1.4?edge:fill,i,y,1,1)}};
  const mk=()=>{const c=document.createElement('canvas');c.width=c.height=G;const x=c.getContext('2d');x.imageSmoothingEnabled=false;return [c,x]};
- // rim (side of the coin) and face sprites
- const [rim,rx]=mk();disc(rx,'#b8700c','#5a3203');
+ const [rim,rx]=mk();for(let y=0;y<G;y++)for(let i=0;i<G;i++){const d=Math.hypot(i+.5-G/2,y+.5-G/2);if(d<=G/2-.2)px(rx,d>G/2-1.4?'#5a3203':'#b8700c',i,y,1,1)}
  const face=suit=>{const [c,x]=mk();
   for(let y=0;y<G;y++)for(let i=0;i<G;i++){const dx=i+.5-G/2,dy=y+.5-G/2,d=Math.hypot(dx,dy);if(d>G/2-.2)continue;
    let col=d>G/2-1.4?'#5a3203':d>G/2-2.4?'#e0a020':'#ffd23a';if(d<=G/2-2.4&&dx+dy<-3.5)col='#ffef8a';if(d<=G/2-2.4&&d>G/2-3.4&&dx+dy>2)col='#e8a91f';px(x,col,i,y,1,1)}
   px(x,'#fffbd0',5,4,2,1);px(x,'#fffbd0',4,5,1,2);
   const img=new Image();img.onload=()=>{const t=document.createElement('canvas');t.width=t.height=G;const y=t.getContext('2d');y.imageSmoothingEnabled=false;y.drawImage(img,4,4,12,12);y.globalCompositeOperation='source-in';y.fillStyle='#8a4f05';y.fillRect(0,0,G,G);x.drawImage(t,0,0)};img.src='./icons/'+suit+'.png';return c};
  const faces=['hammer','paper','scissors'].map(face);
+ // the heap: landed coins are painted once onto their own canvas; a height map shapes the mountain
+ const pile=document.createElement('canvas');pile.width=cv.width;pile.height=cv.height;const pc=pile.getContext('2d');pc.imageSmoothingEnabled=false;
+ const step=D*.34,cols=Math.ceil(W/step)+1,hm=new Float32Array(cols),maxH=H*.45;
+ const coin=(c,o,x,y,sx,a,flat)=>{const w=D*o.z,ca=Math.cos(a),sa=Math.sin(a);
+  if(flat){for(const dy of [w*.16,w*.08]){c.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*(x-dy*sa),dpr*(y+dy*ca));c.drawImage(rim,-w/2,-w/2,w,w)}}
+  else{const cf=Math.cos(o.flip),th=w*.2*Math.sqrt(1-cf*cf),dir=cf>=0?1:-1;for(const f of [1,.5]){const ox=dir*th*f;c.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*(x+ox*ca),dpr*(y+ox*sa));c.drawImage(rim,-w/2,-w/2,w,w)}}
+  c.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*x,dpr*y);c.drawImage(faces[o.s],-w/2,-w/2,w,w)};
+ const col=x=>Math.max(0,Math.min(cols-1,Math.round(x/step)));
+ const land=o=>{let i=col(o.x);const w=D*o.z,slip=w*.32;
+  for(let g=0;g<40;g++){const l=i>0?hm[i-1]:1e9,r=i<cols-1?hm[i+1]:1e9;if(l<hm[i]-slip&&l<=r)i--;else if(r<hm[i]-slip)i++;else break}   // roll down the slope
+  const top=hm[i],x=i*step+(Math.random()-.5)*step,y=H-top-w*.3;
+  coin(pc,o,x,y,.62+Math.random()*.38,(Math.random()-.5)*.7,true);
+  const rad=Math.ceil(w/step);for(let j=-rad;j<=rad;j++){const k=i+j;if(k<0||k>=cols)continue;hm[k]=Math.max(hm[k],top+w*.36-Math.abs(j)*step*.42)}};
  const fall=[];let t0=performance.now(),last=t0,acc=0,alive=true,raf=0;
- const spawn=el=>{const z=.75+Math.random()*.5;fall.push({x:Math.random()*W,y:-D*z-Math.random()*D*2,vy:(el<.4?260:120)+Math.random()*200,vx:(Math.random()-.5)*70,a:(Math.random()-.5)*.8,va:(Math.random()-.5)*3,flip:Math.random()*6.28,vf:(4+Math.random()*7)*(Math.random()<.5?-1:1),s:Math.floor(Math.random()*3),z})};
- const draw=o=>{const w=D*o.z,c=Math.cos(o.flip),sx=Math.max(.08,Math.abs(c)),th=w*.2*Math.sqrt(1-c*c),dir=c>=0?1:-1,ca=Math.cos(o.a),sa=Math.sin(o.a);
-  // thickness: the rim drawn twice behind the face, shifted toward the side the coin is turning to
-  for(const f of [1,.5]){const ox=dir*th*f;ctx.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*(o.x+ox*ca),dpr*(o.y+ox*sa));ctx.drawImage(rim,-w/2,-w/2,w,w)}
-  ctx.setTransform(dpr*ca*sx,dpr*sa*sx,-dpr*sa,dpr*ca,dpr*o.x,dpr*o.y);ctx.drawImage(faces[o.s],-w/2,-w/2,w,w)};
+ const gx=()=>{if(Math.random()<.35)return Math.random()*W;let u=0;for(let k=0;k<3;k++)u+=Math.random();return W/2+(u/3-.5)*W*1.25};
+ const spawn=el=>{const z=.78+Math.random()*.45;fall.push({x:Math.max(0,Math.min(W,gx())),y:-D*z-Math.random()*D*3,vy:(el<.4?280:140)+Math.random()*200,vx:(Math.random()-.5)*60,a:(Math.random()-.5)*.8,va:(Math.random()-.5)*3,flip:Math.random()*6.28,vf:(4+Math.random()*7)*(Math.random()<.5?-1:1),s:Math.floor(Math.random()*3),z})};
  const tick=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000),el=(now-t0)/1000;last=now;
-  const rate=el<7.6?220*Math.exp(-el/1.6)+7:0;acc+=rate*dt;while(acc>=1){acc--;spawn(el)}
-  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.imageSmoothingEnabled=false;
+  const rate=el<7.6?420*Math.exp(-el/1.9)+14:0;acc+=rate*dt;while(acc>=1){acc--;spawn(el)}
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(pile,0,0);ctx.imageSmoothingEnabled=false;
   for(let k=fall.length-1;k>=0;k--){const o=fall[k];o.vy=Math.min(1100,o.vy+820*dt);o.y+=o.vy*dt;o.x+=o.vx*dt;o.a+=o.va*dt;o.flip+=o.vf*dt;
-   if(o.y-D>H){fall.splice(k,1);continue}draw(o)}
+   const i=col(o.x);if(o.y>=H-hm[i]-D*o.z*.3){if(hm[i]<maxH){land(o);fall.splice(k,1);continue}}
+   if(o.y-D>H){fall.splice(k,1);continue}
+   coin(ctx,o,o.x,o.y,Math.max(.08,Math.abs(Math.cos(o.flip))),o.a,false)}
   raf=requestAnimationFrame(tick)};
  raf=requestAnimationFrame(tick);
  return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
+/* golden aura radiating from behind a stopped 7 (behind the card, never over its face) */
+function stdAura(card,extra){const r=card.getBoundingClientRect();if(!r.width)return;const a=document.createElement('div');a.className='jp-aura';a.setAttribute('aria-hidden','true');
+ const s=Math.max(r.width,r.height)*2.3;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px`;document.body.appendChild(a);extra.push(a)}
 /* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into one row (Hammer, Paper, Scissors),
    each card becomes a slot-machine reel of whole cards rolling top to bottom, stopping on its 7 left to right,
    then the Congratulation · JackPot Win · 777 · 7 Heaven banner holds 7.77 s before the end screen. */
@@ -182,17 +195,28 @@ function stdJackpot(w,token){return new Promise(res=>{
   clones.forEach(c=>c.style.opacity='0');
   ov.classList.add('reels');
   await Promise.all(reels.map((reel,k)=>new Promise(r2=>{const st=reel._strip,from=-reel._n*pitch;st.style.transform=`translateY(${from}px)`;
-   if(rm){reel.style.visibility='hidden';clones[k].style.opacity='1';clones[k].classList.add('aura');reel.classList.add('stopped');return r2()}
+   if(rm){reel.style.visibility='hidden';clones[k].style.opacity='1';clones[k].classList.add('aura');stdAura(clones[k],extra);reel.classList.add('stopped');return r2()}
    st.classList.add('spin');
-   st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');
+   st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');stdAura(c,extra);
     c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
   if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:350);if(!live())return end();
   // banner, 7.77 s
-  clones.forEach(c=>c.classList.add('behind'));
-  const pop=document.createElement('div');pop.className='jp-pop';
-  pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-cards"></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
+  clones.forEach(c=>c.classList.add('behind'));document.querySelectorAll('.jp-aura').forEach(a=>a.classList.add('behind'));
+  // retro roadside casino sign: pointed diamond board, red rim of chasing bulbs, a row of letter discs on top, a starburst
+  const pop=document.createElement('div');pop.className='jp-pop jp-sign';
+  const discs=['J','A','C','K','P','O','T','','W','I','N'].map((ch,k)=>ch?'<span style="animation-delay:'+(.2+k*.05).toFixed(2)+'s">'+ch+'</span>':'<em></em>').join('');
+  pop.innerHTML='<svg class="jp-burst" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true"><polygon fill="#ff7a00" points="16,0 18,11 27,4 21,13 32,16 21,19 27,28 18,21 16,32 14,21 5,28 11,19 0,16 11,13 5,4 14,11"/><polygon fill="#ffe14d" points="16,6 17,13 23,9 19,15 26,16 19,17 23,23 17,19 16,26 15,19 9,23 13,17 6,16 13,15 9,9 15,13"/></svg>'
+   +'<div class="jp-board" aria-hidden="true"><div class="jp-board-red"></div><div class="jp-board-white"></div><div class="jp-bulbs"></div></div>'
+   +'<div class="jp-discs" role="heading" aria-level="2" aria-label="Jackpot win">'+discs+'</div>'
+   +'<div class="jp-face"><div class="jp-congrats">Congratulation!!!</div><div class="jp-cards"></div><div class="jp-sub">7 HEAVEN</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
   const row=pop.querySelector('.jp-cards');cards.forEach(({el},k)=>{const c=plain(el.cloneNode(true));c.className=c.className.replace(/\bjp-card\b|\bglow\b/g,'').trim()+' jp-mini';c.style.cssText='animation-delay:'+(.5+k*.15)+'s,'+(1.1+k*.12)+'s';row.appendChild(c)});
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
+  {const bd=pop.querySelector('.jp-board'),bb=pop.querySelector('.jp-bulbs'),W2=bd.offsetWidth,H2=bd.offsetHeight,ring=9;
+   // the board outline (same points as the CSS clip-path), pulled in to run along the middle of the red rim
+   const P=[[0,.5],[.1,.14],[.5,0],[.9,.14],[1,.5],[.9,.86],[.5,1],[.1,.86]].map(([x,y])=>[x*W2,y*H2]),cx=W2/2,cy=H2/2;
+   const Q=P.map(([x,y])=>{const dx=x-cx,dy=y-cy,l=Math.hypot(dx,dy);return [x-dx/l*ring*(Math.abs(dx)/l*1.6+.6),y-dy/l*ring*(Math.abs(dy)/l*1.4+.4)]});
+   const pts=[],gap=17;for(let k=0;k<Q.length;k++){const a2=Q[k],b2=Q[(k+1)%Q.length],n=Math.max(1,Math.round(Math.hypot(b2[0]-a2[0],b2[1]-a2[1])/gap));for(let j=0;j<n;j++)pts.push([a2[0]+(b2[0]-a2[0])*j/n,a2[1]+(b2[1]-a2[1])*j/n])}
+   bb.innerHTML=pts.map((q,k)=>'<i style="left:'+q[0].toFixed(1)+'px;top:'+q[1].toFixed(1)+'px;animation-delay:'+(-(k%3)*.18).toFixed(2)+'s"></i>').join('')}
   if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
    const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
     for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;
