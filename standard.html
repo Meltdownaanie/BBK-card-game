@@ -1067,7 +1067,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    st.classList.add('spin');
    st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');stdAura(c,extra);
     c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
-  if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:1000);if(!live())return end();
+  if(!live())return end();await sleep(rm?0:1750);if(!live())return end();
   // banner, 7.77 s
   clones.forEach(c=>c.classList.add('behind'));document.querySelectorAll('.jp-aura').forEach(a=>a.classList.add('behind'));
   // JACKPOT! WIN sign (pixel art) with 184 on top; the three 7s sit in a panel of card-shaped gold frames
@@ -1079,6 +1079,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    +'<div class="jps-sub">7 HEAVEN</div><div class="jps-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
   const row=pop.querySelector('.jps-panel');
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
+  if(!rm)extra.push(stdCoinRain());
   {const ph=row.clientHeight,ch=Math.round(ph*.9),cw=Math.round(ch*.72);row.style.setProperty('--cw',cw+'px');row.style.setProperty('--ch',ch+'px');row.style.setProperty('--nf',Math.max(10,Math.round(cw*.42))+'px');
    ORDER.forEach((suit,k)=>{const slot=document.createElement('div');slot.className='jps-slot';slot.style.setProperty('--d',(.45+k*.28)+'s');
     const d=document.createElement('div');d.innerHTML=cardHTML({suit,n:7,id:'jpx-'+suit});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');c.classList.add('jps-seven');slot.appendChild(c);row.appendChild(slot)})}
