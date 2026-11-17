@@ -140,7 +140,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    return c.animate([{transform:'translateY(-14px)'},{transform:`translate(${tx*.5}px,${ty*.5-36}px) scale(${(1+sc)/2}) rotate(${k===1?0:k?8:-8}deg)`,offset:.55},{transform:c._t}],{duration:rm?1:820,delay:rm?0:k*110,easing:'cubic-bezier(.3,.8,.3,1)',fill:'forwards'}).finished.catch(()=>{})}));
   if(!live())return end();
   // reels: a window per card, a strip of whole cards of that suit rolling downwards, ending on the 7
-  const pitch=h0+Math.round(h0*.12),winH=Math.round(h0*1.5),off=(winH-h0)/2;
+  const pitch=h0+Math.round(h0*.12),winH=Math.round(h0*1.34),off=(winH-h0)/2;
   const reels=clones.map((c,k)=>{
    const reel=document.createElement('div');reel.className='jp-reel-win';reel.style.cssText=`left:${xs[k]-(w0+12)/2}px;top:${cy-winH/2}px;width:${w0+12}px;height:${winH}px;transform:scale(${sc})`;
    const strip=document.createElement('div');strip.className='jp-strip';const n=16+k*5,nums=[7];
@@ -158,9 +158,15 @@ function stdJackpot(w,token){return new Promise(res=>{
   // banner, 7.77 s
   reels.forEach(r=>r.classList.add('behind'));
   const pop=document.createElement('div');pop.className='jp-pop';
-  pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-777"><span>7</span><span>7</span><span>7</span></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
+  pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-cards"></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
+  const row=pop.querySelector('.jp-cards');cards.forEach(({el},k)=>{const c=plain(el.cloneNode(true));c.className=c.className.replace(/\bjp-card\b|\bglow\b/g,'').trim()+' jp-mini';c.style.cssText='animation-delay:'+(.5+k*.15)+'s,'+(1.1+k*.12)+'s';row.appendChild(c)});
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
-  if(!rm)for(let k=0;k<16;k++){const sp=document.createElement('i');sp.className='jp-spark';sp.textContent='★';sp.style.left=(6+Math.random()*88)+'%';sp.style.top=(10+Math.random()*78)+'%';sp.style.animationDelay=(Math.random()*1.4)+'s';document.body.appendChild(sp);extra.push(sp)}
+  if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
+   const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
+    for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;
+     st.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;color:${col};font-size:${sz}px`;document.body.appendChild(st);
+     st.animate([{transform:'translate(-50%,-50%) scale(.2) rotate(0)',opacity:0},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist*.45}px),calc(-50% + ${Math.sin(ang)*dist*.45}px)) scale(1.2) rotate(${ang*40}deg)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px),calc(-50% + ${Math.sin(ang)*dist}px)) scale(.7) rotate(${ang*80}deg)`,opacity:0}],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).finished.then(()=>st.remove(),()=>st.remove())}
+    setTimeout(burst,320)};setTimeout(burst,700)}
   await sleep(7770);end()};
  step()})}
 /* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */

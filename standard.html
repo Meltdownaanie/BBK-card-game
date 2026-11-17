@@ -412,7 +412,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .slot .std-spent{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);z-index:4;padding:2px 6px;border-radius:999px;background:#1a1332;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 var(--pf),system-ui,sans-serif;letter-spacing:.06em;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
 .slot .std-spent.lost{border:1px solid #ff6b6b;color:#ff6b6b}
 .slot .std-spent.used{border:1px solid #a79bc4;color:#d9cdf5}
-body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-ring{visibility:hidden}
+body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overlay:not([hidden]):not(.std-modal)) .jp-star,body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-ring{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.card.std-spending{animation:none}}
 .std-demo{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:8px 10px;border-radius:10px;background:#2a1f10;border:2px dashed #ffcf33;font:700 11px/1 var(--pf),system-ui,sans-serif;color:#ffcf33;letter-spacing:.06em}
 .std-demo span{flex:1}
@@ -421,31 +421,36 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-overlay.dim{background:#05030cdd}
 .card.jp-card{position:fixed!important;z-index:1201;margin:0!important;transform-origin:center;pointer-events:none;transition:filter .7s ease,opacity .15s linear}
 .card.jp-card.glow{filter:drop-shadow(0 0 10px #ffd84a) drop-shadow(0 0 26px #ffb100)}
-.jp-reel-win{position:fixed;z-index:1201;transform-origin:center;border-radius:12px;overflow:hidden;pointer-events:none;background:linear-gradient(#1a1102,#3a2706 50%,#1a1102);box-shadow:0 0 0 3px #ffcf33,0 0 0 6px #0c0614,0 0 22px #ffb100;transition:opacity .4s ease}
-.jp-reel-mask{position:absolute;inset:0;-webkit-mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent)}
-.jp-reel-win.stopped{box-shadow:0 0 0 3px #fff2a8,0 0 0 6px #0c0614,0 0 34px #ffcf33,0 0 60px #ffb100}
-.jp-reel-win.behind{opacity:.45}
+.jp-reel-win{position:fixed;z-index:1201;transform-origin:center;overflow:hidden;pointer-events:none;transition:opacity .4s ease}
+.jp-reel-mask{position:absolute;inset:0;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+.jp-reel-win.stopped .jp-reel-mask{-webkit-mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent)}
+.jp-reel-win.stopped .card.jp-item{filter:drop-shadow(0 0 8px #ffd84a) drop-shadow(0 0 18px #ffb100)}
+.jp-reel-win.behind{opacity:.35}
 .jp-strip{position:absolute;left:0;right:0;top:0;will-change:transform}
 .jp-strip.spin{filter:blur(1.2px)}
 .card.jp-item{position:absolute!important;left:6px;margin:0!important;transform:none!important;pointer-events:none}
 .jp-reel-win.stopped .card.jp-item .number{color:#b8860b!important;text-shadow:0 0 6px #ffe680}
-.jp-pop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1203;width:min(440px,calc(100vw - 24px));padding:20px 14px 18px;border-radius:18px;text-align:center;background:radial-gradient(circle at 50% 40%,#3b2a05f5,#140c02f5 70%);border:4px solid #ffcf33;box-shadow:0 0 0 4px #0c0614,0 0 40px #ffb100,0 0 90px #ffb10088;overflow:hidden;animation:jpPop .55s cubic-bezier(.2,1.5,.4,1) both}
+.jp-pop{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1203;width:min(440px,calc(100vw - 24px));padding:20px 12px 16px;border-radius:18px;text-align:center;background:radial-gradient(circle at 50% 38%,#fff2b8 0%,#ffd35a 30%,#f0a01e 62%,#b8650a 100%);border:4px solid #fff3c4;box-shadow:0 0 0 4px #3a2203,0 0 40px #ffcf33,0 0 100px #ffb100aa;overflow:hidden;animation:jpPop .55s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes jpPop{from{transform:translate(-50%,-50%) scale(.2);opacity:0}}
-.jp-rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);background:repeating-conic-gradient(#ffd84a30 0 9deg,transparent 9deg 22deg);animation:jpSpin 7s linear infinite;pointer-events:none}
+.jp-rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;transform:translate(-50%,-50%);background:repeating-conic-gradient(#ffffff55 0 8deg,transparent 8deg 22deg);animation:jpSpin 8s linear infinite;pointer-events:none}
 @keyframes jpSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-.jp-congrats,.jp-win,.jp-777,.jp-sub,.jp-who{position:relative}
-.jp-congrats{font:700 clamp(15px,4.6vw,22px)/1 var(--pf),system-ui,sans-serif;color:#fff7e8;letter-spacing:.06em;text-shadow:0 0 10px #ffcf33;animation:jpIn .45s .15s ease-out both}
-.jp-win{margin-top:10px;font:700 clamp(28px,8.6vw,44px)/1 var(--pf),system-ui,sans-serif;color:#ffe066;letter-spacing:.03em;-webkit-text-stroke:2px #5a3a00;paint-order:stroke fill;text-shadow:0 0 12px #ffcf33,0 0 30px #ffb100,0 4px 0 #5a3a00;animation:jpIn .45s .3s ease-out both,jpGlow 1.1s .8s ease-in-out infinite alternate}
-.jp-777{margin-top:10px;display:flex;justify-content:center;gap:10px}
-.jp-777 span{display:inline-grid;place-items:center;width:clamp(44px,13vw,62px);height:clamp(54px,16vw,76px);border-radius:10px;background:#fff7e8;border:3px solid #0c0614;box-shadow:0 0 0 2px #ffcf33,0 0 18px #ffb100;font:700 clamp(34px,10vw,50px)/1 var(--pf),system-ui,sans-serif;color:#c0392b;animation:jpIn .4s ease-out both}
-.jp-777 span:nth-child(1){animation-delay:.45s}.jp-777 span:nth-child(2){animation-delay:.6s}.jp-777 span:nth-child(3){animation-delay:.75s}
-.jp-sub{margin-top:12px;font:700 clamp(18px,5.4vw,26px)/1 var(--pf),system-ui,sans-serif;color:#fff7e8;letter-spacing:.18em;text-shadow:0 0 10px #ffcf33;animation:jpIn .45s .95s ease-out both}
-.jp-who{margin-top:12px;font:700 11px/1 var(--pf),system-ui,sans-serif;color:#ffcf33;letter-spacing:.12em;animation:jpIn .45s 1.1s ease-out both}
+.jp-congrats,.jp-win,.jp-cards,.jp-sub,.jp-who{position:relative}
+.jp-congrats,.jp-win,.jp-sub,.jp-who{font-family:var(--pn);font-weight:400;-webkit-text-stroke:0;paint-order:stroke fill}
+.jp-congrats{font-size:clamp(11px,3.4vw,15px);line-height:1.2;color:#fff;text-shadow:0 2px 0 #7a3e00,2px 0 0 #7a3e00,-2px 0 0 #7a3e00,0 -2px 0 #7a3e00,0 0 10px #fff6c8;animation:jpIn .45s .15s ease-out both}
+.jp-win{margin-top:12px;font-size:clamp(19px,6.2vw,28px);line-height:1.15;color:transparent;background:linear-gradient(100deg,#fff8d6 0%,#ffffff 20%,#ffe14d 40%,#ffffff 50%,#ffe14d 60%,#fff8d6 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 3px 0 #7a3e00) drop-shadow(2px 0 0 #7a3e00) drop-shadow(-2px 0 0 #7a3e00) drop-shadow(0 -2px 0 #7a3e00) drop-shadow(0 0 10px #fff3b0);animation:jpIn .45s .3s ease-out both,jpShine 1.6s 1s linear infinite}
+@keyframes jpShine{to{background-position:-220% 0}}
+.jp-cards{margin-top:14px;display:flex;justify-content:center;gap:10px;min-height:96px;align-items:flex-end}
+.card.jp-mini{position:relative!important;width:clamp(56px,16vw,72px)!important;height:clamp(78px,22vw,100px)!important;margin:0!important;flex:0 0 auto;pointer-events:none;filter:drop-shadow(0 0 8px #fff6c8) drop-shadow(0 4px 0 #7a3e00);animation:jpIn .4s ease-out both,jpHop .9s ease-in-out infinite}
+.card.jp-mini .number{font-size:clamp(24px,7vw,32px)!important}
+@keyframes jpHop{0%,100%{transform:translateY(0)}35%{transform:translateY(-9px)}55%{transform:translateY(0)}70%{transform:translateY(-3px)}}
+.jp-sub{margin-top:14px;font-size:clamp(14px,4.4vw,20px);line-height:1.2;color:#fff;text-shadow:0 2px 0 #7a3e00,2px 0 0 #7a3e00,-2px 0 0 #7a3e00,0 -2px 0 #7a3e00,0 0 12px #fff6c8;animation:jpIn .45s .95s ease-out both,jpTw 1.2s 1.4s ease-in-out infinite alternate}
+@keyframes jpTw{to{text-shadow:0 2px 0 #7a3e00,2px 0 0 #7a3e00,-2px 0 0 #7a3e00,0 -2px 0 #7a3e00,0 0 22px #ffffff,0 0 34px #ffe14d}}
+.jp-who{margin-top:12px;font-size:9px;line-height:1.2;color:#5a2d00;letter-spacing:.06em;animation:jpIn .45s 1.1s ease-out both}
 @keyframes jpIn{from{opacity:0;transform:translateY(10px) scale(.8)}}
-@keyframes jpGlow{to{text-shadow:0 0 22px #fff3b0,0 0 52px #ffb100,0 4px 0 #5a3a00}}
+.jp-star{position:fixed;z-index:1204;font-style:normal;font-weight:700;line-height:1;-webkit-text-stroke:3px #1a1332;paint-order:stroke fill;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
-@media(prefers-reduced-motion:reduce){.jp-rays,.jp-win,.jp-spark,.jp-pop,.jp-congrats,.jp-777 span,.jp-sub,.jp-who{animation:none}}
+@media(prefers-reduced-motion:reduce){.jp-rays,.jp-win,.jp-spark,.jp-pop,.jp-congrats,.card.jp-mini,.jp-sub,.jp-who{animation:none}}
 </style>
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
@@ -952,7 +957,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    return c.animate([{transform:'translateY(-14px)'},{transform:`translate(${tx*.5}px,${ty*.5-36}px) scale(${(1+sc)/2}) rotate(${k===1?0:k?8:-8}deg)`,offset:.55},{transform:c._t}],{duration:rm?1:820,delay:rm?0:k*110,easing:'cubic-bezier(.3,.8,.3,1)',fill:'forwards'}).finished.catch(()=>{})}));
   if(!live())return end();
   // reels: a window per card, a strip of whole cards of that suit rolling downwards, ending on the 7
-  const pitch=h0+Math.round(h0*.12),winH=Math.round(h0*1.5),off=(winH-h0)/2;
+  const pitch=h0+Math.round(h0*.12),winH=Math.round(h0*1.34),off=(winH-h0)/2;
   const reels=clones.map((c,k)=>{
    const reel=document.createElement('div');reel.className='jp-reel-win';reel.style.cssText=`left:${xs[k]-(w0+12)/2}px;top:${cy-winH/2}px;width:${w0+12}px;height:${winH}px;transform:scale(${sc})`;
    const strip=document.createElement('div');strip.className='jp-strip';const n=16+k*5,nums=[7];
@@ -970,9 +975,15 @@ function stdJackpot(w,token){return new Promise(res=>{
   // banner, 7.77 s
   reels.forEach(r=>r.classList.add('behind'));
   const pop=document.createElement('div');pop.className='jp-pop';
-  pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-777"><span>7</span><span>7</span><span>7</span></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
+  pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-congrats">Congratulation!!!</div><div class="jp-win">JackPot Win</div><div class="jp-cards"></div><div class="jp-sub">7 Heaven</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
+  const row=pop.querySelector('.jp-cards');cards.forEach(({el},k)=>{const c=plain(el.cloneNode(true));c.className=c.className.replace(/\bjp-card\b|\bglow\b/g,'').trim()+' jp-mini';c.style.cssText='animation-delay:'+(.5+k*.15)+'s,'+(1.1+k*.12)+'s';row.appendChild(c)});
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
-  if(!rm)for(let k=0;k<16;k++){const sp=document.createElement('i');sp.className='jp-spark';sp.textContent='★';sp.style.left=(6+Math.random()*88)+'%';sp.style.top=(10+Math.random()*78)+'%';sp.style.animationDelay=(Math.random()*1.4)+'s';document.body.appendChild(sp);extra.push(sp)}
+  if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
+   const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
+    for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;
+     st.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;color:${col};font-size:${sz}px`;document.body.appendChild(st);
+     st.animate([{transform:'translate(-50%,-50%) scale(.2) rotate(0)',opacity:0},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist*.45}px),calc(-50% + ${Math.sin(ang)*dist*.45}px)) scale(1.2) rotate(${ang*40}deg)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px),calc(-50% + ${Math.sin(ang)*dist}px)) scale(.7) rotate(${ang*80}deg)`,opacity:0}],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).finished.then(()=>st.remove(),()=>st.remove())}
+    setTimeout(burst,320)};setTimeout(burst,700)}
   await sleep(7770);end()};
  step()})}
 /* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */
