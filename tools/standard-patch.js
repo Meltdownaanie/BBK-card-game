@@ -192,28 +192,18 @@ function stdJackpot(w,token){return new Promise(res=>{
   if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:350);if(!live())return end();
   // banner, 7.77 s
   clones.forEach(c=>c.classList.add('behind'));document.querySelectorAll('.jp-aura').forEach(a=>a.classList.add('behind'));
-  // JACKPOT! COMBO 777 marquee: gold bulb frame on dark red, red ribbons, fanned game cards on top, the three 7s land in slot windows
-  const pop=document.createElement('div');pop.className='jp-pop jp-sign2';
-  const C2=(suit,n)=>{const d=document.createElement('div');d.innerHTML=cardHTML({suit,n,id:'jpx-'+suit+n});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');return c};
-  const laurel='<svg viewBox="0 0 12 28" shape-rendering="crispEdges" aria-hidden="true"><g fill="#e8a91f"><rect x="5" y="2" width="2" height="24"/><rect x="1" y="4" width="4" height="2"/><rect x="7" y="7" width="4" height="2"/><rect x="1" y="10" width="4" height="2"/><rect x="7" y="13" width="4" height="2"/><rect x="1" y="16" width="4" height="2"/><rect x="7" y="19" width="4" height="2"/><rect x="1" y="22" width="4" height="2"/></g><g fill="#ffe58a"><rect x="1" y="4" width="2" height="1"/><rect x="7" y="7" width="2" height="1"/><rect x="1" y="10" width="2" height="1"/><rect x="7" y="13" width="2" height="1"/><rect x="1" y="16" width="2" height="1"/></g></svg>';
-  const stack=k=>'<i class="jp2-stack '+k+'" aria-hidden="true"><b></b><b></b><b></b></i>';
-  pop.innerHTML='<svg class="jp2-rays" viewBox="0 0 80 30" shape-rendering="crispEdges" aria-hidden="true"><g fill="#ffb81c"><rect x="39" y="0" width="2" height="9"/><rect x="28" y="4" width="2" height="2"/><rect x="30" y="6" width="2" height="2"/><rect x="32" y="8" width="2" height="2"/><rect x="50" y="4" width="2" height="2"/><rect x="48" y="6" width="2" height="2"/><rect x="46" y="8" width="2" height="2"/><rect x="16" y="12" width="3" height="2"/><rect x="20" y="14" width="3" height="2"/><rect x="61" y="12" width="3" height="2"/><rect x="57" y="14" width="3" height="2"/></g></svg>'
-   +'<div class="jp2-fan l" aria-hidden="true"></div><div class="jp2-fan r" aria-hidden="true"></div>'
-   +'<div class="jp2-congrats">CONGRATULATION!!!</div>'
-   +'<div class="jp2-rib l" aria-hidden="true"></div><div class="jp2-rib r" aria-hidden="true"></div>'
-   +'<div class="jp2-frame"><div class="jp2-bulbs" aria-hidden="true"></div><i class="jp2-spark a" aria-hidden="true">✦</i><i class="jp2-spark b" aria-hidden="true">✦</i>'
-   +'<div class="jp2-title" role="heading" aria-level="2">JACKPOT!</div><div class="jp2-combo"><i>◆</i>COMBO<i>◆</i></div>'
-   +'<div class="jp2-slots"><span class="jp2-laurel l">'+laurel+'</span><div class="jp2-win"></div><div class="jp2-win"></div><div class="jp2-win"></div><span class="jp2-laurel r">'+laurel+'</span></div>'+stack('l')+stack('r')+'</div>'
-   +'<svg class="jp2-gem" viewBox="0 0 16 20" shape-rendering="crispEdges" aria-hidden="true"><polygon fill="#7a3e00" points="8,0 16,10 8,20 0,10"/><polygon fill="#ffc21a" points="8,2 14,10 8,18 2,10"/><polygon fill="#fff3b0" points="8,4 10,10 8,9 6,10"/></svg>'
-   +'<div class="jp2-sub">7 HEAVEN</div><div class="jp2-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div>';
-  pop.querySelector('.jp2-fan.l').append(C2('hammer',0),C2('paper',9));pop.querySelector('.jp2-fan.r').append(C2('scissors',9),C2('hammer',4));
-  pop.querySelectorAll('.jp2-win').forEach((wv,k)=>{const c=C2(ORDER[k],7);c.classList.add('jp2-seven');c.style.animationDelay=(.55+k*.32)+'s';wv.style.setProperty('--d',(.55+k*.32)+'s');wv.appendChild(c)});
+  // JACKPOT! WIN sign (pixel art) with 184 on top; the three 7s sit in a panel of card-shaped gold frames
+  const pop=document.createElement('div');pop.className='jp-pop jps';
+  pop.innerHTML='<div class="jps-float"><div class="jps-art"><img class="sign" src="./jackpot-sign.webp" alt="JACKPOT! WIN">'
+   +'<div class="jps-184">184</div><div class="jps-panel"></div>'
+   +'<i class="jps-tw t1"></i><i class="jps-tw t2"></i><i class="jps-tw t3"></i><i class="jps-tw t4"></i><i class="jps-tw t5"></i><i class="jps-tw t6"></i>'
+   +'<div class="jps-shine" aria-hidden="true"></div><div class="jps-congrats">CONGRATULATION!!!</div></div>'
+   +'<div class="jps-sub">7 HEAVEN</div><div class="jps-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
+  const row=pop.querySelector('.jps-panel');
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
-  {const fr=pop.querySelector('.jp2-frame'),bb=pop.querySelector('.jp2-bulbs'),W2=fr.offsetWidth,H2=fr.offsetHeight,ins=8,gap=17,pts=[];
-   const P=[[ins,ins],[W2-ins,ins],[W2-ins,H2-ins],[ins,H2-ins]];
-   for(let k=0;k<4;k++){const a2=P[k],b2=P[(k+1)%4],n=Math.max(1,Math.round(Math.hypot(b2[0]-a2[0],b2[1]-a2[1])/gap));for(let j=0;j<n;j++)pts.push([a2[0]+(b2[0]-a2[0])*j/n,a2[1]+(b2[1]-a2[1])*j/n])}
-   bb.innerHTML=pts.map((q,k)=>'<i style="left:'+q[0].toFixed(1)+'px;top:'+q[1].toFixed(1)+'px;animation-delay:'+(-(k%3)*.18).toFixed(2)+'s"></i>').join('')}
-  const row=pop.querySelector('.jp2-slots');
+  {const ph=row.clientHeight,ch=Math.round(ph*.9),cw=Math.round(ch*.72);row.style.setProperty('--cw',cw+'px');row.style.setProperty('--ch',ch+'px');row.style.setProperty('--nf',Math.max(10,Math.round(cw*.42))+'px');
+   ORDER.forEach((suit,k)=>{const slot=document.createElement('div');slot.className='jps-slot';slot.style.setProperty('--d',(.45+k*.28)+'s');
+    const d=document.createElement('div');d.innerHTML=cardHTML({suit,n:7,id:'jpx-'+suit});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');c.classList.add('jps-seven');slot.appendChild(c);row.appendChild(slot)})}
   if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
    const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
     for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;

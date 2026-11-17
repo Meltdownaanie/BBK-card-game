@@ -194,3 +194,30 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
 @media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-bulbs i,.jp-aura,.jp2-rays,.jp2-congrats,.jp2-bulbs i,.jp2-spark,.jp2-title,.card.jp2-seven,.jp2-win::after,.jp2-sub,.jp2-who{animation:none}}
 .jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none;image-rendering:pixelated}
+/* ---- JACKPOT! WIN sign ---- */
+.jp-pop.jps{position:fixed;left:50%;top:50%;z-index:1203;width:min(560px,calc(100vw - 10px));transform:translate(-50%,-50%);pointer-events:none;text-align:center;animation:jpsPop .6s cubic-bezier(.2,1.45,.4,1) both}
+@keyframes jpsPop{from{transform:translate(-50%,-50%) scale(.25);opacity:0}}
+.jps-float{animation:jpsFloat 2.6s .6s ease-in-out infinite}
+@keyframes jpsFloat{0%,100%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-6px) rotate(-.8deg) scale(1.015)}50%{transform:none}75%{transform:translateY(-6px) rotate(.8deg) scale(1.015)}}
+.jps-art{position:relative;width:100%;aspect-ratio:1100/671;container-type:inline-size}
+.jps-art img.sign{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;filter:drop-shadow(0 0 18px #ffb10066);animation:jpsGlow 1.1s .6s ease-in-out infinite alternate}
+@keyframes jpsGlow{to{filter:drop-shadow(0 0 28px #ffcf33aa) brightness(1.1)}}
+.jps-shine{position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(105deg,transparent 42%,#fff8d066 49%,#ffffffaa 50%,#fff8d066 51%,transparent 58%) 0 0/300% 100% no-repeat;-webkit-mask:url(./jackpot-sign.webp) center/100% 100% no-repeat;mask:url(./jackpot-sign.webp) center/100% 100% no-repeat;mix-blend-mode:screen;animation:jpsShine 2.8s 1s linear infinite}
+@keyframes jpsShine{0%{background-position:120% 0}60%,100%{background-position:-20% 0}}
+.jps-184{position:absolute;z-index:3;left:50%;top:13.6%;transform:translateX(-50%);font:400 7.4cqw/1 'Press Start 2P',monospace;letter-spacing:.04em;white-space:nowrap;background:radial-gradient(circle,#fff8d0 0 .09em,transparent .12em) 0 0/.36em .36em,linear-gradient(#ffe36a,#ffb81c 60%,#f08a00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(1px 1px 0 #c0290a) drop-shadow(1px 1px 0 #a01d06) drop-shadow(1px 1px 0 #7a1200) drop-shadow(2px 2px 0 #3a0600) drop-shadow(0 0 10px #ffb10088);animation:jpsDrop .55s .35s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes jpsDrop{from{transform:translate(-50%,-30px);opacity:0}}
+/* one panel covers the sign's three square windows; each 7 gets a gold frame cut to the card's own shape */
+.jps-panel{position:absolute;z-index:2;left:25.6%;width:48.8%;top:63.4%;height:25.4%;display:flex;justify-content:center;align-items:center;gap:7%;border-radius:1.4cqw;background:radial-gradient(ellipse at 50% 40%,#7a0a1a,#3a040c 80%);box-shadow:inset 0 0 0 .5cqw #ffc21a,inset 0 0 0 .9cqw #7a3e00,0 0 0 .4cqw #2a0006}
+.jps-slot{position:relative;width:var(--cw);height:var(--ch);border-radius:9px;box-shadow:0 0 0 .55cqw #ffc21a,0 0 0 .95cqw #7a3e00,0 0 14px #ffd23a88}
+.jps-slot::after{content:'';position:absolute;inset:-6px;border-radius:12px;background:radial-gradient(closest-side,#fffbe0,#ffe06688 55%,transparent);opacity:0;animation:jpFlash .55s var(--d,0s) ease-out both;pointer-events:none}
+.card.jps-seven{position:absolute!important;inset:0;width:100%!important;height:100%!important;margin:0!important;gap:0!important;pointer-events:none;box-shadow:none!important;animation:jp2Land .5s var(--d,0s) cubic-bezier(.3,1.55,.5,1) both}
+.card.jps-seven .number{font-size:var(--nf,16px)!important}
+.card.jps-seven .suitname{display:none!important}
+.card.jps-seven .symbol img{width:62%!important;height:auto!important}
+.jps-tw{position:absolute;z-index:2;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);background:radial-gradient(closest-side,#fff 0,#fff6c8 30%,#ffd23a66 55%,transparent);opacity:0;animation:jpsTw 1.4s ease-in-out infinite}
+@keyframes jpsTw{0%,100%{opacity:0;transform:translate(-50%,-50%) scale(.4)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+.jps-tw.t1{left:13.3%;top:16.6%}.jps-tw.t2{left:86.4%;top:16.6%;animation-delay:.7s}.jps-tw.t3{left:20.7%;top:39.3%;animation-delay:.35s}.jps-tw.t4{left:50%;top:94%;animation-delay:1.05s}.jps-tw.t5{left:34.5%;top:8%;animation-delay:.5s}.jps-tw.t6{left:65.5%;top:8%;animation-delay:1.2s}
+.jps-congrats{position:absolute;z-index:3;left:50%;top:-6%;transform:translateX(-50%);white-space:nowrap;font:400 clamp(11px,3.6vw,19px)/1.2 'Press Start 2P',monospace;color:#fff6c8;text-shadow:2px 2px 0 #7a1e00,-2px 2px 0 #7a1e00,2px -2px 0 #7a1e00,-2px -2px 0 #7a1e00,0 0 12px #ffd23a;animation:jpsDrop .5s .45s cubic-bezier(.2,1.5,.4,1) both}
+.jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
+.jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 1.45s ease-out both}
+@media(prefers-reduced-motion:reduce){.jp-pop.jps,.jps-float,.jps-shine,.jps-184,.jps-art img.sign,.jps-tw,.jps-congrats,.jps-sub,.jps-who,.card.jps-seven,.jps-slot::after{animation:none}}
