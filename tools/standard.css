@@ -221,3 +221,5 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
 .jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 1.45s ease-out both}
 @media(prefers-reduced-motion:reduce){.jp-pop.jps,.jps-float,.jps-shine,.jps-184,.jps-art img.sign,.jps-tw,.jps-congrats,.jps-sub,.jps-who,.card.jps-seven,.jps-slot::after{animation:none}}
+/* jackpot cards are scaled up: keep their dark outline as thin as a normal card's */
+.card.jp-card,.card.jp-item{box-shadow:0 0 0 1.5px var(--c-line),0 2px 0 1.5px var(--c-line),inset 0 6px 0 var(--sc)!important}
