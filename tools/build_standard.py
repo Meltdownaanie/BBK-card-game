@@ -47,7 +47,7 @@ html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class
  <p class="std-intro">Your deck always has all 30 cards. Choose which cards have their effect on: up to 9 Tier 1, 6 Tier 2 and 3 Tier 3 (4 with Hammer 2 on). Cards left off are plain.</p>
  <div class="std-controls"><select id="stdPreset" aria-label="Preset deck"></select><select id="stdAi" aria-label="AI deck"></select><select id="stdLevel" aria-label="Level"><option value="expert">Level: EXPERT</option><option value="normal">Level: NORMAL</option><option value="easy">Level: EASY</option></select></div>
  <div id="stdRows"></div>
- <div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ START</button></div>
+ <div class="std-demo"><span>777 DEMO</span><button type="button" id="stdDemoMe">YOU WIN</button><button type="button" id="stdDemoAi">AI WINS</button></div><div class="std-bar"><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ START</button></div>
 </section></div>
 <div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
 <div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>

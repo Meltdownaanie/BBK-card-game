@@ -116,6 +116,51 @@ async function stdH9Spend(slot,used){
  card.classList.add('std-spending');await sleep(reducedMotion()?200:950);
  if(stars)stars.remove();card.classList.remove('fx','fx-t1','fx-t2','fx-t3','std-spending');
  setTimeout(()=>tag.remove(),reducedMotion()?600:1400)}
+/* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into a column (Hammer, Paper, Scissors),
+   each turns into a slot-machine reel spinning 0-9 that stops on 7 one after another, then the JACKPOT WIN · 7 HEAVEN banner. */
+function stdJackpot(w,token){return new Promise(res=>{
+ const slots=[0,1,2].map(i=>$('slot'+w+i)&&$('slot'+w+i).querySelector('.card')).filter(Boolean);
+ const cards=slots.map(el=>({el,suit:ORDER.findIndex(s=>el.classList.contains(s))})).sort((a,b)=>a.suit-b.suit);
+ const ov=document.createElement('div');ov.className='jp-overlay';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Jackpot: three sevens');document.body.appendChild(ov);
+ const live=()=>token===S.token&&document.body.contains(ov);let done=false,skippable=false;
+ const extra=[];const end=()=>{if(done)return;done=true;clones.forEach(c=>c.remove());extra.forEach(x=>x.remove());cards.forEach(c=>c.el.style.visibility='');ov.remove();res(token===S.token)};
+ ov.addEventListener('click',()=>{if(skippable)end()});
+ const rm=reducedMotion();
+ const clones=cards.map(({el})=>{const r=el.getBoundingClientRect(),c=el.cloneNode(true);c.classList.remove('win','lose','pick','tap1','fx','fx-t1','fx-t2','fx-t3');c.querySelectorAll('.fx-stars,.fx-trig').forEach(x=>x.remove());
+  c.classList.add('jp-card');c.removeAttribute('id');c.disabled=true;c.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;c._r=r;document.body.appendChild(c);el.style.visibility='hidden';return c});
+ const step=async()=>{
+  ov.classList.add('dim');await sleep(rm?0:550);if(!live())return end();
+  // glow and float
+  clones.forEach((c,k)=>{c.classList.add('glow');if(!rm)c.animate([{transform:'translateY(0)'},{transform:'translateY(-14px)'}],{duration:700,delay:k*90,easing:'ease-out',fill:'forwards'})});
+  await sleep(rm?0:820);if(!live())return end();
+  // fly into a vertical column: Hammer, Paper, Scissors
+  const h0=clones[0]._r.height,w0=clones[0]._r.width,gap=14,sc=Math.min(1.6,Math.max(1,(innerHeight*.56-2*gap)/(3*h0))),colH=3*h0*sc+2*gap,frame=(document.querySelector('.app')||document.body).getBoundingClientRect();
+  const cx=frame.width?frame.left+frame.width/2:innerWidth/2,top0=innerHeight*.44-colH/2;
+  await Promise.all(clones.map((c,k)=>{const r=c._r,tx=cx-(r.left+r.width/2),ty=top0+k*(h0*sc+gap)+h0*sc/2-(r.top+r.height/2);c._t=`translate(${tx}px,${ty}px) scale(${sc})`;
+   return c.animate([{transform:'translateY(-14px)'},{transform:`translate(${tx*.5}px,${ty*.5-30}px) scale(${(1+sc)/2}) rotate(${k===1?0:k?8:-8}deg)`,offset:.55},{transform:c._t}],{duration:rm?1:820,delay:rm?0:k*110,easing:'cubic-bezier(.3,.8,.3,1)',fill:'forwards'}).finished.catch(()=>{})}));
+  if(!live())return end();
+  // reels
+  clones.forEach(c=>{const num=c.querySelector('.number');if(!num)return;const fs=parseFloat(getComputedStyle(num).fontSize)||28;const n=22+Math.floor(Math.random()*6);let digits='';for(let j=0;j<n;j++)digits+='<b>'+Math.floor(Math.random()*10)+'</b>';digits+='<b>7</b>';
+   num.innerHTML='<span class="jp-reel" style="height:'+fs+'px"><span class="jp-strip">'+digits+'</span></span>';c._n=n;c._fs=fs});
+  ov.classList.add('reels');
+  const stops=clones.map((c,k)=>new Promise(r2=>{const strip=c.querySelector('.jp-strip');if(!strip)return r2();
+   const a=strip.animate([{transform:'translateY(0)'},{transform:`translateY(${-c._n*c._fs}px)`}],{duration:rm?1:1300+k*650,easing:'cubic-bezier(.25,.1,.2,1)',fill:'forwards'});
+   a.finished.then(()=>{if(!live())return r2();c.classList.add('stopped');if(!rm)c.animate([{transform:c._t+' scale(1)'},{transform:c._t+' scale(1.12)'},{transform:c._t+' scale(1)'}],{duration:260,easing:'ease-out'});r2()},()=>r2())}));
+  await Promise.all(stops);if(!live())return end();await sleep(rm?0:260);if(!live())return end();
+  // banner
+  const pop=document.createElement('div');pop.className='jp-pop';pop.innerHTML='<div class="jp-rays" aria-hidden="true"></div><div class="jp-win">JACKPOT WIN!</div><div class="jp-sub">7 HEAVEN</div><div class="jp-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div><div class="jp-tap">tap to continue</div>';document.body.appendChild(pop);extra.push(pop);pop.addEventListener('click',()=>{if(skippable)end()});clones.forEach(c=>c.classList.add('behind'));
+  ov.classList.add('win');skippable=true;
+  if(!rm)for(let k=0;k<14;k++){const sp=document.createElement('i');sp.className='jp-spark';sp.textContent='★';sp.style.left=(10+Math.random()*80)+'%';sp.style.top=(15+Math.random()*70)+'%';sp.style.animationDelay=(Math.random()*1.2)+'s';document.body.appendChild(sp);extra.push(sp)}
+  await sleep(3200);end()};
+ step()})}
+/* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */
+async function stdDemo777(who){
+ STD.mine=0;STD.theirs=0;STD.theirName='Plain cards';STD.level='easy';$('stdBuilder').hidden=true;newGame();
+ const tok=S.token;for(let k=0;k<200;k++){if(tok!==S.token)return;if(S.phase==='plan'&&/REVEAL/.test($('mainButton').textContent))break;await sleep(60)}
+ const g=STD.g,me=who===0?[7,17,27]:[1,12,23],ai=who===0?[1,12,23]:[7,17,27];
+ for(const p of [0,1]){const row=p?ai:me,all=g.deck[p].concat(g.hand[p]);g.hand[p]=row.slice().concat(g.hand[p].filter(c=>!row.includes(c)).slice(0,2));g.deck[p]=all.filter(c=>!g.hand[p].includes(c))}
+ stdSync();S.slots[0]=me.map(c=>objOf(0,c));S.slots[1]=ai.map(c=>objOf(1,c));S.hand[0]=S.hand[0].filter(o=>!S.slots[0].includes(o));S.hand[1]=S.hand[1].filter(o=>!S.slots[1].includes(o));render();
+ await sleep(500);if(tok===S.token)reveal()}
 /* effect notice: appears right when a slot clashes, stays 3 s (tap to close) */
 function stdToast(slot,lines,ms){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
@@ -219,7 +264,7 @@ function stdInit(){
   $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
-  $('stdStart').addEventListener('click',stdStartMatch);
+  $('stdStart').addEventListener('click',stdStartMatch);$('stdDemoMe').addEventListener('click',()=>stdDemo777(0));$('stdDemoAi').addEventListener('click',()=>stdDemo777(1));
   stdTipInit();stdLogInit();stdOpenBuilder()}
 //@@NEWGAME
 async function newGame(){
@@ -311,7 +356,7 @@ async function reveal(timeout=false){
  S.history.push({round:S.round,cards:S.slots[1].map(c=>c?{suit:c.suit,n:c.n}:null),playerCards:S.slots[0].map(c=>c?{suit:c.suit,n:c.n}:null),oppWins:ctx.wins[0],myWins:ctx.wins[1],oppDealt:ctx.dmg[1],myDealt:ctx.dmg[0]});
  renderHistory();renderPreviousRound();
  await sleep(reducedMotion()?150:700);if(tok!==S.token)return;
- if(ctx.combo.pack>=0){const desc=ctx.combo.pack===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens — instant victory!';if(!await celebrateCombo('pack',ctx.combo.pack,desc,S.token))return;stdGameOver();return}
+ if(ctx.combo.pack>=0){const desc=ctx.combo.pack===0?'You won the round with three sevens — instant victory!':'AI won the round with three sevens — instant victory!';if(!await stdJackpot(ctx.combo.pack,S.token))return;stdGameOver();return}
  if(t.over){stdGameOver();return}
  if(ctx.combo.zero>=0){if(!await celebrateCombo('zero',ctx.combo.zero,`${ctx.combo.zero===0?'You locked an AI slot':'AI locked one of your slots'} for the next round!`,S.token))return}
  for(let p=0;p<2;p++){if(ctx.combo.charge[p]){if(!await flashCombo('charge',S.token))return}if(ctx.combo.messup[p]){if(!await flashCombo('messup',S.token))return}}
