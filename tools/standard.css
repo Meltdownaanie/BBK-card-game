@@ -162,3 +162,4 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
 @media(prefers-reduced-motion:reduce){.jp-rays,.jp-win,.jp-spark,.jp-pop,.jp-congrats,.card.jp-mini,.jp-sub,.jp-who{animation:none}}
+.jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none}

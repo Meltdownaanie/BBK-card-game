@@ -451,6 +451,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
 @media(prefers-reduced-motion:reduce){.jp-rays,.jp-win,.jp-spark,.jp-pop,.jp-congrats,.card.jp-mini,.jp-sub,.jp-who{animation:none}}
+.jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none}
 </style>
 </head><body>
 <script src="./fx2.js?v=20261105h"></script>
@@ -933,6 +934,37 @@ async function stdH9Spend(slot,used){
  card.classList.add('std-spending');await sleep(reducedMotion()?200:950);
  if(stars)stars.remove();card.classList.remove('fx','fx-t1','fx-t2','fx-t3','std-spending');
  setTimeout(()=>tag.remove(),reducedMotion()?600:1400)}
+/* Coin rain for the jackpot: gold coins stamped with the Hammer / Paper / Scissors icon pour from the top of the screen,
+   very dense at first then thinning out, and pile up along the bottom. Drawn on one canvas that sits behind the banner. */
+function stdCoinRain(){
+ const cv=document.createElement('canvas');cv.className='jp-coins';cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
+ const ctx=cv.getContext('2d'),dpr=Math.min(2,window.devicePixelRatio||1);let W=0,H=0;
+ const size=()=>{W=innerWidth;H=innerHeight;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)};size();
+ const D=Math.round(Math.max(22,Math.min(40,W*.075))),R=D/2;
+ // coin sprites: one per suit, drawn once
+ const sprite=suit=>{const c=document.createElement('canvas'),s=Math.ceil(D*dpr)+4;c.width=s;c.height=s;const x=c.getContext('2d'),r=s/2-2;
+  const g=x.createRadialGradient(s*.38,s*.32,r*.1,s/2,s/2,r);g.addColorStop(0,'#fff6b0');g.addColorStop(.45,'#ffd23a');g.addColorStop(.85,'#e09a12');g.addColorStop(1,'#a8650a');
+  x.fillStyle='#6b3d04';x.beginPath();x.arc(s/2,s/2+1,r,0,7);x.fill();x.fillStyle=g;x.beginPath();x.arc(s/2,s/2,r,0,7);x.fill();
+  x.strokeStyle='#fff3a0';x.lineWidth=Math.max(1,r*.09);x.beginPath();x.arc(s/2,s/2,r*.78,0,7);x.stroke();
+  const img=new Image();img.onload=()=>{const t=document.createElement('canvas');t.width=t.height=s;const y=t.getContext('2d'),q=r*1.05;y.imageSmoothingEnabled=false;y.drawImage(img,s/2-q/2,s/2-q/2,q,q);y.globalCompositeOperation='source-in';y.fillStyle='#9a5c06';y.fillRect(0,0,s,s);
+   x.globalAlpha=.9;x.drawImage(t,0,0);x.globalAlpha=1};img.src='./icons/'+suit+'.png';return c};
+ const sp=['hammer','paper','scissors'].map(sprite);
+ const cols=Math.ceil(W/(R*.9))+1,floor=new Float32Array(cols).fill(0),maxPile=H*.34;
+ const fall=[],pile=document.createElement('canvas');pile.width=cv.width;pile.height=cv.height;const pctx=pile.getContext('2d');pctx.setTransform(dpr,0,0,dpr,0,0);
+ let t0=performance.now(),last=t0,acc=0,alive=true,raf=0;
+ const spawn=()=>{fall.push({x:Math.random()*W,y:-D-Math.random()*H*.25,vy:120+Math.random()*180,vx:(Math.random()-.5)*60,a:Math.random()*6.28,va:(Math.random()-.5)*8,flip:Math.random()*6.28,vf:6+Math.random()*8,s:Math.floor(Math.random()*3),z:.8+Math.random()*.45})};
+ const draw=(c,o,x,y,sx,rot,z)=>{const s=sp[o],w=D*z;c.save();c.translate(x,y);c.rotate(rot);c.scale(sx,1);c.drawImage(s,-w/2,-w/2,w,w);c.restore()};
+ const settle=o=>{const w=D*o.z,i0=Math.max(0,Math.floor((o.x-w*.45)/(R*.9))),i1=Math.min(cols-1,Math.floor((o.x+w*.45)/(R*.9)));let top=0;for(let i=i0;i<=i1;i++)top=Math.max(top,floor[i]);
+  const h=top+w*.3;for(let i=i0;i<=i1;i++)floor[i]=Math.max(floor[i],h);for(let j=1;j<=3;j++){const dh=h-j*w*.22;if(i0-j>=0)floor[i0-j]=Math.max(floor[i0-j],dh);if(i1+j<cols)floor[i1+j]=Math.max(floor[i1+j],dh)}const y=H-top-w*.38;draw(pctx,o.s,o.x,y,.55+Math.abs(Math.cos(o.flip))*.45,(Math.random()-.5)*.9,o.z)};
+ const tick=now=>{if(!alive)return;const dt=Math.min(.05,(now-last)/1000),el=(now-t0)/1000;last=now;
+  const rate=el<7?260*Math.exp(-el/1.7)+8:0;acc+=rate*dt;while(acc>=1){acc--;spawn()}
+  for(let k=fall.length-1;k>=0;k--){const o=fall[k];o.vy+=900*dt;o.y+=o.vy*dt;o.x+=o.vx*dt;o.a+=o.va*dt;o.flip+=o.vf*dt;
+   const i=Math.max(0,Math.min(cols-1,Math.floor(o.x/(R*.9)))),landY=H-floor[i]-D*o.z*.38;
+   if(o.y>=landY){if(floor[i]<maxPile)settle(o);fall.splice(k,1)}}
+  ctx.clearRect(0,0,W,H);ctx.drawImage(pile,0,0,W,H);for(const o of fall)draw(ctx,o.s,o.x,o.y,Math.cos(o.flip),o.a,o.z);
+  raf=requestAnimationFrame(tick)};
+ raf=requestAnimationFrame(tick);
+ return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
 /* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into one row (Hammer, Paper, Scissors),
    each card becomes a slot-machine reel of whole cards rolling top to bottom, stopping on its 7 left to right,
    then the Congratulation · JackPot Win · 777 · 7 Heaven banner holds 7.77 s before the end screen. */
@@ -971,7 +1003,7 @@ function stdJackpot(w,token){return new Promise(res=>{
    st.classList.add('spin');
    st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');
     reel.animate([{transform:`scale(${sc})`},{transform:`scale(${sc*1.08})`},{transform:`scale(${sc})`}],{duration:280,easing:'ease-out'});r2()},()=>r2())})));
-  if(!live())return end();await sleep(rm?0:350);if(!live())return end();
+  if(!live())return end();if(!rm)extra.push(stdCoinRain());await sleep(rm?0:350);if(!live())return end();
   // banner, 7.77 s
   reels.forEach(r=>r.classList.add('behind'));
   const pop=document.createElement('div');pop.className='jp-pop';
