@@ -74,7 +74,7 @@ body:has(.overlay:not([hidden])) .std-fly,body:has(.overlay:not([hidden])) .std-
 .std-toast .std-line{margin:4px 0;padding:4px 0 4px 9px}
 body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 @media (hover:none){.hand .card:hover:not(:disabled){transform:none}}
-.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 var(--pf),system-ui,sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+.slot .fx-trig{position:absolute;left:50%;top:-6px;transform:translateX(-50%);z-index:3;padding:2px 5px 2px 6px;border-radius:999px;background:#1a1332;border:1px solid #ffcf33;color:#ffcf33;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 var(--pf),system-ui,sans-serif;letter-spacing:.07em;text-align:center;white-space:nowrap;pointer-events:auto;cursor:help;-webkit-touch-callout:none;user-select:none;animation:fxTrig .25s ease-out both}
 @keyframes fxTrig{from{transform:translateX(-50%) scale(.4);opacity:0}}
 @media(prefers-reduced-motion:reduce){.slot .fx-trig{animation:none}}
 /* Hand always tidy: a symmetric fan for any number of cards (JS sets --r / --y per card), and draw / return animations end on the card's own fan position. */
@@ -91,7 +91,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.slot:has(.card.pick) .fx-trig{animation:none}}
 .std-log-sum{margin:2px 0 6px;font-size:12px;color:#ffe9a6}
 .std-log-sum b{color:#fff}
-.std-fxlog.std-toast{top:50%!important;transform:translate(-50%,-50%)}
+.std-fxlog.std-toast{transform:translate(-50%,-50%)}
 #stdLogBtn{position:fixed;z-index:6;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #0c0614;background:#2c2152;color:#ffcf33;font:700 13px/1 var(--pf),system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 #0c0614}
 #stdLogBtn[hidden]{display:none}
 #stdLogBtn.new:after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ff5b5b;border:2px solid #0c0614}
@@ -115,3 +115,13 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-fxlog{visibility:hidden}
 .std-stat-row em b.on{color:#7dff9a}
 .std-stat-row em b.off{color:#a79bc4}
 .std-stat-cap{margin:6px 0 0;font-size:11px;color:#b9a9e6}
+.std-burst-ring{position:fixed;z-index:1006;width:64px;height:64px;border-radius:50%;border:4px solid;pointer-events:none;box-shadow:0 0 18px currentColor}
+.std-burst-star{position:fixed;z-index:1007;pointer-events:none;font:700 26px/1 var(--pf),system-ui,'Segoe UI Symbol',sans-serif;-webkit-text-stroke:3px #1a1332;paint-order:stroke fill;filter:drop-shadow(0 0 8px currentColor)}
+.std-burst-star.fall{filter:none}
+.card.std-spending{animation:stdSpend .95s ease-out both}
+@keyframes stdSpend{0%{filter:none}25%{filter:brightness(1.6) saturate(1.4)}60%{filter:grayscale(1) brightness(.85)}100%{filter:none}}
+.slot .std-spent{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);z-index:4;padding:2px 6px;border-radius:999px;background:#1a1332;font:800 clamp(5.4px,1.55vw,6.5px)/1.2 var(--pf),system-ui,sans-serif;letter-spacing:.06em;white-space:nowrap;pointer-events:none;animation:fxTrig .25s ease-out both}
+.slot .std-spent.lost{border:1px solid #ff6b6b;color:#ff6b6b}
+.slot .std-spent.used{border:1px solid #a79bc4;color:#d9cdf5}
+body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-ring{visibility:hidden}
+@media(prefers-reduced-motion:reduce){.card.std-spending{animation:none}}

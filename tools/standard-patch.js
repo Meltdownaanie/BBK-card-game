@@ -14,7 +14,7 @@ function stdTitle(o){return ''}
 /* Effect tooltip: finger down on an effect card (or mouse hover) shows what the card does. A quick tap still plays the card; a long hold only reads it. */
 const stdTip={timer:0,el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
-function stdTipFind(x,y){const t=document.elementFromPoint(x,y);return t&&t.closest?t.closest('.card.fx'):null}
+function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}return t.closest('.card.fx')}
 function stdTipShow(card){
  const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3],f=C.FX[c];if(!f)return;
  let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
@@ -96,12 +96,32 @@ function stdPanel(title,lines,opt={}){return new Promise(res=>{
   el.addEventListener('click',()=>{if(i<lines.length){skipped=true;if(opt.onSkip)opt.onSkip();while(i<lines.length){const d=document.createElement('div');d.className='std-line '+(lines[i].cls||'');d.innerHTML=lines[i].html;body.appendChild(d);i++}clearTimeout(timer);timer=setTimeout(finish,hold)}else finish()});
   add()})}
 function stdLine(e){const who=e.p===0?'YOU':'AI';return {cls:e.p===0?'me':'ai',html:'<b>'+who+' · '+esc(C.VI(e.c))+(e.sys?'':' ★')+'</b> '+esc(e.t||'Effect triggered')}}
+/* star burst when an effect triggers: as many stars as the card's tier, in the tier colour, popping out of the card like a clash spark */
+function stdStarBurst(card,tier){
+ if(!card||reducedMotion())return;const r=card.getBoundingClientRect();if(!r.width)return;
+ const col=['#3aa8ff','#b277ff','#ffc21a'][tier-1],cx=r.left+r.width/2,cy=r.top+r.height/2,n=tier,spread=[[0],[-26,26],[-34,0,34]][n-1];
+ const ring=document.createElement('div');ring.className='std-burst-ring';ring.style.cssText=`left:${cx}px;top:${cy}px;border-color:${col}`;document.body.appendChild(ring);
+ ring.animate([{transform:'translate(-50%,-50%) scale(.2)',opacity:1},{transform:'translate(-50%,-50%) scale(1.5)',opacity:0}],{duration:520,easing:'ease-out'}).finished.then(()=>ring.remove(),()=>ring.remove());
+ for(let k=0;k<n;k++){const st=document.createElement('div');st.className='std-burst-star';st.textContent='★';st.style.cssText=`left:${cx}px;top:${cy}px;color:${col}`;document.body.appendChild(st);
+  const dx=spread[k],dy=-(r.height*.62+(k===(n-1)/2?10:0));
+  st.animate([{transform:'translate(-50%,-50%) scale(.2) rotate(0)',opacity:0,offset:0},{transform:`translate(calc(-50% + ${dx*.7}px),calc(-50% + ${dy*.75}px)) scale(1.45) rotate(${dx>0?20:-20}deg)`,opacity:1,offset:.32},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1.1) rotate(${dx>0?28:-28}deg)`,opacity:1,offset:.7},{transform:`translate(calc(-50% + ${dx*1.1}px),calc(-50% + ${dy-14}px)) scale(.6)`,opacity:0,offset:1}],{duration:900,easing:'cubic-bezier(.2,.9,.3,1)',delay:k*70}).finished.then(()=>st.remove(),()=>st.remove())}}
+/* Hammer 9 after its one and only use: its stars crack and fall off and the card turns plain */
+async function stdH9Spend(slot,used){
+ const card=slot&&slot.querySelector('.card');if(!card)return;const stars=card.querySelector('.fx-stars');
+ const tag=document.createElement('span');tag.className='std-spent '+(used?'used':'lost');tag.textContent=used?'EFFECT USED':'EFFECT LOST';slot.appendChild(tag);
+ if(stars&&!reducedMotion()){const r=stars.getBoundingClientRect();
+  [...stars.children].forEach((b,k)=>{const q=b.getBoundingClientRect(),f=document.createElement('div');f.className='std-burst-star fall';f.textContent='★';f.style.cssText=`left:${q.left+q.width/2}px;top:${q.top+q.height/2}px;color:#ffc21a;font-size:${Math.max(10,q.height)}px`;document.body.appendChild(f);
+   f.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:`translate(calc(-50% + ${(k-1)*10}px),calc(-50% - 6px)) rotate(${(k-1)*25}deg) scale(1.2)`,opacity:1,offset:.25},{transform:`translate(calc(-50% + ${(k-1)*18}px),calc(-50% + 46px)) rotate(${(k-1)*90}deg) scale(.6)`,opacity:0}],{duration:800,easing:'cubic-bezier(.5,0,.8,.6)',delay:k*60}).finished.then(()=>f.remove(),()=>f.remove())});
+  stars.style.visibility='hidden'}
+ card.classList.add('std-spending');await sleep(reducedMotion()?200:950);
+ if(stars)stars.remove();card.classList.remove('fx','fx-t1','fx-t2','fx-t3','std-spending');
+ setTimeout(()=>tag.remove(),reducedMotion()?600:1400)}
 /* effect notice: appears right when a slot clashes, stays 3 s (tap to close) */
 function stdToast(slot,lines,ms){return new Promise(res=>{
   document.querySelectorAll('.std-fxlog').forEach(e=>{if(e._finish)e._finish();else e.remove()});
   const el=document.createElement('div');el.className='std-fxlog std-toast';el.setAttribute('role','status');
   el.innerHTML='<div class="std-fxlog-h">SLOT '+(slot+1)+' · EFFECT</div>'+lines.map(l=>'<div class="std-line '+(l.cls||'')+'">'+l.html+'</div>').join('');
-  document.body.appendChild(el);el.style.top='8px';
+  document.body.appendChild(el);{const f=(document.querySelector('.app')||document.body).getBoundingClientRect(),cx=f.width?f.left+f.width/2:innerWidth/2;el.style.left=Math.round(cx)+'px';el.style.top=Math.round(innerHeight/2)+'px'}
   let done=false;const finish=skip=>{if(done)return;done=true;clearTimeout(timer);el.remove();res(skip===true)};
   const timer=setTimeout(finish,ms);el._finish=finish;el.addEventListener('click',()=>finish(true))})}
 /* effect log: every effect that fired, round by round; opened with the small icon on the left edge */
@@ -257,9 +277,9 @@ async function reveal(timeout=false){
  const seed0=C.getSeed(),dry=C.clone(g);dry.log=[];C.resolve(dry,rows);C.setSeed(seed0);
  const fired=[[false,false,false],[false,false,false]];
  for(const e of dry.log)if(e.slot>=0&&!e.sys&&rows[e.p][e.slot]===e.c&&!/effect lost/.test(e.t))fired[e.p][e.slot]=true;
- let shown=-1;const told=[0,0,0];
+ let shown=-1;const told=[0,0,0],spent=[false,false,false];
  const slotOf=log=>{const r=log.map(e=>e.slot);for(let k=r.length-1;k>=0;k--)if(r[k]<0)r[k]=k+1<r.length?r[k+1]:Math.max(0,shown);return r};
- const present=async(t,upto)=>{
+ const present=async(t,upto,fin)=>{
   const log=t.log||[],where=slotOf(log);
   for(let i=0;i<=upto;i++){
    const r=out[i],a=S.slots[0][i],b=S.slots[1][i];
@@ -270,17 +290,18 @@ async function reveal(timeout=false){
     pill(i,result.w,result.direct,result.dmg);
     if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
     else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
-    for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';s.appendChild(m)}}
+    for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';s.appendChild(m);const cd=s.querySelector('.card');stdStarBurst(cd,C.tier(rows[p][i])+1)}}
     await sleep(reducedMotion()?80:260);if(tok!==S.token)return}}
    const ents=log.filter((e,k)=>where[k]===i).slice(told[i]);
    if(ents.length){told[i]+=ents.length;
     const moves=(async()=>{for(const e of ents)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
-    const skipped=await stdToast(i,ents.map(stdLine),1600);if(tok!==S.token)return;
+    const skipped=await stdToast(i,ents.map(stdLine),2600);if(tok!==S.token)return;
     if(!skipped)await moves;if(tok!==S.token)return}
-   if(r&&r[0]>=0&&t.slotDmg&&t.slotDmg[i]!==r[1])pill(i,r[0],!(a&&b),t.slotDmg[i]);   // Kéo 5 / Kéo 3 changed this slot's damage
+   if(r&&r[0]>=0&&t.slotDmg&&t.slotDmg[i]!==r[1])pill(i,r[0],!(a&&b),t.slotDmg[i]);
+   if(!spent[i]&&(fin||i<upto)){spent[i]=true;for(let p=0;p<2;p++)if(rows[p][i]===9&&STD.h9show[p]){await stdH9Spend($('slot'+p+i),fired[p][i]);if(tok!==S.token)return}}   // Kéo 5 / Kéo 3 changed this slot's damage
   }};
  const {t,ctx}=await stdResolve(rows,part=>present(part,part.curSlot<0?0:part.curSlot));if(tok!==S.token)return;
- await present(t,2);if(tok!==S.token)return;
+ await present(t,2,true);if(tok!==S.token)return;
  // After slot 3 is done, the total damage dealt / taken of the round is applied.
  const log=t.log||[];t.log=null;STD.g=t;STD.ctx=ctx;STD.rows=rows;STD.lastLog=log.slice();stdLogPush(S.round,log,{deal:ctx.dmg[1],take:ctx.dmg[0],heal:[ctx.heal[0],ctx.heal[1]],hp:[Math.max(0,t.hp[0]),Math.max(0,t.hp[1])]});stdLogStat(S.round);
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
