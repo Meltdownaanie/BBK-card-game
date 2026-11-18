@@ -150,8 +150,7 @@ function stdCoinRain(){
  return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
 /* golden aura radiating from behind a stopped 7 (behind the card, never over its face) */
 function stdAura(card,extra){const r=card.getBoundingClientRect();if(!r.width)return;const a=document.createElement('div');a.className='jp-aura';a.setAttribute('aria-hidden','true');
- const s=Math.max(r.width,r.height)*2.6;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px;--cw:${r.width}px;--ch:${r.height}px`;
- a.innerHTML='<i class="jp-aura-rays"></i><i class="jp-aura-ring"></i><i class="jp-aura-ring r2"></i><i class="jp-aura-ring r3"></i>';document.body.appendChild(a);extra.push(a)}
+ const s=Math.max(r.width,r.height)*2.2;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px`;document.body.appendChild(a);extra.push(a)}
 /* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into one row (Hammer, Paper, Scissors),
    each card becomes a slot-machine reel of whole cards rolling top to bottom, stopping on its 7 left to right,
    then the Congratulation · JackPot Win · 777 · 7 Heaven banner holds 7.77 s before the end screen. */
