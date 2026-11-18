@@ -185,7 +185,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp2-stack b{position:absolute;left:0;right:0;height:34%;border-radius:50%/60%;background:linear-gradient(#ffe36a,#d48a10);box-shadow:0 2px 0 #7a3e00}
 .jp2-stack b:nth-child(1){bottom:0}.jp2-stack b:nth-child(2){bottom:30%}.jp2-stack b:nth-child(3){bottom:60%}
 .jp2-gem{position:relative;z-index:2;display:block;margin:-14px auto 0;width:clamp(20px,6vw,28px);height:auto;filter:drop-shadow(0 0 8px #ffd23a)}
-.jp2-sub{position:relative;margin-top:4px;font:400 clamp(16px,5vw,23px)/1.1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;white-space:nowrap;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
+.jp2-sub{position:relative;margin-top:4px;font:400 clamp(16px,5vw,23px)/1.1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;white-space:nowrap;animation:jpIn .45s 2.8s ease-out both,jpNeon 1.2s 3.3s steps(1) infinite}
 @keyframes jpNeon{50%{color:#fff6c8}}
 .jp2-who{position:relative;margin-top:8px;font:400 clamp(8px,2.4vw,10px)/1.2 var(--pn);color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;white-space:nowrap;animation:jpIn .45s 1.45s ease-out both}
 @keyframes jpIn{from{opacity:0;transform:translateY(10px) scale(.8)}}
@@ -209,8 +209,12 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 /* one panel covers the sign's three square windows; each 7 gets a gold frame cut to the card's own shape */
 .jps-panel{position:absolute;z-index:2;left:25.6%;width:48.8%;top:63.4%;height:25.4%;display:flex;justify-content:center;align-items:center;gap:7%;border-radius:1.4cqw;background:radial-gradient(ellipse at 50% 40%,#7a0a1a,#3a040c 80%);box-shadow:inset 0 0 0 .5cqw #ffc21a,inset 0 0 0 .9cqw #7a3e00,0 0 0 .4cqw #2a0006}
 .jps-slot{position:relative;width:var(--cw);height:var(--ch);border-radius:9px;box-shadow:0 0 0 .55cqw #ffc21a,0 0 0 .95cqw #7a3e00,0 0 14px #ffd23a88}
-.jps-slot::after{content:'';position:absolute;inset:-6px;border-radius:12px;background:radial-gradient(closest-side,#fffbe0,#ffe06688 55%,transparent);opacity:0;animation:jpFlash .55s var(--d,0s) ease-out both;pointer-events:none}
-.card.jps-seven{position:absolute!important;inset:0;width:100%!important;height:100%!important;margin:0!important;gap:0!important;pointer-events:none;box-shadow:none!important;animation:jp2Land .5s var(--d,0s) cubic-bezier(.3,1.55,.5,1) both}
+.jps-slot::after{content:'';position:absolute;inset:-10px;border-radius:14px;background:radial-gradient(closest-side,#fffbe0,#ffe066aa 55%,transparent);opacity:0;pointer-events:none}
+.jps-slot.hit::after{animation:jpFlash .55s ease-out both}
+.jps-slot.hit{animation:jpsHit .35s ease-out}
+@keyframes jpsHit{40%{transform:scale(1.12)}}
+.card.jps-seven.wait{visibility:hidden}
+.card.jps-seven{position:absolute!important;inset:0;width:100%!important;height:100%!important;margin:0!important;gap:0!important;pointer-events:none;box-shadow:none!important}
 .card.jps-seven .number{font-size:var(--nf,16px)!important}
 .card.jps-seven .suitname{display:none!important}
 .card.jps-seven .symbol img{width:62%!important;height:auto!important}
@@ -218,8 +222,8 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 @keyframes jpsTw{0%,100%{opacity:0;transform:translate(-50%,-50%) scale(.4)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 .jps-tw.t1{left:13.3%;top:16.6%}.jps-tw.t2{left:86.4%;top:16.6%;animation-delay:.7s}.jps-tw.t3{left:20.7%;top:39.3%;animation-delay:.35s}.jps-tw.t4{left:50%;top:94%;animation-delay:1.05s}.jps-tw.t5{left:34.5%;top:8%;animation-delay:.5s}.jps-tw.t6{left:65.5%;top:8%;animation-delay:1.2s}
 .jps-congrats{position:absolute;z-index:3;left:50%;top:-6%;transform:translateX(-50%);white-space:nowrap;font:400 clamp(11px,3.6vw,19px)/1.2 'Press Start 2P',monospace;color:#fff6c8;text-shadow:2px 2px 0 #7a1e00,-2px 2px 0 #7a1e00,2px -2px 0 #7a1e00,-2px -2px 0 #7a1e00,0 0 12px #ffd23a;animation:jpsDrop .5s .45s cubic-bezier(.2,1.5,.4,1) both}
-.jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
-.jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 1.45s ease-out both}
+.jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 2.8s ease-out both,jpNeon 1.2s 3.3s steps(1) infinite}
+.jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 2.95s ease-out both}
 @media(prefers-reduced-motion:reduce){.jp-pop.jps,.jps-float,.jps-shine,.jps-184,.jps-art img.sign,.jps-tw,.jps-congrats,.jps-sub,.jps-who,.card.jps-seven,.jps-slot::after{animation:none}}
 /* jackpot cards are scaled up: keep their dark outline as thin as a normal card's */
 .card.jp-card,.card.jp-item{box-shadow:0 0 0 1.5px var(--c-line),0 2px 0 1.5px var(--c-line),inset 0 6px 0 var(--sc)!important}

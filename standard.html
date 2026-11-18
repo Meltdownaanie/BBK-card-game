@@ -474,7 +474,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp2-stack b{position:absolute;left:0;right:0;height:34%;border-radius:50%/60%;background:linear-gradient(#ffe36a,#d48a10);box-shadow:0 2px 0 #7a3e00}
 .jp2-stack b:nth-child(1){bottom:0}.jp2-stack b:nth-child(2){bottom:30%}.jp2-stack b:nth-child(3){bottom:60%}
 .jp2-gem{position:relative;z-index:2;display:block;margin:-14px auto 0;width:clamp(20px,6vw,28px);height:auto;filter:drop-shadow(0 0 8px #ffd23a)}
-.jp2-sub{position:relative;margin-top:4px;font:400 clamp(16px,5vw,23px)/1.1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;white-space:nowrap;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
+.jp2-sub{position:relative;margin-top:4px;font:400 clamp(16px,5vw,23px)/1.1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;white-space:nowrap;animation:jpIn .45s 2.8s ease-out both,jpNeon 1.2s 3.3s steps(1) infinite}
 @keyframes jpNeon{50%{color:#fff6c8}}
 .jp2-who{position:relative;margin-top:8px;font:400 clamp(8px,2.4vw,10px)/1.2 var(--pn);color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;white-space:nowrap;animation:jpIn .45s 1.45s ease-out both}
 @keyframes jpIn{from{opacity:0;transform:translateY(10px) scale(.8)}}
@@ -498,8 +498,12 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 /* one panel covers the sign's three square windows; each 7 gets a gold frame cut to the card's own shape */
 .jps-panel{position:absolute;z-index:2;left:25.6%;width:48.8%;top:63.4%;height:25.4%;display:flex;justify-content:center;align-items:center;gap:7%;border-radius:1.4cqw;background:radial-gradient(ellipse at 50% 40%,#7a0a1a,#3a040c 80%);box-shadow:inset 0 0 0 .5cqw #ffc21a,inset 0 0 0 .9cqw #7a3e00,0 0 0 .4cqw #2a0006}
 .jps-slot{position:relative;width:var(--cw);height:var(--ch);border-radius:9px;box-shadow:0 0 0 .55cqw #ffc21a,0 0 0 .95cqw #7a3e00,0 0 14px #ffd23a88}
-.jps-slot::after{content:'';position:absolute;inset:-6px;border-radius:12px;background:radial-gradient(closest-side,#fffbe0,#ffe06688 55%,transparent);opacity:0;animation:jpFlash .55s var(--d,0s) ease-out both;pointer-events:none}
-.card.jps-seven{position:absolute!important;inset:0;width:100%!important;height:100%!important;margin:0!important;gap:0!important;pointer-events:none;box-shadow:none!important;animation:jp2Land .5s var(--d,0s) cubic-bezier(.3,1.55,.5,1) both}
+.jps-slot::after{content:'';position:absolute;inset:-10px;border-radius:14px;background:radial-gradient(closest-side,#fffbe0,#ffe066aa 55%,transparent);opacity:0;pointer-events:none}
+.jps-slot.hit::after{animation:jpFlash .55s ease-out both}
+.jps-slot.hit{animation:jpsHit .35s ease-out}
+@keyframes jpsHit{40%{transform:scale(1.12)}}
+.card.jps-seven.wait{visibility:hidden}
+.card.jps-seven{position:absolute!important;inset:0;width:100%!important;height:100%!important;margin:0!important;gap:0!important;pointer-events:none;box-shadow:none!important}
 .card.jps-seven .number{font-size:var(--nf,16px)!important}
 .card.jps-seven .suitname{display:none!important}
 .card.jps-seven .symbol img{width:62%!important;height:auto!important}
@@ -507,8 +511,8 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 @keyframes jpsTw{0%,100%{opacity:0;transform:translate(-50%,-50%) scale(.4)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
 .jps-tw.t1{left:13.3%;top:16.6%}.jps-tw.t2{left:86.4%;top:16.6%;animation-delay:.7s}.jps-tw.t3{left:20.7%;top:39.3%;animation-delay:.35s}.jps-tw.t4{left:50%;top:94%;animation-delay:1.05s}.jps-tw.t5{left:34.5%;top:8%;animation-delay:.5s}.jps-tw.t6{left:65.5%;top:8%;animation-delay:1.2s}
 .jps-congrats{position:absolute;z-index:3;left:50%;top:-6%;transform:translateX(-50%);white-space:nowrap;font:400 clamp(11px,3.6vw,19px)/1.2 'Press Start 2P',monospace;color:#fff6c8;text-shadow:2px 2px 0 #7a1e00,-2px 2px 0 #7a1e00,2px -2px 0 #7a1e00,-2px -2px 0 #7a1e00,0 0 12px #ffd23a;animation:jpsDrop .5s .45s cubic-bezier(.2,1.5,.4,1) both}
-.jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 1.3s ease-out both,jpNeon 1.2s 1.8s steps(1) infinite}
-.jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 1.45s ease-out both}
+.jps-sub{margin-top:clamp(6px,2vw,12px);font:400 clamp(16px,5.2vw,26px)/1.1 'Press Start 2P',monospace;color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 14px #ffb100;animation:jpIn .45s 2.8s ease-out both,jpNeon 1.2s 3.3s steps(1) infinite}
+.jps-who{margin-top:8px;font:400 clamp(8px,2.5vw,11px)/1.2 'Press Start 2P',monospace;color:#fff1cf;letter-spacing:.08em;text-shadow:1px 1px 0 #3a0008;animation:jpIn .45s 2.95s ease-out both}
 @media(prefers-reduced-motion:reduce){.jp-pop.jps,.jps-float,.jps-shine,.jps-184,.jps-art img.sign,.jps-tw,.jps-congrats,.jps-sub,.jps-who,.card.jps-seven,.jps-slot::after{animation:none}}
 /* jackpot cards are scaled up: keep their dark outline as thin as a normal card's */
 .card.jp-card,.card.jp-item{box-shadow:0 0 0 1.5px var(--c-line),0 2px 0 1.5px var(--c-line),inset 0 6px 0 var(--sc)!important}
@@ -1028,7 +1032,7 @@ function stdCoinRain(){
  return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
 /* golden aura radiating from behind a stopped 7 (behind the card, never over its face) */
 function stdAura(card,extra){const r=card.getBoundingClientRect();if(!r.width)return;const a=document.createElement('div');a.className='jp-aura';a.setAttribute('aria-hidden','true');
- const s=Math.max(r.width,r.height)*2.2;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px`;document.body.appendChild(a);extra.push(a)}
+ const s=Math.max(r.width,r.height)*2.2;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px`;document.body.appendChild(a);extra.push(a);card._aura=a}
 /* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into one row (Hammer, Paper, Scissors),
    each card becomes a slot-machine reel of whole cards rolling top to bottom, stopping on its 7 left to right,
    then the Congratulation · JackPot Win · 777 · 7 Heaven banner holds 7.77 s before the end screen. */
@@ -1069,7 +1073,7 @@ function stdJackpot(w,token){return new Promise(res=>{
     c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
   if(!live())return end();await sleep(rm?0:1750);if(!live())return end();
   // banner, 7.77 s
-  clones.forEach(c=>c.classList.add('behind'));document.querySelectorAll('.jp-aura').forEach(a=>a.classList.add('behind'));
+
   // JACKPOT! WIN sign (pixel art) with 184 on top; the three 7s sit in a panel of card-shaped gold frames
   const pop=document.createElement('div');pop.className='jp-pop jps';
   pop.innerHTML='<div class="jps-float"><div class="jps-art"><img class="sign" src="./jackpot-sign.webp" alt="JACKPOT! WIN">'
@@ -1079,17 +1083,26 @@ function stdJackpot(w,token){return new Promise(res=>{
    +'<div class="jps-sub">7 HEAVEN</div><div class="jps-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
   const row=pop.querySelector('.jps-panel');
   document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
+  const tPop=performance.now();
   if(!rm)extra.push(stdCoinRain());
   {const ph=row.clientHeight,ch=Math.round(ph*.9),cw=Math.round(ch*.72);row.style.setProperty('--cw',cw+'px');row.style.setProperty('--ch',ch+'px');row.style.setProperty('--nf',Math.max(10,Math.round(cw*.42))+'px');
    ORDER.forEach((suit,k)=>{const slot=document.createElement('div');slot.className='jps-slot';slot.style.setProperty('--d',(.45+k*.28)+'s');
-    const d=document.createElement('div');d.innerHTML=cardHTML({suit,n:7,id:'jpx-'+suit});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');c.classList.add('jps-seven');slot.appendChild(c);row.appendChild(slot)})}
+    const d=document.createElement('div');d.innerHTML=cardHTML({suit,n:7,id:'jpx-'+suit});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');c.classList.add('jps-seven','wait');slot.appendChild(c);row.appendChild(slot)})}
+  // the three 7s that just spun fly from the board into their frames, one after another; the frame flashes when a card lands
+  {const slots=[...row.querySelectorAll('.jps-slot')];await sleep(rm?0:620);if(!live())return end();
+   const fly=(c,k)=>new Promise(done=>{const sl=slots[k],t=sl.getBoundingClientRect(),r0=c._r,sc2=t.width/r0.width,tx=t.left+t.width/2-(r0.left+r0.width/2),ty=t.top+t.height/2-(r0.top+r0.height/2);
+    const land=()=>{c.remove();if(c._aura)c._aura.remove();sl.querySelector('.card').classList.remove('wait');sl.classList.add('hit');done()};
+    if(rm)return land();c.style.zIndex='1205';if(c._aura)c._aura.animate([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'});
+    const cur=new DOMMatrix(getComputedStyle(c).transform),mx=(cur.e+tx)/2,my=Math.min(cur.f,ty)-60;
+    c.animate([{transform:c._t},{transform:`translate(${mx}px,${my}px) scale(${(sc2+cur.a)/2*1.05}) rotate(${k===1?0:k?10:-10}deg)`,offset:.5},{transform:`translate(${tx}px,${ty}px) scale(${sc2})`}],{duration:620,easing:'cubic-bezier(.45,.05,.3,1)',fill:'forwards'}).finished.then(land,land)});
+   for(let k=0;k<3;k++){if(!live())return end();await fly(clones[k],k);await sleep(rm?0:90)}}
   if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
    const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
     for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;
      st.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;color:${col};font-size:${sz}px`;document.body.appendChild(st);
      st.animate([{transform:'translate(-50%,-50%) scale(.2) rotate(0)',opacity:0},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist*.45}px),calc(-50% + ${Math.sin(ang)*dist*.45}px)) scale(1.2) rotate(${ang*40}deg)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px),calc(-50% + ${Math.sin(ang)*dist}px)) scale(.7) rotate(${ang*80}deg)`,opacity:0}],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).finished.then(()=>st.remove(),()=>st.remove())}
     setTimeout(burst,320)};setTimeout(burst,700)}
-  await sleep(7770);end()};
+  await sleep(Math.max(0,7770-(performance.now()-tPop)));end()};
  step()})}
 /* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */
 async function stdDemo777(who){stdEmblems(false);
