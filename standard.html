@@ -420,7 +420,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-overlay{position:fixed;inset:0;z-index:1200;background:#05030c00;transition:background .55s ease;cursor:default}
 .jp-overlay.dim{background:#05030cdd}
 .card.jp-card{position:fixed!important;z-index:1201;margin:0!important;transform-origin:center;pointer-events:none;transition:filter .7s ease,opacity .15s linear}
-.card.jp-card.glow{filter:drop-shadow(0 0 10px #ffd84a) drop-shadow(0 0 26px #ffb100)}
+.card.jp-card.glow{filter:none}
 .jp-reel-win{position:fixed;z-index:1201;transform-origin:center;overflow:hidden;pointer-events:none;transition:opacity .4s ease}
 .jp-reel-mask{position:absolute;inset:0;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
 .card.jp-card.aura{transition:none;filter:none}
@@ -433,7 +433,13 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-strip.spin{filter:blur(1.2px)}
 .card.jp-item{position:absolute!important;left:6px;margin:0!important;transform:none!important;pointer-events:none}
 .jp-reel-win.stopped .card.jp-item .number{color:#b8860b!important;text-shadow:0 0 6px #ffe680}
-.jp-aura{position:fixed;z-index:1200;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,#fffbe0 0%,#ffe066 26%,#ffc21ae0 42%,#ffb10088 62%,#ff8a0033 80%,transparent 100%);animation:jpAuraIn .5s ease-out both,jpAuraPulse 1.1s .5s ease-in-out infinite alternate}
+.jp-aura{position:fixed;z-index:1200;transform:translate(-50%,-50%);pointer-events:none}
+.jp-aura-rays{position:absolute;inset:0;background:repeating-conic-gradient(from 0deg,#fff3b0 0 4deg,#ffc21acc 4deg 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(closest-side,transparent 18%,#000 30%,#0008 62%,transparent 100%);mask:radial-gradient(closest-side,transparent 18%,#000 30%,#0008 62%,transparent 100%);animation:jpRaysIn .45s ease-out both,jpRaysSpin 9s linear infinite}
+@keyframes jpRaysIn{from{transform:scale(.3);opacity:0}}
+@keyframes jpRaysSpin{to{transform:rotate(360deg)}}
+.jp-aura-ring{position:absolute;left:50%;top:50%;width:var(--cw);height:var(--ch);margin:calc(var(--ch)/-2) 0 0 calc(var(--cw)/-2);border-radius:10px;box-shadow:0 0 0 3px #ffe066,0 0 14px 4px #ffc21a,inset 0 0 12px #ffd84a;opacity:0;animation:jpRing 1.5s ease-out infinite}
+.jp-aura-ring.r2{animation-delay:.5s}.jp-aura-ring.r3{animation-delay:1s}
+@keyframes jpRing{0%{transform:scale(1);opacity:.95}100%{transform:scale(1.9);opacity:0}}
 .jp-aura.behind{opacity:.35}
 @keyframes jpAuraIn{from{transform:translate(-50%,-50%) scale(.2);opacity:0}}
 @keyframes jpAuraPulse{to{transform:translate(-50%,-50%) scale(1.12)}}
@@ -481,7 +487,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-star{position:fixed;z-index:1204;font-style:normal;font-weight:700;line-height:1;-webkit-text-stroke:3px #1a1332;paint-order:stroke fill;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
-@media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-bulbs i,.jp-aura,.jp2-rays,.jp2-congrats,.jp2-bulbs i,.jp2-spark,.jp2-title,.card.jp2-seven,.jp2-win::after,.jp2-sub,.jp2-who{animation:none}}
+@media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-bulbs i,.jp-aura-rays,.jp-aura-ring,.jp2-rays,.jp2-congrats,.jp2-bulbs i,.jp2-spark,.jp2-title,.card.jp2-seven,.jp2-win::after,.jp2-sub,.jp2-who{animation:none}}
 .jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none;image-rendering:pixelated}
 /* ---- JACKPOT! WIN sign ---- */
 .jp-pop.jps{position:fixed;left:50%;top:50%;z-index:1203;width:min(560px,calc(100vw - 10px));transform:translate(-50%,-50%);pointer-events:none;text-align:center;animation:jpsPop .6s cubic-bezier(.2,1.45,.4,1) both}
@@ -1028,7 +1034,8 @@ function stdCoinRain(){
  return {remove(){alive=false;cancelAnimationFrame(raf);cv.remove()}}}
 /* golden aura radiating from behind a stopped 7 (behind the card, never over its face) */
 function stdAura(card,extra){const r=card.getBoundingClientRect();if(!r.width)return;const a=document.createElement('div');a.className='jp-aura';a.setAttribute('aria-hidden','true');
- const s=Math.max(r.width,r.height)*2.3;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px`;document.body.appendChild(a);extra.push(a)}
+ const s=Math.max(r.width,r.height)*2.6;a.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:${s}px;height:${s}px;--cw:${r.width}px;--ch:${r.height}px`;
+ a.innerHTML='<i class="jp-aura-rays"></i><i class="jp-aura-ring"></i><i class="jp-aura-ring r2"></i><i class="jp-aura-ring r3"></i>';document.body.appendChild(a);extra.push(a)}
 /* 7 7 7 JACKPOT: the screen darkens, the three sevens glow and float up into one row (Hammer, Paper, Scissors),
    each card becomes a slot-machine reel of whole cards rolling top to bottom, stopping on its 7 left to right,
    then the Congratulation · JackPot Win · 777 · 7 Heaven banner holds 7.77 s before the end screen. */
