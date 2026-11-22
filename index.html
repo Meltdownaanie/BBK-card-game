@@ -803,7 +803,7 @@ async function endReveal(wins,outcomes){
   updateButton();if(S.canPick)tick();else completeDiscardSelection(false);
 }
 
-function markDiscards(){for(let i=0;i<3;i++){$('slot0'+i).querySelector('.card')?.classList.toggle('discarded',S.pickIdx[0]===i);$('slot0'+i).querySelector('.card')?.classList.toggle('pick',S.canPick)}/* Do not reveal AI discard */}
+function markDiscards(){/* while the player chooses a discard, clear the win/lose glow and dimming so every played card reads as pickable */if(S.canPick)document.querySelectorAll('.slot .card.win,.slot .card.lose').forEach(c=>c.classList.remove('win','lose'));for(let i=0;i<3;i++){$('slot0'+i).querySelector('.card')?.classList.toggle('discarded',S.pickIdx[0]===i);$('slot0'+i).querySelector('.card')?.classList.toggle('pick',S.canPick)}/* Do not reveal AI discard */}
 function completeDiscardSelection(timedOut){if(S.phase!=='discard')return;if(S.canPick){const options=S.slots[0].map((c,i)=>c?i:-1).filter(i=>i>=0);if(S.pickIdx[0]===null&&options.length)S.pickIdx[0]=options[Math.floor(Math.random()*options.length)];S.canPick=false}clearInterval(S.timer);markDiscards();msg(timedOut?'Discard timer expired: a random card was discarded. Moving to next round.':'Card discarded. Moving to next round.');const tk=S.token;animateDiscards().then(()=>{if(tk===S.token)finishRound()})}
 async function animateDiscards(){
  if(reducedMotion())return;
