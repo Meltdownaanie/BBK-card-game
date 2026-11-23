@@ -263,7 +263,7 @@ function resolve(g, rows) {
 }
 
 /* Discard step + end-of-round bookkeeping + next round draws. chooseDiscard(g,p,played,on) -> card (only asked for a side that may pick). */
-function finishRound(g, rows, ctx, chooseDiscard) {
+function finishRound(g, rows, ctx, chooseDiscard, lossPick) {   // lossPick[p]: the UI's pre-drawn random discard for a side that does not choose (so it can be shown first)
   const on = ctx.on, L = g.log;
   const note = (p, c, t) => { if (L) L.push({ p, c, slot: -1, t, sys: true }); };
   for (let p = 0; p < 2; p++) {
@@ -274,7 +274,7 @@ function finishRound(g, rows, ctx, chooseDiscard) {
     }
     let pick;
     if (ctx.winner === p || ctx.bothPick) pick = chooseDiscard(g, p, played, on);
-    else { pick = played[ri(played.length)]; if (ctx.winner === 1 - p && played.includes(P0) && on[p] && (g.active[p] & bit(P0))) { pick = P0; if (g.trig) g.trig[p][P0] = (g.trig[p][P0] || 0) + 1; if (L) L.push({ p, c: P0, slot: -1, t: 'Lost the round: the discard is Paper 0' }); } }
+    else { pick = lossPick && lossPick[p] != null && played.includes(lossPick[p]) ? lossPick[p] : played[ri(played.length)]; if (ctx.winner === 1 - p && played.includes(P0) && on[p] && (g.active[p] & bit(P0))) { pick = P0; if (g.trig) g.trig[p][P0] = (g.trig[p][P0] || 0) + 1; if (L) L.push({ p, c: P0, slot: -1, t: 'Lost the round: the discard is Paper 0' }); } }
     for (const c of played) { if (c === pick) { if (!discardCard(g, p, c, false, on)) g.hand[p].push(c); else note(p, c, 'Discarded after the round'); } else g.hand[p].push(c); }
   }
   for (let p = 0; p < 2; p++) if (g.messUp[p]) { g.messUp[p] = false; if (g.hand[p].length) { const x = g.hand[p][ri(g.hand[p].length)]; take(g.hand[p], x); g.deck[p].push(x); shuffle(g.deck[p]); note(p, x, 'MESS UP: 1 card shuffled back into the deck'); } }

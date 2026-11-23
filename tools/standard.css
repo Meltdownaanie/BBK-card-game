@@ -227,3 +227,13 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 @media(prefers-reduced-motion:reduce){.jp-pop.jps,.jps-float,.jps-shine,.jps-184,.jps-art img.sign,.jps-tw,.jps-congrats,.jps-sub,.jps-who,.card.jps-seven,.jps-slot::after{animation:none}}
 /* jackpot cards are scaled up: keep their dark outline as thin as a normal card's */
 .card.jp-card,.card.jp-item{box-shadow:0 0 0 1.5px var(--c-line),0 2px 0 1.5px var(--c-line),inset 0 6px 0 var(--sc)!important}
+
+/* round lost: the card that will be discarded shakes red, the others dim */
+.slot .card.std-lossdisc{animation:stdLossShake .5s ease-in-out 2;box-shadow:0 0 0 2px var(--c-line),0 0 0 5px #ff5a6e,0 2px 0 5px var(--c-line),inset 0 6px 0 var(--sc)!important;z-index:3}
+.slot .card.std-keep{filter:brightness(.55) saturate(.6);transition:filter .2s}
+@keyframes stdLossShake{0%,100%{transform:translate(0,0) rotate(0)}20%{transform:translate(-3px,-4px) rotate(-4deg)}40%{transform:translate(3px,-4px) rotate(4deg)}60%{transform:translate(-2px,-2px) rotate(-2deg)}80%{transform:translate(2px,-1px) rotate(1deg)}}
+@media (prefers-reduced-motion:reduce){.slot .card.std-lossdisc{animation:none}}
+
+.std-bar .std-back{flex:0 0 auto;padding:10px 12px;border-radius:10px;background:#2a1f4a;color:#fff7e8;text-decoration:none;font:700 13px/1 var(--pf),system-ui,sans-serif;box-shadow:0 0 0 2px #0c0614}
+.std-bar .std-back:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.std-demo[hidden]{display:none!important}

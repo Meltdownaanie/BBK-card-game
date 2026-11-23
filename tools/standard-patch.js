@@ -48,6 +48,18 @@ function stdHud(){const g=STD.g;if(!g)return;
   const html=tags.join('');if(t.innerHTML!==html)t.innerHTML=html}}
 function stdFan(){const h=$('hand'),it=[...h.children],n=it.length,many=h.dataset.many==='1';it.forEach((el,i)=>{const k=i-(n-1)/2,a=Math.abs(k);el.style.setProperty('--r',(many?0:k*6)+'deg');el.style.setProperty('--y',(many?0:Math.round(3.5*a*a))+'px')})}
 function stdAfterHand(){stdFan();stdLogPos();if(!STD.g)return;$('hand').querySelectorAll('button.card').forEach(b=>{const o=S.hand[0].find(x=>x.id===b.dataset.id);b.classList.toggle('std-banned',!!o&&stdBanned(0,o))})}
+/* ---- the player did not get to choose (lost the round, or a draw): show which played card is discarded before it flies to the pile ---- */
+async function stdLossDiscard(ctx,tok){STD.lossPick=null;const g=STD.g,row=STD.rows[0],played=row.filter(c=>c>=0);if(!played.length)return;
+ const P0=C.parse('P0'),S1=C.parse('S1');
+ let pick=ctx.winner===1&&played.includes(P0)&&ctx.on[0]&&(g.active[0]&C.bit(P0))?P0:played[Math.floor(Math.random()*played.length)];
+ STD.lossPick=pick;const i=row.indexOf(pick),el=$('slot0'+i)&&$('slot0'+i).querySelector('.card');if(!el)return;
+ const saved=pick===S1&&ctx.on[0]&&(g.active[0]&C.bit(S1));
+ document.querySelectorAll('.slot.mine .card').forEach(c=>{if(c!==el)c.classList.add('std-keep')});
+ el.classList.add('std-lossdisc');stdTag(saved?'BACK TO HAND':'DISCARD',el,saved?'gain low':'loss low');
+ msg(saved?'Scissors 1 was chosen for discard: it returns to your hand.':(ctx.winner===1?'Round lost':'Draw')+': your '+cardName(objOf(0,pick))+' is discarded.');
+ await sleep(reducedMotion()?300:1100);if(tok!==S.token)return;
+ document.querySelectorAll('.slot.mine .card.std-keep').forEach(c=>c.classList.remove('std-keep'));el.classList.remove('std-lossdisc');
+ if(!saved)S.pickIdx[0]=i}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
 const STD_BACK='<div class="mu-back"></div>';
 function stdAnchor(p,what){const hud=p===0?'.player-hud':'.enemy-hud';
@@ -433,13 +445,13 @@ async function reveal(timeout=false){
  S.phase='discard';S.result={wins:ctx.wins,winner:ctx.winner,bothPick:ctx.bothPick};S.pickIdx=[null,null];
  S.canPick=(ctx.winner===0||ctx.bothPick)&&S.slots[0].some(Boolean);
  S.discardDeadline=Date.now()+S.discardDuration*1000;clearInterval(S.timer);S.timer=setInterval(tick,150);$('clock').classList.remove('urgent');
- markDiscards();updateButton();if(S.canPick)tick();else completeDiscardSelection(false);
+ markDiscards();updateButton();if(S.canPick)tick();else{await stdLossDiscard(ctx,tok);if(tok!==S.token)return;completeDiscardSelection(false)}
 }
 //@@FINISHROUND
 async function finishRound(){if(S.phase!=='discard'||S.canPick)return;clearInterval(S.timer);
  const g=STD.g,tok=S.token;g.log=[];
  const myPick=S.pickIdx[0]!==null&&S.pickIdx[0]!==undefined&&S.slots[0][S.pickIdx[0]]?intOf(S.slots[0][S.pickIdx[0]]):null;
- const res=C.finishRound(g,STD.rows,STD.ctx,(gg,p,played,on)=>p===0&&myPick!==null&&played.includes(myPick)?myPick:C.chooseDiscardSmart(gg,p,played,on));
+ const res=C.finishRound(g,STD.rows,STD.ctx,(gg,p,played,on)=>p===0&&myPick!==null&&played.includes(myPick)?myPick:C.chooseDiscardSmart(gg,p,played,on),[STD.lossPick,null]);STD.lossPick=null;
  const log=g.log;g.log=null;
  S.animateHand.clear();
  for(const c of g.hand[0]){const o=objOf(0,c);o.origin=res.drawn[0].includes(c)||STD.fxNew.has(c)?'new':STD.rows[0].includes(c)?'returned':'hand';if(o.origin!=='hand')S.animateHand.add(o.id)}
