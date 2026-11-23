@@ -1,13 +1,13 @@
-@font-face{font-family:'184 Digits';src:url('./fonts/184-digits.woff') format('woff');font-display:block;unicode-range:U+0030-0039}
+@font-face{font-family:'184 Pixel';src:url('./fonts/184-pixel.woff') format('woff');font-display:block;size-adjust:86%}
 /* BBK "CRT card table" skin for the match board, menus and dialogs (index.html, online.html).
    Loaded after the page's own <style>, so it only restyles; layout and behaviour stay in the pages. */
 :root{
   --c-bg:#12394a;--c-panel:#241a42;--c-panel-in:#3a2d63;--c-ink:#fff7e8;--c-mute:#cdbfe8;--c-line:#0c0614;
   --c-coral:#ff7a59;--c-teal:#5ad1c4;--c-gold:#ffd34d;--c-lilac:#c9a7ff;--c-dark:#1b0d22;
   --c-hammer:#ff7a59;--c-paper:#5aa9e8;--c-scissors:#6fd3a0;
-  /* one game font: Pixelify Sans for letters, '184 Digits' (Silkscreen 0-9, clear 2 and 5) for numbers */
-  --pn:'184 Digits','Pixelify Sans',ui-monospace,monospace;
-  --pf:'184 Digits','Pixelify Sans',ui-monospace,monospace;--pt:'184 Digits','Pixelify Sans',monospace;
+  /* one game font: '184 Pixel' = self-hosted Silkscreen (OFL), scaled 86% so layouts keep their width */
+  --pn:'184 Pixel',ui-monospace,monospace;
+  --pf:'184 Pixel',ui-monospace,monospace;--pt:'184 Pixel',monospace;
 }
 html{background:#07040f;font-synthesis:none}
 body{background:var(--c-bg)!important;color:var(--c-ink);position:relative;min-height:100vh;min-height:100dvh}
@@ -208,8 +208,8 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .message{font-size:13px!important;line-height:1.6;padding:0 4px}
 .logo{font-size:30px!important}
 
-/* digits: the 184 Digits face (Silkscreen 0-9) keeps 2 and 5 clear even at small sizes */
-.card .number{font-family:var(--pn)!important;font-weight:400!important;font-size:clamp(24px,7.7vw,36px)!important;letter-spacing:0!important;text-shadow:none;line-height:1}
+/* digits: Silkscreen keeps 2 and 5 clear even at small sizes */
+.card .number{font-family:var(--pn)!important;font-weight:400!important;font-size:clamp(28px,9vw,42px)!important;letter-spacing:0!important;text-shadow:none;line-height:1}
 .hand-item .card .number{font-size:clamp(18px,5.6vw,26px)!important}
 .who strong,.time,.status .roundinfo strong,.deck-num,.played-cell,.hud-row .who strong,.mini b{font-family:var(--pn)!important;font-weight:400;letter-spacing:0!important}
 .who strong{font-size:20px!important}.who strong small{font-family:var(--pf);font-size:14px!important}
@@ -617,3 +617,6 @@ body:has(.pile-overlay:not([hidden]),.forfeit-overlay:not([hidden]),.overlay:not
 @media (max-width:400px){.match-stats .ms-tile{padding:5px 6px}.match-stats .ms-tile b{font-size:11px!important}.match-stats .ms-tile b small{display:none}}
 .match-stats .ms-head small{font-family:var(--pn)!important;font-size:8px!important;letter-spacing:.02em}
 .match-stats .ms-tile.wide{grid-column:1/-1}.match-stats .ms-tile.wide b{color:var(--c-gold)}
+
+/* Silkscreen already has wide pixel spacing: the letter-spacing tuned for Pixelify Sans made text too wide */
+body *{letter-spacing:0!important}
