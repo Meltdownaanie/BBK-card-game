@@ -1,3 +1,4 @@
+@font-face{font-family:'184 Digits';src:url('./fonts/184-digits.woff') format('woff');font-display:block;unicode-range:U+0030-0039}
 /* BBK "CRT card table" theme: shared by tutorial.html and the other pages.
    Fonts (add to each page <head>):
    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Pixelify Sans:wght@400;700&display=swap" rel="stylesheet"> */
@@ -5,7 +6,7 @@
   --crt-bg:#1a0e33; --crt-panel:#241a42; --crt-panel-in:#3a2d63; --crt-ink:#fff7e8; --crt-mute:#cdbfe8; --crt-dim:#8f84b4;
   --crt-line:#0c0614; --crt-coral:#ff7a59; --crt-coral-d:#d4492b; --crt-teal:#5ad1c4; --crt-teal-d:#2f9a8e;
   --crt-gold:#ffd34d; --crt-gold-d:#d6a31a; --crt-lilac:#c9a7ff; --crt-lilac-d:#8f6ad6; --crt-dark:#1b0d22;
-  --crt-num:'Press Start 2P','Pixelify Sans',monospace; --crt-font:'Pixelify Sans',ui-monospace,monospace; --crt-title:'Pixelify Sans','Pixelify Sans',monospace;
+  --crt-num:'184 Digits','Pixelify Sans',ui-monospace,monospace; --crt-font:'184 Digits','Pixelify Sans',ui-monospace,monospace; --crt-title:'184 Digits','Pixelify Sans',monospace;
 }
 .crt-page{margin:0;min-height:100vh;min-height:100dvh;background:var(--crt-bg);color:var(--crt-ink);font-family:var(--crt-font);position:relative;overflow-x:hidden}
 .crt-page *{box-sizing:border-box}
