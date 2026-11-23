@@ -55,9 +55,9 @@ async function stdLossDiscard(ctx,tok){STD.lossPick=null;const g=STD.g,row=STD.r
  STD.lossPick=pick;const i=row.indexOf(pick),el=$('slot0'+i)&&$('slot0'+i).querySelector('.card');if(!el)return;
  const saved=pick===S1&&ctx.on[0]&&(g.active[0]&C.bit(S1));
  document.querySelectorAll('.slot.mine .card').forEach(c=>{if(c!==el)c.classList.add('std-keep')});
- el.classList.add('std-lossdisc');stdTag(saved?'BACK TO HAND':'DISCARD',el,saved?'gain low':'loss low');
+ el.classList.add('std-lossdisc');const tag=stdTag(saved?'BACK TO HAND':'DISCARD',el,saved?'gain low':'loss low');
  msg(saved?'Scissors 1 was chosen for discard: it returns to your hand.':(ctx.winner===1?'Round lost':'Draw')+': your '+cardName(objOf(0,pick))+' is discarded.');
- await sleep(reducedMotion()?300:1100);if(tok!==S.token)return;
+ await sleep(reducedMotion()?250:480);tag.remove();if(tok!==S.token)return;
  document.querySelectorAll('.slot.mine .card.std-keep').forEach(c=>c.classList.remove('std-keep'));el.classList.remove('std-lossdisc');
  if(!saved)S.pickIdx[0]=i}
 /* ---- effect animations: cards drawn / returned / discarded by card effects ---- */
@@ -373,7 +373,7 @@ function aiPlay(){
  S.slots[1]=STD.aiRow.map(c=>c<0?null:objOf(1,c));S.hand[1]=S.hand[1].filter(o=>!S.slots[1].includes(o));
 }
 //@@STARTROUND
-async function startRound(first=false){
+async function startRound(first=false){document.querySelectorAll('.std-flytag').forEach(e=>e.remove());
  const g=STD.g;clearInterval(S.timer);S.round=g.round;S.phase='dealing';
  S.slots=[[null,null,null],[null,null,null]];S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];
  stdSync();renderPreviousRound();render();

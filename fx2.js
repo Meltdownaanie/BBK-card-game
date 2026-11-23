@@ -36,7 +36,7 @@ function critical(x,y,p,damage){
     for(const q of parts){const d=q.speed*progress;g.fillStyle=q.color;g.globalAlpha=fade;g.fillRect(x+Math.cos(q.angle)*d,y+Math.sin(q.angle)*d,q.size,q.size)}
     g.globalAlpha=1;
     if(progress<.16){g.fillStyle=`rgba(255,245,210,${(1-progress/.16)*.5})`;g.fillRect(-20,-20,innerWidth+40,innerHeight+40)}
-    if(progress<.78){g.save();g.textAlign='center';g.textBaseline='middle';g.font='bold 25px "Press Start 2P", monospace';g.lineWidth=7;g.lineJoin='round';const ty=y-85-intensity*15;g.globalAlpha=Math.min(1,fade*2);g.strokeStyle='#080b18';g.strokeText('CRITICAL ×2',x,ty);g.fillStyle='#35f2ff';g.fillText('CRITICAL ×2',x,ty);g.restore()}
+    if(progress<.78){g.save();g.textAlign='center';g.textBaseline='middle';g.font='bold 25px "184 Digits","Pixelify Sans", monospace';g.lineWidth=7;g.lineJoin='round';const ty=y-85-intensity*15;g.globalAlpha=Math.min(1,fade*2);g.strokeStyle='#080b18';g.strokeText('CRITICAL ×2',x,ty);g.fillStyle='#35f2ff';g.fillText('CRITICAL ×2',x,ty);g.restore()}
     g.restore()});
 }
 function clone(el){const r=el.getBoundingClientRect(),cl=el.cloneNode(true);cl.removeAttribute('id');cl.style.cssText+=`;position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:1002;pointer-events:none;`;document.body.appendChild(cl);return cl}

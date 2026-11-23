@@ -1,13 +1,15 @@
+@font-face{font-family:'184 Digits';src:url('./fonts/184-digits.woff') format('woff');font-display:block;unicode-range:U+0030-0039}
 /* BBK "CRT card table" skin for the match board, menus and dialogs (index.html, online.html).
    Loaded after the page's own <style>, so it only restyles; layout and behaviour stay in the pages. */
 :root{
   --c-bg:#12394a;--c-panel:#241a42;--c-panel-in:#3a2d63;--c-ink:#fff7e8;--c-mute:#cdbfe8;--c-line:#0c0614;
   --c-coral:#ff7a59;--c-teal:#5ad1c4;--c-gold:#ffd34d;--c-lilac:#c9a7ff;--c-dark:#1b0d22;
   --c-hammer:#ff7a59;--c-paper:#5aa9e8;--c-scissors:#6fd3a0;
-  --pn:'Press Start 2P','Pixelify Sans',monospace;
-  --pf:'Pixelify Sans',ui-monospace,monospace;--pt:'Pixelify Sans','Pixelify Sans',monospace;
+  /* one game font: Pixelify Sans for letters, '184 Digits' (Silkscreen 0-9, clear 2 and 5) for numbers */
+  --pn:'184 Digits','Pixelify Sans',ui-monospace,monospace;
+  --pf:'184 Digits','Pixelify Sans',ui-monospace,monospace;--pt:'184 Digits','Pixelify Sans',monospace;
 }
-html{background:#07040f}
+html{background:#07040f;font-synthesis:none}
 body{background:var(--c-bg)!important;color:var(--c-ink);position:relative;min-height:100vh;min-height:100dvh}
 body::before{content:"";position:fixed;left:-60%;top:-40%;width:220%;height:180%;z-index:-1;pointer-events:none;
   background:repeating-conic-gradient(from 0deg at 50% 50%,#12394a 0 12deg,#1a4a52 12deg 24deg,#241a52 24deg 36deg,#1a4a52 36deg 48deg);animation:crtSpin 90s linear infinite}
@@ -206,12 +208,12 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .message{font-size:13px!important;line-height:1.6;padding:0 4px}
 .logo{font-size:30px!important}
 
-/* digits: Press Start 2P has unmistakable 0-9 even at small sizes */
-.card .number{font-family:var(--pn)!important;font-weight:400!important;font-size:clamp(20px,6.4vw,30px)!important;letter-spacing:0!important;text-shadow:none;line-height:1}
+/* digits: the 184 Digits face (Silkscreen 0-9) keeps 2 and 5 clear even at small sizes */
+.card .number{font-family:var(--pn)!important;font-weight:400!important;font-size:clamp(24px,7.7vw,36px)!important;letter-spacing:0!important;text-shadow:none;line-height:1}
 .hand-item .card .number{font-size:clamp(18px,5.6vw,26px)!important}
 .who strong,.time,.status .roundinfo strong,.deck-num,.played-cell,.hud-row .who strong,.mini b{font-family:var(--pn)!important;font-weight:400;letter-spacing:0!important}
-.who strong{font-size:20px!important}.who strong small{font-family:'Pixelify Sans',monospace;font-size:14px!important}
-.status .time{font-size:16px!important}.status .time small{font-family:'Pixelify Sans',monospace;font-size:12px!important}
+.who strong{font-size:20px!important}.who strong small{font-family:var(--pf);font-size:14px!important}
+.status .time{font-size:16px!important}.status .time small{font-family:var(--pf);font-size:12px!important}
 .status .roundinfo strong{font-size:16px!important}
 .deck-num{font-size:11px!important}.played-cell{font-size:10px!important}
 .card{gap:10px}
@@ -219,7 +221,7 @@ svg.px{image-rendering:pixelated;shape-rendering:crispEdges;display:block}
 .hand{padding-top:30px!important}
 .hand-item{position:relative}
 .hand-item .card-origin{display:block!important;position:absolute!important;top:-20px!important;left:50%!important;bottom:auto!important;transform:translateX(-50%)!important;height:auto!important;max-width:none!important;
-  white-space:nowrap;font-family:'Pixelify Sans',monospace!important;font-size:12px!important;line-height:1.2!important;letter-spacing:.04em;padding:2px 6px!important;border-radius:5px!important;
+  white-space:nowrap;font-family:var(--pf)!important;font-size:12px!important;line-height:1.2!important;letter-spacing:.04em;padding:2px 6px!important;border-radius:5px!important;
   background:var(--c-line)!important;color:var(--c-mute)!important;box-shadow:0 0 0 2px var(--c-line);z-index:6}
 .hand-item .card-origin.new{background:var(--c-teal)!important;color:var(--c-dark)!important}
 .hand-item .card-origin.returned{background:var(--c-gold)!important;color:var(--c-dark)!important}
@@ -498,7 +500,7 @@ body.tut-mode .coach{max-height:min(20dvh,124px)}
 /* MESS UP!!! : card flies back into the deck, then the deck shuffles */
 .mu-flight{filter:drop-shadow(0 0 10px #b277ff) drop-shadow(0 0 22px #8a3dff)!important;outline:3px solid #d8a8ff;outline-offset:2px}
 .mu-back{border:3px solid #7a63c4;border-radius:7px;background-color:#3b2a72;background-image:conic-gradient(#4d3a8c 25%,transparent 0 50%,#4d3a8c 0 75%,transparent 0);background-size:12px 12px}
-.mu-tag{position:fixed;z-index:1060;transform:translate(-50%,-100%);pointer-events:none;font-family:'Press Start 2P','Pixelify Sans',monospace;font-size:11px;letter-spacing:.08em;color:#d8a8ff;text-shadow:2px 2px 0 #0c0614;animation:muTag 1s steps(8) forwards}
+.mu-tag{position:fixed;z-index:1060;transform:translate(-50%,-100%);pointer-events:none;font-family:var(--pn);font-size:11px;letter-spacing:.08em;color:#d8a8ff;text-shadow:2px 2px 0 #0c0614;animation:muTag 1s steps(8) forwards}
 @keyframes muTag{0%{opacity:0;margin-top:8px}20%{opacity:1}100%{opacity:0;margin-top:-18px}}
 .deck-stack.mu-shuffle{filter:drop-shadow(0 0 8px #a45cff)}
 .deck-stack.mu-shuffle span:nth-child(1){animation:muL .34s steps(6) 3}
