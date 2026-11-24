@@ -27,7 +27,7 @@ function stdTipShow(card){
 function stdTipInit(){
  // Touch: tap and drag work exactly like Classic. The effect panel only opens after the finger rests on a card for a moment without moving.
  const HOLD=280;
- document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);stdTip.block=false;stdTipHide();const card=stdTipFind(e.clientX,e.clientY);if(!card)return;
+ document.addEventListener('pointerdown',e=>{stdTip.prev=stdTip.card;if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);stdTip.block=false;stdTipHide();const card=stdTipFind(e.clientX,e.clientY);if(!card)return;
   stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
  document.addEventListener('pointermove',e=>{
   if(e.pointerType==='mouse'){if(e.buttons){stdTipHide();return}const card=stdTipFind(e.clientX,e.clientY);if(card!==stdTip.card){if(card)stdTipShow(card);else stdTipHide()}return}
@@ -40,7 +40,7 @@ function stdTipInit(){
    if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
    STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Double-tap a card to discard it · hold to read its effect')}}},true);
  $('stdUnpeek').addEventListener('click',()=>$('stdModal').classList.remove('peek'));
- document.addEventListener('click',e=>{const pc=e.target.closest&&e.target.closest('#pileOverlay .card');if(!pc)return;const card=stdTipFind(e.clientX,e.clientY)||pc;if(stdTip.card===card){stdTipHide();return}stdTipShow(card)});
+ document.addEventListener('click',e=>{const pc=e.target.closest&&e.target.closest('#pileOverlay .card');if(!pc)return;const card=stdTipFind(e.clientX,e.clientY)||pc;if(e.pointerType==='mouse'){stdTipShow(card);return}if(stdTip.card===card||stdTip.prev===card){stdTip.prev=null;stdTipHide();return}stdTipShow(card)});
  addEventListener('scroll',e=>{if(stdTip.card&&e.target&&e.target.contains&&e.target.contains(stdTip.card))stdTipHide()},true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
 function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return l.join(', ')+' is banned for you this round'}
@@ -277,7 +277,7 @@ function stdAsk(spec){return new Promise(res=>{
   const close=v=>{ov.hidden=true;ov.classList.remove('peek');box.innerHTML='';res(v)};
   ov.classList.remove('peek');
   let html='<div class="std-modal-head"><h3>'+esc(spec.title)+'</h3><button type="button" class="secondary std-hide" id="stdHide" aria-label="Hide this window to look at the table">HIDE ▾</button></div>';
-  const wire=()=>{$('stdHide').addEventListener('click',()=>{ov.classList.add('peek');stdTipHide()})};
+  const wire=()=>{$('stdHide').addEventListener('click',()=>{ov.classList.add('peek');stdTipHide();const mb=$('mainButton'),u=$('stdUnpeek');if(mb&&u){const r=mb.getBoundingClientRect();if(r.height&&r.bottom>0&&r.top<innerHeight){u.style.top=(r.top+r.height/2)+'px';u.style.bottom='auto'}else{u.style.top='';u.style.bottom=''}}})};
   if(spec.kind==='suit'){html+='<div class="std-picks">'+[0,1,2].map(s=>'<button type="button" class="std-pick '+ORDER[s]+'" data-s="'+s+'">'+SUITS[ORDER[s]].icon+'<b>'+C.SUIT_VI[s]+'</b></button>').join('')+'</div>';box.innerHTML=html;wire();
    box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>close(+b.dataset.s)));ov.hidden=false;return}
   const owner=spec.owner===undefined?0:spec.owner,k=Math.min(spec.k,spec.list.length),sel=new Set();

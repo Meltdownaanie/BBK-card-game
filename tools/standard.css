@@ -262,6 +262,6 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .std-unpeek{display:none}
 .overlay.std-modal.peek{background:transparent!important;pointer-events:none}
 .overlay.std-modal.peek .std-modal-box{display:none}
-.overlay.std-modal.peek .std-unpeek{display:block;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));pointer-events:auto;z-index:2;min-height:48px;padding:10px 18px;border:0;border-radius:12px;background:#ffcf33;color:#1a1332;font:700 15px/1 var(--pf),system-ui,sans-serif;box-shadow:0 0 0 3px #0c0614,0 5px 0 3px #0c0614;cursor:pointer;animation:stdUnpeekIn .2s ease-out}
+.overlay.std-modal.peek .std-unpeek{display:block;position:fixed;left:50%;transform:translate(-50%,-50%);margin-top:0;bottom:calc(42px + env(safe-area-inset-bottom,0px));pointer-events:auto;z-index:2;min-height:48px;padding:10px 18px;border:0;border-radius:12px;background:#ffcf33;color:#1a1332;font:700 15px/1 var(--pf),system-ui,sans-serif;box-shadow:0 0 0 3px #0c0614,0 5px 0 3px #0c0614;cursor:pointer;animation:stdUnpeekIn .2s ease-out}
 .std-unpeek:focus-visible,.std-hide:focus-visible{outline:3px solid #fff;outline-offset:3px}
-@keyframes stdUnpeekIn{from{transform:translate(-50%,12px);opacity:0}}
+@keyframes stdUnpeekIn{from{transform:translate(-50%,-30%);opacity:0}}
