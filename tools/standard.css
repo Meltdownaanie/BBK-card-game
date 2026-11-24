@@ -239,8 +239,8 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .std-demo[hidden]{display:none!important}
 
 /* holding a card must never open the phone's image preview / text selection on the suit icon */
-.card,.card *,.std-pick,.std-pick *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-.card img,.std-pick img{-webkit-user-drag:none}
+.std-pick,.std-pick *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.card img,.std-pick img{pointer-events:none;-webkit-user-drag:none}
 /* plain cards in the tooltip / info panel */
 .std-tip.tp,.card-info.tp{--tc:#6b5a92}
 .std-tip b span.plain,.card-info b span.plain{color:#b9a9e6}
