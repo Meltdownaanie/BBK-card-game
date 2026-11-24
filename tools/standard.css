@@ -237,3 +237,31 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .std-bar .std-back{flex:0 0 auto;padding:10px 12px;border-radius:10px;background:#2a1f4a;color:#fff7e8;text-decoration:none;font:700 13px/1 var(--pf),system-ui,sans-serif;box-shadow:0 0 0 2px #0c0614}
 .std-bar .std-back:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .std-demo[hidden]{display:none!important}
+
+/* holding a card must never open the phone's image preview / text selection on the suit icon */
+.card,.card *,.std-pick,.std-pick *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.card img,.std-pick img{-webkit-user-drag:none}
+/* plain cards in the tooltip / info panel */
+.std-tip.tp,.card-info.tp{--tc:#6b5a92}
+.std-tip b span.plain,.card-info b span.plain{color:#b9a9e6}
+/* discard pile: tap a card to read it */
+#pileOverlay .pile-cards .card{pointer-events:auto;cursor:pointer}
+/* choice dialog: header with HIDE, info panel for the tapped card */
+.std-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.std-modal-head h3{margin:0}
+.std-modal-head .std-hide{flex:0 0 auto;min-height:34px!important;padding:6px 10px!important;font-size:12px!important}
+.std-pick-info.card-info{--tc:#3aa8ff;border:3px solid var(--tc);border-radius:12px;background:#120c26;padding:10px 12px;color:#fff7e8;min-height:0}
+.card-info.t2{--tc:#b277ff}.card-info.t3{--tc:#ffc21a}
+.card-info b{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:16px;color:#fff}
+.card-info b span{flex:0 0 auto;font-size:12px;color:var(--tc);white-space:nowrap}
+.card-info i{display:block;font-style:normal;font-size:12px;color:#b9a9e6;margin:5px 0 2px}
+.card-info p{margin:0;font-size:14px;line-height:1.4}
+.card-info small{display:block;margin-top:6px;font-size:11px;color:#b9a9e6}
+.std-pick-info p{margin:0}
+/* HIDE: the dialog steps aside so the table can be read (hold cards to read them); one button brings it back */
+.std-unpeek{display:none}
+.overlay.std-modal.peek{background:transparent!important;pointer-events:none}
+.overlay.std-modal.peek .std-modal-box{display:none}
+.overlay.std-modal.peek .std-unpeek{display:block;position:fixed;left:50%;transform:translate(-50%,-50%);margin-top:0;bottom:calc(42px + env(safe-area-inset-bottom,0px));pointer-events:auto;z-index:2;min-height:48px;padding:10px 18px;border:0;border-radius:12px;background:#ffcf33;color:#1a1332;font:700 15px/1 var(--pf),system-ui,sans-serif;box-shadow:0 0 0 3px #0c0614,0 5px 0 3px #0c0614;cursor:pointer;animation:stdUnpeekIn .2s ease-out}
+.std-unpeek:focus-visible,.std-hide:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@keyframes stdUnpeekIn{from{transform:translate(-50%,-30%);opacity:0}}

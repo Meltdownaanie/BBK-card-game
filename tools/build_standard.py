@@ -49,7 +49,7 @@ html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class
  <div id="stdRows"></div>
  <div class="std-demo" hidden><span>777 DEMO</span><button type="button" id="stdDemoMe">YOU WIN</button><button type="button" id="stdDemoAi">AI WINS</button></div><div class="std-bar"><a href="./index.html" class="std-back" id="stdBack">◂ CLASSIC</a><span id="stdCount"></span><button type="button" id="stdStart" class="primary">▶ START</button></div>
 </section></div>
-<div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section></div>
+<div class="overlay std-modal" id="stdModal" hidden><section class="std-modal-box" role="dialog" aria-modal="true"></section><button type="button" class="std-unpeek" id="stdUnpeek">▴ BACK TO CHOICE</button></div>
 <div class="overlay std-modal std-logov" id="stdLog" hidden><section class="std-modal-box" role="dialog" aria-modal="true" aria-labelledby="stdLogTitle"><div class="std-log-h"><h3 id="stdLogTitle">EFFECT LOG</h3><button type="button" id="stdLogClose" aria-label="Close">✕</button></div><div id="stdLogBody"></div></section></div>
 '''
 rep('<div id="forfeitOverlay"', html + '<div id="forfeitOverlay"')
