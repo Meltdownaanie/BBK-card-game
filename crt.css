@@ -1,4 +1,5 @@
 @font-face{font-family:'184 Pixel';src:url('./fonts/184-pixel.woff') format('woff');font-display:block;size-adjust:86%}
+@font-face{font-family:'184 Pixel L';src:url('./fonts/184-pixel.woff') format('woff');font-display:block;size-adjust:135%}
 /* BBK "CRT card table" theme: shared by tutorial.html and the other pages.
    Fonts (add to each page <head>):
     */
@@ -51,3 +52,8 @@
 .cards .crt-card.sm b{font-size:16px}
 
 body *{letter-spacing:0!important}
+
+/* desktop: the same pixel face drawn ~55% larger */
+@media (min-width:980px) and (min-height:600px){
+  :root{--crt-num:'184 Pixel L',ui-monospace,monospace;--crt-font:'184 Pixel L',ui-monospace,monospace;--crt-title:'184 Pixel L',monospace}
+}
