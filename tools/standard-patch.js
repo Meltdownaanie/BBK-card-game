@@ -13,12 +13,15 @@ function stdStar(o){return stdCls(o)?'<i class="fx-stars" aria-hidden="true">'+'
 function stdTitle(o){return ''}
 /* Effect tooltip: finger down on an effect card (or mouse hover) shows what the card does. A quick tap still plays the card; a long hold only reads it. */
 const stdTip={timer:0,el:null,card:null,t0:0,x:0,y:0,moved:false,block:false};
+function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
+ if(!on||!f)return '<b>'+esc(C.VI(c))+'<span class="plain">PLAIN</span></b><p>'+(used?'Effect already used this game.':'No effect: plays as a normal card.')+'</p>';
+ return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+esc(f[1])+'</p>'}
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
-function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}return t.closest('.card.fx')}
+function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}const c=t.closest('.card');return c&&/^[01]-[a-z]+-\d$/.test(c.dataset.id||'')?c:null}
 function stdTipShow(card){
- const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3],f=C.FX[c];if(!f)return;
+ const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3];
  let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
- const t=C.tier(c)+1;el.className='std-tip t'+t;el.innerHTML='<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+esc(f[1])+'</p>';el.hidden=false;
+ const on=card.classList.contains('fx'),t=C.tier(c)+1,used=c===9&&STD.g&&STD.g.h9[+m[1]];el.className='std-tip '+(on?'t'+t:'tp');el.innerHTML=stdInfoHTML(c,on,used);el.hidden=false;
  const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let top=r.top-h-12;if(top<6)top=Math.min(innerHeight-h-6,r.bottom+12);
  el.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';el.style.top=Math.max(6,top)+'px';stdTip.card=card}
 function stdTipInit(){
@@ -36,7 +39,9 @@ function stdTipInit(){
   if(S.phase==='discard'&&S.canPick&&e.isTrusted!==undefined){const sl=e.target.closest&&e.target.closest('.slot.mine');if(sl&&sl.querySelector('.card')){const i=+sl.id.slice(-1),now=performance.now();
    if(STD.tap.i===i&&now-STD.tap.t<450){STD.tap={i:-1,t:0};return}
    STD.tap={i,t:now};e.stopPropagation();e.preventDefault();document.querySelectorAll('.slot.mine .card.tap1').forEach(c=>c.classList.remove('tap1'));const c=sl.querySelector('.card');c.classList.add('tap1');setTimeout(()=>c.classList.remove('tap1'),460);msg('Double-tap a card to discard it · hold to read its effect')}}},true);
- addEventListener('scroll',stdTipHide,true);addEventListener('blur',stdTipHide)}
+ $('stdUnpeek').addEventListener('click',()=>$('stdModal').classList.remove('peek'));
+ document.addEventListener('click',e=>{const pc=e.target.closest&&e.target.closest('#pileOverlay .card');if(!pc)return;const card=stdTipFind(e.clientX,e.clientY)||pc;if(stdTip.card===card){stdTipHide();return}stdTipShow(card)});
+ addEventListener('scroll',e=>{if(stdTip.card&&e.target&&e.target.contains&&e.target.contains(stdTip.card))stdTipHide()},true);addEventListener('blur',stdTipHide)}
 function stdBanned(p,o){return !!STD.g&&!C.allowed(STD.g,p,intOf(o))}
 function stdBanText(){const g=STD.g;if(!g||!g.ban[0])return '';const l=[0,1,2].filter(s=>g.ban[0]&(1<<s)).map(s=>C.SUIT_VI[s]);return l.join(', ')+' is banned for you this round'}
 function stdSyncCards(){const g=STD.g;for(let p=0;p<2;p++){S.hand[p]=g.hand[p].map(c=>objOf(p,c));S.deck[p]=g.deck[p].map(c=>objOf(p,c));S.discard[p]=g.disc[p].map(c=>objOf(p,c))}}
@@ -269,21 +274,23 @@ function stdLogInit(){
 /* choice dialog for "tìm" effects, Bao 1, Búa 8 and Kéo 7 */
 function stdAsk(spec){return new Promise(res=>{
   const ov=$('stdModal'),box=ov.querySelector('.std-modal-box');
-  const close=v=>{ov.hidden=true;box.innerHTML='';res(v)};
-  let html='<h3>'+esc(spec.title)+'</h3>';
-  if(spec.kind==='suit'){html+='<div class="std-picks">'+[0,1,2].map(s=>'<button type="button" class="std-pick '+ORDER[s]+'" data-s="'+s+'">'+SUITS[ORDER[s]].icon+'<b>'+C.SUIT_VI[s]+'</b></button>').join('')+'</div>';box.innerHTML=html;
+  const close=v=>{ov.hidden=true;ov.classList.remove('peek');box.innerHTML='';res(v)};
+  ov.classList.remove('peek');
+  let html='<div class="std-modal-head"><h3>'+esc(spec.title)+'</h3><button type="button" class="secondary std-hide" id="stdHide" aria-label="Hide this window to look at the table">HIDE ▾</button></div>';
+  const wire=()=>{$('stdHide').addEventListener('click',()=>{ov.classList.add('peek');stdTipHide()})};
+  if(spec.kind==='suit'){html+='<div class="std-picks">'+[0,1,2].map(s=>'<button type="button" class="std-pick '+ORDER[s]+'" data-s="'+s+'">'+SUITS[ORDER[s]].icon+'<b>'+C.SUIT_VI[s]+'</b></button>').join('')+'</div>';box.innerHTML=html;wire();
    box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>close(+b.dataset.s)));ov.hidden=false;return}
   const owner=spec.owner===undefined?0:spec.owner,k=Math.min(spec.k,spec.list.length),sel=new Set();
   html+='<div class="std-picks">'+spec.list.map((c,i)=>{const on=stdActive(owner,c);return '<button type="button" class="std-pick '+ORDER[C.S(c)]+(on?' fx fx-t'+(C.tier(c)+1):'')+'" data-i="'+i+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b>'+(on?'<i class="fx-stars">'+'★'.repeat(C.tier(c)+1)+'</i>':'')+'</button>'}).join('')+'</div>';
-  html+='<p class="std-pick-info" id="stdPickInfo">Choose '+k+' card'+(k>1?'s':'')+'.</p><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">SKIP</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>CONFIRM</button></div>';
-  box.innerHTML=html;
+  html+='<div class="std-pick-info" id="stdPickInfo"><p>Choose '+k+' card'+(k>1?'s':'')+'. Tap a card to read it.</p></div><div class="std-modal-actions">'+(spec.optional?'<button type="button" class="secondary" id="stdSkip">SKIP</button>':'')+'<button type="button" class="primary" id="stdOk" disabled>CONFIRM</button></div>';
+  box.innerHTML=html;wire();
   const info=$('stdPickInfo'),ok=$('stdOk');
   box.querySelectorAll('.std-pick').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else{if(k===1)sel.clear();if(sel.size<k)sel.add(i)}
     box.querySelectorAll('.std-pick').forEach(x=>x.classList.toggle('sel',sel.has(+x.dataset.i)));ok.disabled=sel.size!==k;
-    const c=spec.list[i],f=C.FX[c];info.textContent=C.VI(c)+(stdActive(owner,c)&&f?' ★ '+f[0]+': '+f[1]:' (plain card)')}));
+    const c=spec.list[i],on=stdActive(owner,c);info.className='std-pick-info card-info '+(on?'t'+(C.tier(c)+1):'tp');info.innerHTML=stdInfoHTML(c,on)+'<small>'+(owner===1?'Opponent card':'Your card')+' · selected '+sel.size+' / '+k+'</small>'}));
   ok.addEventListener('click',()=>close([...sel].map(i=>spec.list[i])));
   if(spec.optional)$('stdSkip').addEventListener('click',()=>close([]));
-  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.textContent='Only '+k+' matching card'+(k>1?'s':'')+'.'}
+  if(spec.list.length===k&&!spec.optional){spec.list.forEach((_,i)=>sel.add(i));box.querySelectorAll('.std-pick').forEach(x=>x.classList.add('sel'));ok.disabled=false;info.innerHTML='<p>Only '+k+' matching card'+(k>1?'s':'')+'. Tap a card to read it.</p>'}
   ov.hidden=false})}
 /* run the round on a copy; whenever an effect needs the player's choice, ask, then replay with the answers so far */
 async function stdResolve(rows,onNeed){
@@ -342,7 +349,7 @@ function stdFillHelp(){
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
   guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
-  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync};   // test hook (test build only)
+  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk};   // test hook (test build only)
   $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});

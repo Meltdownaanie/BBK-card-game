@@ -10,6 +10,8 @@
   --pf:'184 Pixel',ui-monospace,monospace;--pt:'184 Pixel',monospace;
 }
 html{background:#07040f;font-synthesis:none}
+/* long-press on a card must not open the phone image preview of the suit icon */
+.card,.card img{-webkit-touch-callout:none}
 body{background:var(--c-bg)!important;color:var(--c-ink);position:relative;min-height:100vh;min-height:100dvh}
 body::before{content:"";position:fixed;left:-60%;top:-40%;width:220%;height:180%;z-index:-1;pointer-events:none;
   background:repeating-conic-gradient(from 0deg at 50% 50%,#12394a 0 12deg,#1a4a52 12deg 24deg,#241a52 24deg 36deg,#1a4a52 36deg 48deg);animation:crtSpin 90s linear infinite}
