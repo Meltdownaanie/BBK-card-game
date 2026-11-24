@@ -424,13 +424,17 @@ async function reveal(timeout=false){
     pill(i,result.w,result.direct,result.dmg);
     if(result.w===0){$('slot0'+i).querySelector('.card')?.classList.add('win');$('slot1'+i).querySelector('.card')?.classList.add('lose')}
     else if(result.w===1){$('slot1'+i).querySelector('.card')?.classList.add('win');$('slot0'+i).querySelector('.card')?.classList.add('lose')}
-    for(let p=0;p<2;p++)if(fired[p][i]){const s=$('slot'+p+i);if(s&&!s.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';s.appendChild(m);const cd=s.querySelector('.card');stdStarBurst(cd,C.tier(rows[p][i])+1)}}
     await sleep(reducedMotion()?80:260);if(tok!==S.token)return}}
    const ents=log.filter((e,k)=>where[k]===i).slice(told[i]);
    if(ents.length){told[i]+=ents.length;
-    const moves=(async()=>{for(const e of ents)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
-    const skipped=await stdToast(i,ents.map(stdLine),2600);if(tok!==S.token)return;
-    if(!skipped)await moves;if(tok!==S.token)return}
+    // one card's effect at a time: the slot winner's effect plays out fully (tag, moves, notice), then the loser's
+    const groups=[];for(const e of ents){const last=groups[groups.length-1];if(last&&(last.p===e.p||e.sys))last.list.push(e);else groups.push({p:e.p,list:[e]})}
+    for(const gr of groups){
+     const p=gr.p,sl=$('slot'+p+i);if(fired[p]&&fired[p][i]&&sl&&!sl.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';sl.appendChild(m);stdStarBurst(sl.querySelector('.card'),C.tier(rows[p][i])+1)}
+     const moves=(async()=>{for(const e of gr.list)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
+     const skipped=await stdToast(i,gr.list.map(stdLine),2600);if(tok!==S.token)return;
+     if(!skipped)await moves;if(tok!==S.token)return}}
+   for(let p=0;p<2;p++)if(fired[p][i]&&(fin||i<upto)){const sl=$('slot'+p+i);if(sl&&!sl.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';sl.appendChild(m)}}
    if(r&&r[0]>=0&&t.slotDmg&&t.slotDmg[i]!==r[1])pill(i,r[0],!(a&&b),t.slotDmg[i]);
    if(!spent[i]&&(fin||i<upto)){spent[i]=true;for(let p=0;p<2;p++)if(rows[p][i]===9&&STD.h9show[p]){await stdH9Spend($('slot'+p+i),fired[p][i]);if(tok!==S.token)return}}   // Kéo 5 / Kéo 3 changed this slot's damage
   }};
