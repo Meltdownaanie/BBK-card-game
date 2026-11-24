@@ -268,3 +268,6 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 
 /* double-tap to discard must not zoom the page on phones */
 html,body,.slot,.card{touch-action:manipulation}
+
+/* touch: the hand's card panel is docked above the hand (the finger never covers it) and follows a sideways slide */
+.std-tip.dock{width:min(440px,calc(100vw - 24px));max-width:none;pointer-events:none;transition:none}

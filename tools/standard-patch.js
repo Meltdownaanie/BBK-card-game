@@ -18,21 +18,38 @@ function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
  return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+esc(f[1])+'</p>'}
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
 function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}const c=t.closest('.card');return c&&/^[01]-[a-z]+-\d$/.test(c.dataset.id||'')?c:null}
-function stdTipShow(card){
+function stdTipShow(card,dock){
  const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3];
  let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
  const on=card.classList.contains('fx'),t=C.tier(c)+1,used=c===9&&STD.g&&STD.g.h9[+m[1]];el.className='std-tip '+(on?'t'+t:'tp');el.innerHTML=stdInfoHTML(c,on,used);el.hidden=false;
+ if(dock){el.classList.add('dock');const w=el.offsetWidth,h=el.offsetHeight,f=(document.querySelector('.app')||document.body).getBoundingClientRect();
+  let top=Infinity;$('hand').querySelectorAll('.card').forEach(x=>{const r=x.getBoundingClientRect();if(r.width)top=Math.min(top,r.top)});if(!isFinite(top))top=$('hand').getBoundingClientRect().top;
+  const cx=f.width?f.left+f.width/2:innerWidth/2;el.style.left=Math.max(6,Math.min(innerWidth-w-6,cx-w/2))+'px';el.style.top=Math.max(6,top-h-30)+'px';stdTip.card=card;return}
  const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let top=r.top-h-12;if(top<6)top=Math.min(innerHeight-h-6,r.bottom+12);
  el.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';el.style.top=Math.max(6,top)+'px';stdTip.card=card}
 function stdTipInit(){
  // Touch: tap and drag work exactly like Classic. The effect panel only opens after the finger rests on a card for a moment without moving.
  const HOLD=280;
  document.addEventListener('pointerdown',e=>{stdTip.prev=stdTip.card;if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);stdTip.block=false;stdTipHide();const card=stdTipFind(e.clientX,e.clientY);if(!card)return;
-  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
+  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.scrub=null;
+  // a card in the hand: its panel opens at once above the hand; sliding the finger sideways reads card after card (like a mouse hover)
+  if(S.phase==='plan'&&card.closest('#hand')){stdTip.scrub={id:e.pointerId,on:false};stdTipShow(card,true);stdTip.timer=setTimeout(()=>{if(!stdTip.moved)stdTip.held=true},HOLD);return}
+  stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
  document.addEventListener('pointermove',e=>{
   if(e.pointerType==='mouse'){if(e.buttons){stdTipHide();return}const card=stdTipFind(e.clientX,e.clientY);if(card!==stdTip.card){if(card)stdTipShow(card);else stdTipHide()}return}
-  if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},true);
- const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
+  const sc=stdTip.scrub;
+  if(sc&&sc.id===e.pointerId){
+   if(sc.on){e.stopPropagation();if(e.cancelable)e.preventDefault();const card=stdTipFind(e.clientX,e.clientY);if(card&&card!==stdTip.card&&card.closest('#hand'))stdTipShow(card,true);return}
+   const dx=e.clientX-stdTip.x,dy=e.clientY-stdTip.y;if(Math.hypot(dx,dy)<=9)return;
+   const h=$('hand'),scrolls=h.dataset.many&&h.scrollWidth>h.clientWidth+2;
+   if(!scrolls&&Math.abs(dx)>Math.abs(dy)*1.2){sc.on=true;stdTip.moved=true;clearTimeout(stdTip.timer);e.stopPropagation();if(e.cancelable)e.preventDefault();if(typeof touchDrag!=='undefined')touchDrag=null;return}
+   stdTip.scrub=null}
+  if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},{capture:true,passive:false});
+ const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);const sc=stdTip.scrub;stdTip.scrub=null;
+  if(sc&&sc.id===e.pointerId){const held=stdTip.held;stdTip.held=false;
+   if(sc.on||held){e.stopPropagation();stdTip.block=true;suppressClick=true;setTimeout(()=>{stdTip.block=false;suppressClick=false},350);return}   // read only: keep the panel, do not play the card
+   stdTipHide();return}   // a quick tap plays the card as before
+  stdTip.held=false;if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
  document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse'){clearTimeout(stdTip.timer);stdTipHide()}},true);
  document.addEventListener('click',e=>{
   if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
