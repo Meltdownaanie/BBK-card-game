@@ -57,3 +57,6 @@ body *{letter-spacing:0!important}
 @media (min-width:980px) and (min-height:600px){
   :root{--crt-num:'184 Pixel L',ui-monospace,monospace;--crt-font:'184 Pixel L',ui-monospace,monospace;--crt-title:'184 Pixel L',monospace}
 }
+
+/* iOS paints its grey/black tap highlight over the whole box of a pressed (rotated) card: turn it off */
+html{-webkit-tap-highlight-color:transparent}

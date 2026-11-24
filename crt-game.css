@@ -632,3 +632,6 @@ body *{letter-spacing:0!important}
   /* the narrow top-right corner keeps the regular size so ESCAPE fits */
   .header-actions,.header-actions *{font-family:'184 Pixel',ui-monospace,monospace!important}
 }
+
+/* iOS paints its grey/black tap highlight over the whole box of a pressed (rotated) card: turn it off */
+html{-webkit-tap-highlight-color:transparent}
