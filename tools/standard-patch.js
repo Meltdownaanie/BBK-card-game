@@ -330,6 +330,7 @@ function stdGameOver(){const g=STD.g;S.phase='over';clearInterval(S.timer);rende
   else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Out of cards with equal HP.':'Both players ran out of HP.'}
   else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Out of cards: you have more HP.':'You defeated the AI.'}
   else{title='AI WINS!';text=g.reason==='cards'?'Out of cards: the AI has more HP.':'Try again.'}
+  if(S.stats){S.stats.finish=g.reason==='pack'?'777':g.reason==='cards'?'cards':'hp';if(S.stats.drawn)S.stats.drawn=[g.drawnN[0],g.drawnN[1]]}
   stdEmblems(g.reason==='pack');showDialog(title,text)}
 function stdEmblems(seven){document.querySelectorAll('#overlay .emblems .mini b').forEach((b,k)=>{b.textContent=seven?'7':['1','8','4'][k]});const e=document.querySelector('#overlay .emblems');if(e)e.classList.toggle('jp-777',!!seven)}
 /* ---------- deck builder ---------- */
@@ -370,7 +371,7 @@ function stdFillHelp(){
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
   guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
-  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk};   // test hook (test build only)
+  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk,over:stdGameOver};   // test hook (test build only)
   $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
@@ -380,7 +381,8 @@ function stdInit(){
 async function newGame(){
  S.token++;clearInterval(S.timer);C.setSeed((Date.now()^Math.floor(Math.random()*1e9))|0);
  OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.hist=[];STD.ctx=null;STD.rows=null;
- S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
+ S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[C.MAXHP,C.MAXHP];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
+resetStats();S.stats.fx=[0,0];S.stats.drawn=[0,0];
  $('difficultyStatus').textContent='STANDARD · '+(STD.level==='easy'?'EASY':STD.level==='normal'?'NORMAL':'EXPERT');
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();$('overlay').hidden=true;$('stdBuilder').hidden=true;
  stdSync();renderHistory();renderPreviousRound();updateForfeitButton();stdFillHelp();
@@ -466,6 +468,7 @@ async function reveal(timeout=false){
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();
+ try{recordRound(ctx.wins,out.map((r,i)=>{const a=S.slots[0][i],b=S.slots[1][i];return {w:r[0],dmg:r[1],dbl:!!(a&&b&&a.suit!==b.suit&&a.n===b.n),direct:!(a&&b)}}),ctx.winner,ctx.sweep>=0);const st=S.stats;if(st&&st.fx)for(let p=0;p<2;p++){st.fx[p]+=fired[p].filter(Boolean).length;st.drawn[p]=t.drawnN[p]}}catch(e){}
  for(let p=0;p<2;p++)if(ctx.dmg[p]>0)animateHpHit(p,ctx.dmg[p],before[p]);
  S.history.push({round:S.round,cards:S.slots[1].map(c=>c?{suit:c.suit,n:c.n}:null),playerCards:S.slots[0].map(c=>c?{suit:c.suit,n:c.n}:null),oppWins:ctx.wins[0],myWins:ctx.wins[1],oppDealt:ctx.dmg[1],myDealt:ctx.dmg[0]});
  renderHistory();renderPreviousRound();
