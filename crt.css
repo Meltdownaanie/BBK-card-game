@@ -60,3 +60,7 @@ body *{letter-spacing:0!important}
 
 /* iOS paints its grey/black tap highlight over the whole box of a pressed (rotated) card: turn it off */
 html{-webkit-tap-highlight-color:transparent}
+
+/* a game screen: pressing or double-tapping cards and labels must never select (highlight) their text; typing fields still can */
+body{-webkit-user-select:none;user-select:none}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text}
