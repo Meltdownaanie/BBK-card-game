@@ -1,8 +1,9 @@
 //@@HELPERS
-/* the opponent's slot that stays empty this round (too few cards, or a banned suit) is marked during planning: a card placed in front of it is a direct hit */
+/* the opponent's slot that stays empty this round (too few cards, or a banned suit) is NOT revealed while planning:
+   it looks face-down like the others, and only the reveal shows it is empty (a direct hit) */
 const stdRenderSlots0=renderSlots;
-renderSlots=function(){stdRenderSlots0();for(let i=0;i<3;i++){const sl=$('slot1'+i);if(!sl)continue;const open=S.phase==='plan'&&!S.slots[1][i]&&!isBlocked(1,i);sl.classList.toggle('std-open',open);
- if(open){sl.innerHTML='<span class="std-open-tag">EMPTY<small>DIRECT HIT</small></span>';const v=$('vs'+i);if(v)v.innerHTML='<span class="pill std-open-pill">'+(i+1)+' VS —</span>'}}};
+renderSlots=function(){stdRenderSlots0();if(S.phase!=='plan')return;for(let i=0;i<3;i++){const sl=$('slot1'+i);if(!sl||S.slots[1][i]||isBlocked(1,i))continue;
+ sl.innerHTML='<div class="card back" aria-label="Face-down AI card"></div>'}};
 /* ===================== STANDARD MODE (TEST BUILD) ===================== */
 const C=window.Std184;
 const STD={hist:[],tap:{i:-1,t:0},h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
