@@ -55,8 +55,9 @@ const FX = {
   [S9]: ["Win slot", "The opponent discards 3 cards from their deck. If the deck is empty, they discard from their hand. Your discard counter +3."],
 };
 
+const MAXHP = 150;   // Standard starts at 150 HP (Classic: 100); healing caps here too
 function newGame(activeA, activeB) {
-  const g = { hp: [100, 100], deck: [[], []], hand: [[], []], disc: [[], []], eff: [0, 0], active: [activeA, activeB], cnt: [0, 0], dn: [0, 0], drawTrig: [0, 0], drawnN: [0, 0],
+  const g = { hp: [MAXHP, MAXHP], deck: [[], []], hand: [[], []], disc: [[], []], eff: [0, 0], active: [activeA, activeB], cnt: [0, 0], dn: [0, 0], drawTrig: [0, 0], drawnN: [0, 0],
     dbl: [false, false], dblNext: [false, false], ban: [0, 0], nextBan: [0, 0], blocked: [-1, -1], nextBlocked: [-1, -1], nextDraw: [1, 1], messUp: [false, false],
     h9: [false, false], round: 1, over: false, winner: -1, reason: '', trig: null, log: null, ask: null, human: -1 };
   for (let p = 0; p < 2; p++) {
@@ -239,7 +240,7 @@ function resolve(g, rows) {
     dmgTo[o] = Math.max(0, (pre[o] > 0 ? pre[o] + b : 0) - reduce[o]);
   }
   const before = [g.hp[0], g.hp[1]];
-  for (let p = 0; p < 2; p++) g.hp[p] = Math.min(100, g.hp[p] - dmgTo[p] + heal[p]);
+  for (let p = 0; p < 2; p++) g.hp[p] = Math.min(MAXHP, g.hp[p] - dmgTo[p] + heal[p]);
   // round winner
   const shortened = g.blocked[0] >= 0 || g.blocked[1] >= 0 || rows[0].includes(-1) || rows[1].includes(-1);
   let winner = -1;
@@ -393,7 +394,7 @@ const PRESETS = {
   'Discard counter': ['S1','S2','S3','H2','H3','P0','H0','P3','S0','S4','S6','S5','P5','H4','H6','S7','S8','S9','H9'],
   'Control / heal': ['H0','H3','P0','S1','P1','P2','P3','H2','S3','H4','H6','P5','S6','S5','H5','H8','H9','S9','P7'],
 };
-const api = { newGame, clone, resolve, finishRound, outcomes, blockedSides, legalRows, randomRow, planExpert, chooseDiscardSmart, playGame, mask, unmask, limits, validDeck, parse, NAME, VI, SUIT_VI, FX, PRESETS, tier, bit, S, N, allowed, withoutRow, keepValue,
+const api = { MAXHP, newGame, clone, resolve, finishRound, outcomes, blockedSides, legalRows, randomRow, planExpert, chooseDiscardSmart, playGame, mask, unmask, limits, validDeck, parse, NAME, VI, SUIT_VI, FX, PRESETS, tier, bit, S, N, allowed, withoutRow, keepValue,
   setSeed: s => { seed = s | 0; }, getSeed: () => seed, rnd, ri };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Std184 = api;
 

@@ -268,3 +268,12 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 
 /* double-tap to discard must not zoom the page on phones */
 html,body,.slot,.card{touch-action:manipulation}
+
+/* touch: the hand's card panel is docked above the hand (the finger never covers it) and follows a sideways slide */
+.std-tip.dock{width:min(440px,calc(100vw - 24px));max-width:none;pointer-events:none;transition:none}
+
+/* opponent slot left empty this round */
+.slot.std-open{border-color:#ff6b7d!important;background:rgba(255,107,125,.09)!important}
+.std-open-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:100%;text-align:center;color:#ff8a98;font:700 13px/1.2 var(--pf),system-ui,sans-serif}
+.std-open-tag small{font-size:10px;color:#ffc2ca}
+.pill.std-open-pill{color:#ff8a98!important}

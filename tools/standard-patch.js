@@ -1,4 +1,8 @@
 //@@HELPERS
+/* the opponent's slot that stays empty this round (too few cards, or a banned suit) is marked during planning: a card placed in front of it is a direct hit */
+const stdRenderSlots0=renderSlots;
+renderSlots=function(){stdRenderSlots0();for(let i=0;i<3;i++){const sl=$('slot1'+i);if(!sl)continue;const open=S.phase==='plan'&&!S.slots[1][i]&&!isBlocked(1,i);sl.classList.toggle('std-open',open);
+ if(open){sl.innerHTML='<span class="std-open-tag">EMPTY<small>DIRECT HIT</small></span>';const v=$('vs'+i);if(v)v.innerHTML='<span class="pill std-open-pill">'+(i+1)+' VS —</span>'}}};
 /* ===================== STANDARD MODE (TEST BUILD) ===================== */
 const C=window.Std184;
 const STD={hist:[],tap:{i:-1,t:0},h9show:[false,false],h9was:[false,false],anim:0,fxNew:new Set(),g:null,mine:0,theirs:0,theirName:'',level:'expert',aiRow:null,ctx:null,rows:null,lastLog:[]};
@@ -18,21 +22,38 @@ function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
  return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+esc(f[1])+'</p>'}
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
 function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}const c=t.closest('.card');return c&&/^[01]-[a-z]+-\d$/.test(c.dataset.id||'')?c:null}
-function stdTipShow(card){
+function stdTipShow(card,dock){
  const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3];
  let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
  const on=card.classList.contains('fx'),t=C.tier(c)+1,used=c===9&&STD.g&&STD.g.h9[+m[1]];el.className='std-tip '+(on?'t'+t:'tp');el.innerHTML=stdInfoHTML(c,on,used);el.hidden=false;
+ if(dock){el.classList.add('dock');const w=el.offsetWidth,h=el.offsetHeight,f=(document.querySelector('.app')||document.body).getBoundingClientRect();
+  let top=Infinity;$('hand').querySelectorAll('.card').forEach(x=>{const r=x.getBoundingClientRect();if(r.width)top=Math.min(top,r.top)});if(!isFinite(top))top=$('hand').getBoundingClientRect().top;
+  const cx=f.width?f.left+f.width/2:innerWidth/2;el.style.left=Math.max(6,Math.min(innerWidth-w-6,cx-w/2))+'px';el.style.top=Math.max(6,top-h-30)+'px';stdTip.card=card;return}
  const r=card.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;let top=r.top-h-12;if(top<6)top=Math.min(innerHeight-h-6,r.bottom+12);
  el.style.left=Math.max(6,Math.min(innerWidth-w-6,r.left+r.width/2-w/2))+'px';el.style.top=Math.max(6,top)+'px';stdTip.card=card}
 function stdTipInit(){
  // Touch: tap and drag work exactly like Classic. The effect panel only opens after the finger rests on a card for a moment without moving.
  const HOLD=280;
  document.addEventListener('pointerdown',e=>{stdTip.prev=stdTip.card;if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);stdTip.block=false;stdTipHide();const card=stdTipFind(e.clientX,e.clientY);if(!card)return;
-  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
+  stdTip.t0=performance.now();stdTip.x=e.clientX;stdTip.y=e.clientY;stdTip.moved=false;stdTip.scrub=null;
+  // a card in the hand: its panel opens at once above the hand; sliding the finger sideways reads card after card (like a mouse hover)
+  if(S.phase==='plan'&&card.closest('#hand')){stdTip.scrub={id:e.pointerId,on:false};stdTipShow(card,true);stdTip.timer=setTimeout(()=>{if(!stdTip.moved)stdTip.held=true},HOLD);return}
+  stdTip.timer=setTimeout(()=>{if(!stdTip.moved&&document.contains(card))stdTipShow(card)},HOLD)},true);
  document.addEventListener('pointermove',e=>{
   if(e.pointerType==='mouse'){if(e.buttons){stdTipHide();return}const card=stdTipFind(e.clientX,e.clientY);if(card!==stdTip.card){if(card)stdTipShow(card);else stdTipHide()}return}
-  if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},true);
- const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
+  const sc=stdTip.scrub;
+  if(sc&&sc.id===e.pointerId){
+   if(sc.on){e.stopPropagation();if(e.cancelable)e.preventDefault();const card=stdTipFind(e.clientX,e.clientY);if(card&&card!==stdTip.card&&card.closest('#hand'))stdTipShow(card,true);return}
+   const dx=e.clientX-stdTip.x,dy=e.clientY-stdTip.y;if(Math.hypot(dx,dy)<=9)return;
+   const h=$('hand'),scrolls=h.dataset.many&&h.scrollWidth>h.clientWidth+2;
+   if(!scrolls&&Math.abs(dx)>Math.abs(dy)*1.2){sc.on=true;stdTip.moved=true;clearTimeout(stdTip.timer);e.stopPropagation();if(e.cancelable)e.preventDefault();if(typeof touchDrag!=='undefined')touchDrag=null;return}
+   stdTip.scrub=null}
+  if(!stdTip.moved&&Math.hypot(e.clientX-stdTip.x,e.clientY-stdTip.y)>9){stdTip.moved=true;clearTimeout(stdTip.timer);stdTipHide()}},{capture:true,passive:false});
+ const up=e=>{if(e.pointerType==='mouse')return;clearTimeout(stdTip.timer);const sc=stdTip.scrub;stdTip.scrub=null;
+  if(sc&&sc.id===e.pointerId){const held=stdTip.held;stdTip.held=false;
+   if(sc.on||held){e.stopPropagation();stdTip.block=true;suppressClick=true;setTimeout(()=>{stdTip.block=false;suppressClick=false},350);return}   // read only: keep the panel, do not play the card
+   stdTipHide();return}   // a quick tap plays the card as before
+  stdTip.held=false;if(stdTip.card&&!stdTip.moved){stdTip.block=true;setTimeout(()=>{stdTip.block=false},350);return}stdTipHide()};
  document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',e=>{if(e.pointerType!=='mouse'){clearTimeout(stdTip.timer);stdTipHide()}},true);
  document.addEventListener('click',e=>{
   if(stdTip.block){stdTip.block=false;e.stopPropagation();e.preventDefault();return}
@@ -309,6 +330,7 @@ function stdGameOver(){const g=STD.g;S.phase='over';clearInterval(S.timer);rende
   else if(g.winner<0){title='DRAW!';text=g.reason==='cards'?'Out of cards with equal HP.':'Both players ran out of HP.'}
   else if(g.winner===0){title='YOU WIN!';text=g.reason==='cards'?'Out of cards: you have more HP.':'You defeated the AI.'}
   else{title='AI WINS!';text=g.reason==='cards'?'Out of cards: the AI has more HP.':'Try again.'}
+  if(S.stats){S.stats.finish=g.reason==='pack'?'777':g.reason==='cards'?'cards':'hp';if(S.stats.drawn)S.stats.drawn=[g.drawnN[0],g.drawnN[1]]}
   stdEmblems(g.reason==='pack');showDialog(title,text)}
 function stdEmblems(seven){document.querySelectorAll('#overlay .emblems .mini b').forEach((b,k)=>{b.textContent=seven?'7':['1','8','4'][k]});const e=document.querySelector('#overlay .emblems');if(e)e.classList.toggle('jp-777',!!seven)}
 /* ---------- deck builder ---------- */
@@ -349,7 +371,7 @@ function stdFillHelp(){
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
   guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
-  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk};   // test hook (test build only)
+  $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk,over:stdGameOver};   // test hook (test build only)
   $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
   $('showTutorialGame').addEventListener('click',()=>{if(STD.g)stdFillHelp()},true);
   $('stdPreset').addEventListener('change',e=>{const v=e.target.value;if(v==='')return;stdSel=new Set(v==='none'?[]:Object.values(C.PRESETS)[+v].map(C.parse));e.target.value='';stdBuilderRender()});
@@ -359,7 +381,8 @@ function stdInit(){
 async function newGame(){
  S.token++;clearInterval(S.timer);C.setSeed((Date.now()^Math.floor(Math.random()*1e9))|0);
  OBJ[0]={};OBJ[1]={};STD.fxNew.clear();STD.h9show=[false,false];STD.anim++;STD.g=C.newGame(STD.mine,STD.theirs);STD.lastLog=[];STD.hist=[];STD.ctx=null;STD.rows=null;
- S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[100,100];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
+ S.messUp=[false,false];S.phase='dealing';S.round=0;S.target=null;S.result=null;S.canPick=false;S.pickIdx=[null,null];S.history=[];S.playerObservations=[];S.difficulty='hard';S.dragId=null;S.animateHand.clear();S.nextDraws=[1,1];S.roundHpStart=[C.MAXHP,C.MAXHP];S.kiantsBonus=null;S.slots=[[null,null,null],[null,null,null]];
+resetStats();S.stats.fx=[0,0];S.stats.drawn=[0,0];
  $('difficultyStatus').textContent='STANDARD · '+(STD.level==='easy'?'EASY':STD.level==='normal'?'NORMAL':'EXPERT');
  $('comboCelebration').hidden=true;$('comboCelebration').innerHTML='';closeDiscardPile();$('overlay').hidden=true;$('stdBuilder').hidden=true;
  stdSync();renderHistory();renderPreviousRound();updateForfeitButton();stdFillHelp();
@@ -445,6 +468,7 @@ async function reveal(timeout=false){
  STD.anim++;for(const c of t.hand[0])if(!g.hand[0].includes(c)){STD.fxNew.add(c);objOf(0,c).origin='new'}stdSyncCards();renderHud();renderHand();
  if(ctx.sweep>=0)msg('⚡ PERFECT SWEEP — +5 BONUS DAMAGE!');
  const before=[S.hp[0],S.hp[1]];S.hp=[t.hp[0],t.hp[1]];renderHud();
+ try{recordRound(ctx.wins,out.map((r,i)=>{const a=S.slots[0][i],b=S.slots[1][i];return {w:r[0],dmg:r[1],dbl:!!(a&&b&&a.suit!==b.suit&&a.n===b.n),direct:!(a&&b)}}),ctx.winner,ctx.sweep>=0);const st=S.stats;if(st&&st.fx)for(let p=0;p<2;p++){st.fx[p]+=fired[p].filter(Boolean).length;st.drawn[p]=t.drawnN[p]}}catch(e){}
  for(let p=0;p<2;p++)if(ctx.dmg[p]>0)animateHpHit(p,ctx.dmg[p],before[p]);
  S.history.push({round:S.round,cards:S.slots[1].map(c=>c?{suit:c.suit,n:c.n}:null),playerCards:S.slots[0].map(c=>c?{suit:c.suit,n:c.n}:null),oppWins:ctx.wins[0],myWins:ctx.wins[1],oppDealt:ctx.dmg[1],myDealt:ctx.dmg[0]});
  renderHistory();renderPreviousRound();

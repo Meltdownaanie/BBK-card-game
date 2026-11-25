@@ -33,6 +33,13 @@ rep('function requiredCards(p){return Math.min(openSlots(p).length,S.hand[p].len
 rep("function placeCard(id,i){", "function placeCard(id,i){{const c0=S.hand[0].find(x=>x.id===id);if(c0&&stdBanned(0,c0)){stdPanel('BANNED',[{cls:'ai',html:esc(stdBanText())}],{step:100,hold:1100});return false}}")
 rep(";updateHandSwipe();fitManyHand()}", ";updateHandSwipe();fitManyHand();stdAfterHand()}")
 rep("function renderHud(){", "function renderHud(){try{stdHud()}catch(e){}")
+rep("Each player starts with 100 HP.", "Each player starts with 150 HP.")
+# match stats: two Standard tiles (effects triggered, cards drawn)
+rep("tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+", "tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+(st.fx?tile('EFFECTS',st.fx[0])+tile('CARDS DRAWN',st.drawn[0]):'')+")
+# Standard HP is 150: the bar and the low-HP alerts work on the share of 150
+rep("const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';", "const hp=Math.max(0,S.hp[p]),pc=Math.round(hp*100/window.Std184.MAXHP);$('hp'+p).innerHTML=hp+' <small>HP</small>';")
+rep("fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);", "fill.style.width=pc+'%';bar.classList.toggle('low',pc<=30);")
+rep("hud.classList.add(hpAlertClass(hp));hud.dataset.low=hp>0&&hp<=10?'10':hp>0&&hp<=20?'20':hp>0&&hp<=50?'50':'';", "hud.classList.add(hpAlertClass(pc));hud.dataset.low=hp>0&&pc<=10?'10':hp>0&&pc<=20?'20':hp>0&&pc<=50?'50':'';")
 rep("function showMenu(){", "function showMenu(){stdOpenBuilder();return;")
 rep("'Round won · tap one of your played cards to discard it'", "'Round won · double-tap a played card to discard it'")
 rep("  if(n===0&&locked.length)return", "  if(n===0&&stdBanText())return stdBanText();\n  if(n===0&&locked.length)return")
