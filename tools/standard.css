@@ -287,3 +287,12 @@ html,body,.slot,.card{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){.jp-hit-1,.jp-hit-2{animation:none}}
 
 /* coins fall behind the three 7s and the headline (same layer as the dimmer, painted after it) */
+
+/* effect group icons */
+.fx-grps{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.fx-grp{display:inline-flex;align-items:center;gap:5px;padding:2px 7px 2px 3px;border-radius:999px;background:#ffffff10;font:700 11px/1 var(--pf),system-ui,sans-serif;letter-spacing:.04em;color:var(--gc,#fff)}
+.fx-grp img{width:20px;height:20px;pointer-events:none;flex:0 0 auto}
+.fx-grp.g-passive{--gc:#ffd34d}.fx-grp.g-discard{--gc:#5fd38a}.fx-grp.g-draw{--gc:#6aa8ff}.fx-grp.g-damage{--gc:#ff7a6e}.fx-grp.g-block{--gc:#6aa8ff}.fx-grp.g-lock{--gc:#ff7a6e}.fx-grp.g-heal{--gc:#ff8a9a}
+.fx-grps.sm{display:inline-flex;gap:2px;margin:0 6px 0 0;vertical-align:-4px}
+.fx-grps.sm .fx-grp{padding:0;background:none}
+.fx-grps.sm .fx-grp img{width:16px;height:16px}
