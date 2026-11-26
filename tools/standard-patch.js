@@ -456,7 +456,7 @@ async function reveal(timeout=false){
     for(const gr of groups){
      const p=gr.p,sl=$('slot'+p+i);if(fired[p]&&fired[p][i]&&sl&&!sl.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';sl.appendChild(m);stdStarBurst(sl.querySelector('.card'),C.tier(rows[p][i])+1)}
      const moves=(async()=>{for(const e of gr.list)if(e.mv)await stdPlayMoves(e.mv,gen,tok)})();
-     const skipped=await stdToast(i,gr.list.map(stdLine),2600);if(tok!==S.token)return;
+     const skipped=await stdToast(i,gr.list.map(stdLine),3600);if(tok!==S.token)return;
      if(!skipped)await moves;if(tok!==S.token)return}}
    for(let p=0;p<2;p++)if(fired[p][i]&&(fin||i<upto)){const sl=$('slot'+p+i);if(sl&&!sl.querySelector('.fx-trig')){const m=document.createElement('span');m.className='fx-trig';m.textContent='TRIGGERED';sl.appendChild(m)}}
    if(r&&r[0]>=0&&t.slotDmg&&t.slotDmg[i]!==r[1])pill(i,r[0],!(a&&b),t.slotDmg[i]);
