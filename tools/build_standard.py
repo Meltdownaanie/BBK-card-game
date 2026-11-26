@@ -35,7 +35,7 @@ rep(";updateHandSwipe();fitManyHand()}", ";updateHandSwipe();fitManyHand();stdAf
 rep("function renderHud(){", "function renderHud(){try{stdHud()}catch(e){}")
 rep("Each player starts with 100 HP.", "Each player starts with 150 HP.")
 # match stats: two Standard tiles (effects triggered, cards drawn)
-rep("tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+", "tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+(st.fx?tile('EFFECTS',st.fx[0])+tile('CARDS DRAWN',st.drawn[0]):'')+")
+rep("tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+", "tile('W-L-T',`${st.rw[0]}-${st.rw[1]}-${st.ties}`)+tile('BIGGEST HIT',st.best[0])+(st.fx?tile('EFFECTS',st.fx[0])+tile('EFFECT DRAWS',st.drawn[0]):'')+")
 # Standard HP is 150: the bar and the low-HP alerts work on the share of 150
 rep("const hp=Math.max(0,S.hp[p]);$('hp'+p).innerHTML=hp+' <small>HP</small>';", "const hp=Math.max(0,S.hp[p]),pc=Math.round(hp*100/window.Std184.MAXHP);$('hp'+p).innerHTML=hp+' <small>HP</small>';")
 rep("fill.style.width=hp+'%';bar.classList.toggle('low',hp<=30);", "fill.style.width=pc+'%';bar.classList.toggle('low',pc<=30);")
