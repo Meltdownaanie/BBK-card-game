@@ -287,3 +287,7 @@ html,body,.slot,.card{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){.jp-hit-1,.jp-hit-2{animation:none}}
 
 /* coins fall behind the three 7s and the headline (same layer as the dimmer, painted after it) */
+
+/* effect group icons: inline, right before the effect text */
+.fx-ico{display:inline-block;width:1.35em;height:1.35em;vertical-align:-.3em;margin-right:.35em;pointer-events:none}
+.fx-ico+.fx-ico{margin-left:-.15em}
