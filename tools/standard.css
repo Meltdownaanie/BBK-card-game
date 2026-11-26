@@ -193,7 +193,7 @@ body:has(.overlay:not([hidden]):not(.std-modal)) .std-burst-star,body:has(.overl
 .jp-spark{position:fixed;z-index:1204;font-style:normal;font-size:18px;color:#ffe066;text-shadow:0 0 8px #ffb100;pointer-events:none;animation:jpSpark 1.6s ease-in-out infinite;opacity:0}
 @keyframes jpSpark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.2) rotate(30deg)}}
 @media(prefers-reduced-motion:reduce){.jp-spark,.jp-pop,.jp-bulbs i,.jp-aura,.jp2-rays,.jp2-congrats,.jp2-bulbs i,.jp2-spark,.jp2-title,.card.jp2-seven,.jp2-win::after,.jp2-sub,.jp2-who{animation:none}}
-.jp-coins{position:fixed;left:0;top:0;z-index:1202;pointer-events:none;image-rendering:pixelated}
+.jp-coins{position:fixed;left:0;top:0;z-index:1200;pointer-events:none;image-rendering:pixelated}
 /* ---- JACKPOT! WIN sign ---- */
 .jp-pop.jps{position:fixed;left:50%;top:50%;z-index:1203;width:min(560px,calc(100vw - 10px));transform:translate(-50%,-50%);pointer-events:none;text-align:center;animation:jpsPop .6s cubic-bezier(.2,1.45,.4,1) both}
 @keyframes jpsPop{from{transform:translate(-50%,-50%) scale(.25);opacity:0}}
@@ -277,3 +277,13 @@ html,body,.slot,.card{touch-action:manipulation}
 .std-open-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:100%;text-align:center;color:#ff8a98;font:700 13px/1.2 var(--pf),system-ui,sans-serif}
 .std-open-tag small{font-size:10px;color:#ffc2ca}
 .pill.std-open-pill{color:#ff8a98!important}
+
+/* 777: headline right above the three glowing 7s (replaces the sign board) */
+.jp-hit{position:fixed;z-index:1210;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;text-align:center;white-space:nowrap}
+.jp-hit-1{font:400 clamp(26px,8.4vw,46px)/1 var(--pn);color:#ffe14d;text-shadow:3px 3px 0 #a01d06,-2px 2px 0 #5c0412,2px -2px 0 #5c0412,-2px -2px 0 #5c0412,0 0 18px #ffb100;animation:jpHitIn .5s cubic-bezier(.2,1.4,.4,1) both,jpNeon 1.2s .6s steps(1) infinite}
+.jp-hit-2{font:400 clamp(13px,4.2vw,22px)/1.1 var(--pn);color:#fff6c8;text-shadow:2px 2px 0 #7a1e00,-2px 2px 0 #7a1e00,2px -2px 0 #7a1e00,-2px -2px 0 #7a1e00,0 0 12px #ffd23a;animation:jpHitIn .45s .25s cubic-bezier(.2,1.4,.4,1) both}
+.jp-hit.ai .jp-hit-2{color:#ffd0d6}
+@keyframes jpHitIn{from{opacity:0;transform:translateY(14px) scale(.6)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.jp-hit-1,.jp-hit-2{animation:none}}
+
+/* coins fall behind the three 7s and the headline (same layer as the dimmer, painted after it) */

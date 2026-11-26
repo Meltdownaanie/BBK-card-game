@@ -228,37 +228,19 @@ function stdJackpot(w,token){return new Promise(res=>{
    st.classList.add('spin');
    st.animate([{transform:`translateY(${from}px)`},{transform:`translateY(${Math.round(pitch*.14)}px)`,offset:.93},{transform:'translateY(0)'}],{duration:1500+k*650,easing:'cubic-bezier(.3,.05,.25,1)',fill:'forwards'}).finished.then(()=>{st.classList.remove('spin');if(!live())return r2();reel.classList.add('stopped');const c=clones[k];reel.style.visibility='hidden';c.style.opacity='1';c.classList.remove('glow');c.classList.add('aura');stdAura(c,extra);
     c.animate([{transform:c._t},{transform:c._t+' scale(1.1)'},{transform:c._t}],{duration:300,easing:'ease-out'});r2()},()=>r2())})));
-  if(!live())return end();await sleep(rm?0:1750);if(!live())return end();
-  // banner, 7.77 s
-
-  // JACKPOT! WIN sign (pixel art) with 184 on top; the three 7s sit in a panel of card-shaped gold frames
-  const pop=document.createElement('div');pop.className='jp-pop jps';
-  pop.innerHTML='<div class="jps-float"><div class="jps-art"><img class="sign" src="./jackpot-sign.webp" alt="JACKPOT! WIN">'
-   +'<div class="jps-184">184</div><div class="jps-panel"></div>'
-   +'<i class="jps-tw t1"></i><i class="jps-tw t2"></i><i class="jps-tw t3"></i><i class="jps-tw t4"></i><i class="jps-tw t5"></i><i class="jps-tw t6"></i>'
-   +'<div class="jps-shine" aria-hidden="true"></div>'+(w===0?'<div class="jps-congrats">CONGRATULATION!!!</div>':'')+'</div>'
-   +'<div class="jps-sub">7 HEAVEN</div><div class="jps-who">'+(w===0?'YOU WIN THE GAME':'AI WINS THE GAME')+'</div></div>';
-  const row=pop.querySelector('.jps-panel');
-  document.body.appendChild(pop);extra.push(pop);ov.classList.add('win');
+  if(!live())return end();await sleep(rm?0:250);if(!live())return end();
+  // right after the three 7s light up: the headline appears above them (no sign board), the coins start falling
+  const top=cy-(h0*sc)/2,hit=document.createElement('div');hit.className='jp-hit'+(w===0?'':' ai');hit.setAttribute('role','status');
+  hit.innerHTML='<div class="jp-hit-1">7 HEAVEN WIN</div><div class="jp-hit-2">'+(w===0?'YOU HIT A JACKPOT!':'AI HIT A JACKPOT!')+'</div>';
+  hit.style.left=cx+'px';hit.style.top=Math.max(8,top-18)+'px';document.body.appendChild(hit);extra.push(hit);ov.classList.add('win');
   const tPop=performance.now();
   if(!rm)extra.push(stdCoinRain());
-  {const ph=row.clientHeight,ch=Math.round(ph*.9),cw=Math.round(ch*.72);row.style.setProperty('--cw',cw+'px');row.style.setProperty('--ch',ch+'px');row.style.setProperty('--nf',Math.max(10,Math.round(cw*.42))+'px');
-   ORDER.forEach((suit,k)=>{const slot=document.createElement('div');slot.className='jps-slot';slot.style.setProperty('--d',(.45+k*.28)+'s');
-    const d=document.createElement('div');d.innerHTML=cardHTML({suit,n:7,id:'jpx-'+suit});const c=plain(d.firstElementChild);c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');c.classList.add('jps-seven','wait');slot.appendChild(c);row.appendChild(slot)})}
-  // the three 7s that just spun fly from the board into their frames, one after another; the frame flashes when a card lands
-  {const slots=[...row.querySelectorAll('.jps-slot')];await sleep(rm?0:620);if(!live())return end();
-   const fly=(c,k)=>new Promise(done=>{const sl=slots[k],t=sl.getBoundingClientRect(),r0=c._r,sc2=t.width/r0.width,tx=t.left+t.width/2-(r0.left+r0.width/2),ty=t.top+t.height/2-(r0.top+r0.height/2);
-    const land=()=>{c.remove();if(c._aura)c._aura.remove();sl.querySelector('.card').classList.remove('wait');sl.classList.add('hit');done()};
-    if(rm)return land();c.style.zIndex='1205';if(c._aura)c._aura.animate([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'});
-    const cur=new DOMMatrix(getComputedStyle(c).transform),mx=(cur.e+tx)/2,my=Math.min(cur.f,ty)-60;
-    c.animate([{transform:c._t},{transform:`translate(${mx}px,${my}px) scale(${(sc2+cur.a)/2*1.05}) rotate(${k===1?0:k?10:-10}deg)`,offset:.5},{transform:`translate(${tx}px,${ty}px) scale(${sc2})`}],{duration:620,easing:'cubic-bezier(.45,.05,.3,1)',fill:'forwards'}).finished.then(land,land)});
-   for(let k=0;k<3;k++){if(!live())return end();await fly(clones[k],k);await sleep(rm?0:90)}}
   if(!rm){const cols=['#3aa8ff','#b277ff','#ffc21a','#ffc21a'];let alive=true;extra.push({remove:()=>{alive=false}});
-   const burst=()=>{if(!alive||!live())return;const r=row.getBoundingClientRect();if(!r.width)return;
-    for(let k=0;k<5;k++){const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=110+Math.random()*120,sz=14+Math.random()*16;
+   const burst=()=>{if(!alive||!live())return;
+    for(let k=0;k<4;k++){const c0=clones[Math.floor(Math.random()*3)],r=c0.getBoundingClientRect();const st=document.createElement('i');st.className='jp-star';st.textContent='★';const col=cols[Math.floor(Math.random()*cols.length)],ang=Math.random()*Math.PI*2,dist=70+Math.random()*90,sz=12+Math.random()*14;
      st.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;color:${col};font-size:${sz}px`;document.body.appendChild(st);
      st.animate([{transform:'translate(-50%,-50%) scale(.2) rotate(0)',opacity:0},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist*.45}px),calc(-50% + ${Math.sin(ang)*dist*.45}px)) scale(1.2) rotate(${ang*40}deg)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${Math.cos(ang)*dist}px),calc(-50% + ${Math.sin(ang)*dist}px)) scale(.7) rotate(${ang*80}deg)`,opacity:0}],{duration:1100+Math.random()*500,easing:'cubic-bezier(.2,.8,.3,1)'}).finished.then(()=>st.remove(),()=>st.remove())}
-    setTimeout(burst,320)};setTimeout(burst,700)}
+    setTimeout(burst,360)};setTimeout(burst,300)}
   await sleep(Math.max(0,7770-(performance.now()-tPop)));end()};
  step()})}
 /* demo of the 7 7 7 animation from the deck builder: every effect off, you (or the AI) play Hammer 7, Paper 7, Scissors 7 and sweep the round */
