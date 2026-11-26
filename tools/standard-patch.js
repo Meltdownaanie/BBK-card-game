@@ -23,9 +23,15 @@ const STD_GRP={0:['heal'],1:['draw'],2:['passive'],3:['block'],4:['heal'],5:['dr
  10:['discard'],11:['draw','discard'],12:['draw'],13:['draw'],14:['draw'],15:['block'],16:['draw'],17:['damage'],18:['draw'],19:['draw'],
  20:['draw'],21:['discard'],22:['discard'],23:['damage'],24:['discard'],25:['damage'],26:['discard'],27:['discard'],28:['discard','damage'],29:['discard']};
 function stdGrpHTML(c){return (STD_GRP[c]||[]).map(g=>'<img class="fx-ico" src="./icons/fx-'+g+'.png" alt="'+g+'" title="'+g.toUpperCase()+'" draggable="false">').join('')}
+/* effect text highlights: a named card / suit takes its suit colour, bonuses & multipliers gold, other numbers bright */
+function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|×\s?\d+|\+\s?\d+|\b(Win|Lose):|\b\d+\b/g,(m,suit,num,wl)=>{
+  if(suit)return '<span class="fxt s-'+suit.toLowerCase()+'">'+m+'</span>';
+  if(wl)return '<span class="fxt '+(wl==='Win'?'win':'lose')+'">'+m+'</span>';
+  if(/^[×+]/.test(m))return '<span class="fxt bonus">'+m+'</span>';
+  return '<span class="fxt num">'+m+'</span>'})}
 function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
  if(!on||!f)return '<b>'+esc(C.VI(c))+'<span class="plain">PLAIN</span></b><p>'+(used?'Effect already used this game.':'No effect: plays as a normal card.')+'</p>';
- return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+stdGrpHTML(c)+esc(f[1])+'</p>'}
+ return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+stdGrpHTML(c)+stdFxText(f[1])+'</p>'}
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
 function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}const c=t.closest('.card');return c&&/^[01]-[a-z]+-\d$/.test(c.dataset.id||'')?c:null}
 function stdTipShow(card,dock){
@@ -332,7 +338,7 @@ function stdBuilderRender(){
   for(let t=0;t<3;t++){
     html+='<div class="std-tier-h"><b>TIER '+(t+1)+'</b><span class="'+(cnt[t]>lim[t]?'bad':cnt[t]===lim[t]?'full':'')+'">'+cnt[t]+' / '+lim[t]+'</span></div>';
     for(let c=0;c<30;c++){if(C.tier(c)!==t)continue;const f=C.FX[c],on=stdSel.has(c);
-      html+='<button type="button" class="std-row'+(on?' on':'')+'" data-c="'+c+'" aria-pressed="'+on+'"><span class="std-chip '+ORDER[C.S(c)]+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b></span><span class="txt"><small>'+esc(C.VI(c))+' · '+esc(f[0])+'</small>'+stdGrpHTML(c)+esc(f[1])+'</span><span class="std-check" aria-hidden="true">'+(on?'★':'')+'</span></button>'}
+      html+='<button type="button" class="std-row'+(on?' on':'')+'" data-c="'+c+'" aria-pressed="'+on+'"><span class="std-chip '+ORDER[C.S(c)]+'">'+SUITS[ORDER[C.S(c)]].icon+'<b>'+C.N(c)+'</b></span><span class="txt"><small>'+esc(C.VI(c))+' · '+esc(f[0])+'</small>'+stdGrpHTML(c)+stdFxText(f[1])+'</span><span class="std-check" aria-hidden="true">'+(on?'★':'')+'</span></button>'}
   }
   $('stdRows').innerHTML=html;
   $('stdStart').disabled=over;$('stdCount').textContent=over?'Over the limit: turn some cards off':list.length+' effect card'+(list.length===1?'':'s')+' on · the rest are plain';
@@ -353,7 +359,7 @@ function stdStartMatch(){stdEmblems(false);
   STD.mine=C.mask(list);STD.theirs=C.mask(ai);STD.theirName=nm;STD.level=$('stdLevel').value;
   $('stdBuilder').hidden=true;newGame()}
 function stdFillHelp(){
-  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+stdGrpHTML(c)+esc(C.FX[c][1])+'</p></div></article>').join(''):'<p>No effect cards.</p>'};
+  const g=STD.g,mk=(p)=>{const l=C.unmask(g.active[p]);return l.length?l.map(c=>'<article><span class="tutorial-step">'+esc(C.VI(c))+'</span><div><strong>'+esc(C.FX[c][0])+'</strong><p>'+stdGrpHTML(c)+stdFxText(C.FX[c][1])+'</p></div></article>').join(''):'<p>No effect cards.</p>'};
   $('tutorialTitle').textContent='STANDARD · EFFECTS';
   const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Cards with stars have their effect on: 1 blue star = Tier 1, 2 purple stars = Tier 2, 3 gold stars = Tier 3. Hold a card (or hover) to read its effect. Effects trigger right after their slot is decided (a direct hit on an empty slot counts as a win), in order slot 1 → 2 → 3, winner before loser. Damage is totalled after slot 3.';
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
