@@ -291,3 +291,10 @@ html,body,.slot,.card{touch-action:manipulation}
 /* effect group icons: inline, right before the effect text */
 .fx-ico{display:inline-block;width:1.35em;height:1.35em;vertical-align:-.3em;margin-right:.35em;pointer-events:none}
 .fx-ico+.fx-ico{margin-left:-.15em}
+
+/* highlighted words in effect texts */
+.fxt{display:inline;font-weight:700;color:#fff}
+.fxt.s-hammer{color:#ff6a5e}.fxt.s-paper{color:#5fa8ff}.fxt.s-scissors{color:#4fd67e}
+.fxt.bonus{color:#ffd34d}
+.fxt.win{color:#7cf0a4}.fxt.lose{color:#ff8a98}
+.fxt.num{color:#7fe3ff}
