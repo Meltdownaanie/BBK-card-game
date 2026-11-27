@@ -22,38 +22,57 @@ const tier = c => N(c) <= 3 ? 0 : N(c) <= 6 ? 1 : 2;
 function keepValue(g, p, c) { return N(c) + ((g.active[p] & bit(c)) ? [3, 5, 8][tier(c)] : 0) + (N(c) === 7 ? 3 : 0); }
 
 /* What each card does when its effect is switched on (shown in the deck builder and the in-game list). */
+/* Effect texts. House style (keep it when adding cards):
+   - Trigger (first string): Win slot · Lose slot · Win / Lose slot · Lose round · When discarded · Deck building
+   - One keyword verb per action, from KEYWORDS below: Draw, Search, Call, Recover, Discard, Heal, Damage +, Ban, Block
+   - "you / your" for the card's owner, "the opponent" for the other side; numbers as digits; cards as "Hammer 7",
+     "1 Hammer card", "1 card numbered 7"; fallbacks start with "None left:" or "Deck empty:" */
 const FX = {
-  [H0]: ["Win slot", "Heal HP equal to the damage this card deals."],
-  [H1]: ["Win slot", "Draw Hammer 7 from your deck. If Hammer 7 is already in your hand (or not in the deck), draw nothing."],
-  [H2]: ["Deck building", "Lets you enable 4 Tier 3 cards instead of 3."],
+  [H0]: ["Win slot", "Heal HP equal to this slot's damage."],
+  [H1]: ["Win slot", "Search your deck for Hammer 7. Not in your deck: nothing happens."],
+  [H2]: ["Deck building", "You may enable 4 Tier 3 cards instead of 3."],
   [H3]: ["Lose slot", "Take 9 less damage this round."],
-  [P0]: ["Lose round", "If you lose the round (and Paper 0 was played), the card you discard is Paper 0."],
-  [P1]: ["Win slot", "You may swap 1 card in your hand for 1 card from your discard pile. You choose both cards (or skip)."],
-  [P2]: ["Win slot", "Take 1 random card from your discard pile."],
-  [P3]: ["Win slot", "Draw 1 random card from your deck."],
+  [P0]: ["Lose round", "If you lose the round with Paper 0 played, Paper 0 is the card you discard."],
+  [P1]: ["Win slot", "You may swap: recover 1 card of your choice from your discard pile, then discard 1 card of your choice from your hand."],
+  [P2]: ["Win slot", "Recover 1 random card from your discard pile."],
+  [P3]: ["Win slot", "Draw 1 card."],
   [S0]: ["Win slot", "Draw 1 random Paper card from your deck."],
-  [S1]: ["When chosen for discard", "Whenever it would be discarded (from your hand, a slot or your deck, by any card or rule): it is not discarded and goes to your hand instead, your discard counter +1."],
-  [S2]: ["When chosen for discard", "From your hand or a slot: your discard counter +2. In the deck it is discarded normally."],
-  [S3]: ["Win slot", "Damage = this slot's damage + your discard counter (cards discarded by your own card effects, on either side)."],
+  [S1]: ["When discarded", "Whenever it would be discarded (from your hand, a slot or your deck, by any card or rule), it goes to your hand instead. Discard counter +1."],
+  [S2]: ["When discarded", "Whenever it is discarded (from your hand, a slot or your deck, by any card or rule): discard counter +2."],
+  [S3]: ["Win slot", "Damage + your discard counter."],
   [H4]: ["Win slot", "Heal HP equal to all the damage you deal this round."],
-  [H5]: ["Win slot", "Search your deck for 1 Hammer card. No Hammer left: draw 1 random card."],
-  [H6]: ["Win slot", "The opponent cannot play Paper next round."],
-  [P4]: ["Win slot", "Draw 2 random Paper cards from your deck. No Paper left: draw 2 random cards."],
-  [P5]: ["Win slot", "Once this triggers, none of the opponent's card effects trigger from this slot onward (order: slot 1 → 2 → 3, winner before loser)."],
+  [H5]: ["Win slot", "Search your deck for 1 Hammer card. None left: draw 1 card."],
+  [H6]: ["Win slot", "Ban Paper: the opponent cannot play Paper next round."],
+  [P4]: ["Win slot", "Draw 2 random Paper cards from your deck. None left: draw 2 cards."],
+  [P5]: ["Win slot", "Block: from this slot on, the opponent's card effects do not trigger this round."],
   [P6]: ["Win slot", "Search your deck for 1 card numbered 7."],
-  [S4]: ["Win / Lose slot", "Win: discard 1 random card from the opponent's deck. Lose: discard 2 cards from your own deck. If the deck is empty, discard from the hand instead."],
-  [S5]: ["Win / Lose slot", "Win: all damage you deal this round × 2. Lose: all damage the opponent deals this round × 2."],
-  [S6]: ["Win slot", "The opponent discards 1 random card from their hand."],
-  [H7]: ["Win / Lose slot", "Win: take 2 Hammer cards from your discard pile. Lose: draw 1 Hammer card from your deck."],
-  [H8]: ["Win slot", "Choose a suit: the opponent cannot play it next round."],
-  [H9]: ["Win slot · first play only", "Only works the first time this card is played. If it wins its slot that time: from the next round until the end of the game, your total damage each round is +10 and your healing is +10. If it does not win, the effect is lost."],
-  [P7]: ["Win slot", "Damage = this slot's damage + cards you have drawn by your own card effects (draws, searches in deck and discard pile). None yet: + 20."],
-  [P8]: ["Win slot", "Search for 1 card numbered 9 and 1 card numbered 7, in both your deck and your discard pile."],
-  [P9]: ["Win slot", "Search for 2 cards numbered 7 and 1 card numbered 6, in both your deck and your discard pile."],
-  [S7]: ["Win / Lose slot", "Win: look at the opponent's deck and choose 1 card to discard. Lose: choose 1 card in your own deck and discard it."],
-  [S8]: ["Win slot", "The opponent discards 2 random cards from their deck. Damage = this slot's damage + your discard counter (cards discarded by your own card effects, on either side)."],
-  [S9]: ["Win slot", "The opponent discards 3 cards from their deck. If the deck is empty, they discard from their hand. Your discard counter +3."],
+  [S4]: ["Win / Lose slot", "Win: discard 1 random card from the opponent's deck. Lose: discard 2 random cards from your own deck. Deck empty: discard from the hand instead. Discard counter + the cards discarded."],
+  [S5]: ["Win / Lose slot", "Win: all the damage you deal this round × 2. Lose: all the damage the opponent deals this round × 2."],
+  [S6]: ["Win slot", "Discard 1 random card from the opponent's hand. Discard counter +1."],
+  [H7]: ["Win / Lose slot", "Win: recover 2 random Hammer cards from your discard pile. Lose: draw 1 random Hammer card from your deck."],
+  [H8]: ["Win slot", "Ban a suit: choose a suit the opponent cannot play next round."],
+  [H9]: ["Win slot · first play only", "First play only. If it wins its slot: from next round to the end of the game, +10 to your damage and +10 to your healing each round you deal damage or heal. If it does not win, the effect is used up."],
+  [P7]: ["Win slot", "Damage +1 for each card your own effects have drawn this game (Draw, Search, Call, Recover). None yet: damage + 20."],
+  [P8]: ["Win slot", "Call 1 card numbered 9 and 1 card numbered 7."],
+  [P9]: ["Win slot", "Call 2 cards numbered 7 and 1 card numbered 6."],
+  [S7]: ["Win / Lose slot", "Win: look at the opponent's deck and discard 1 card of your choice. Lose: discard 1 card of your choice from your own deck. Discard counter +1."],
+  [S8]: ["Win slot", "Discard 2 random cards from the opponent's deck, then damage + your discard counter."],
+  [S9]: ["Win slot", "Discard 3 random cards from the opponent's deck (from their hand once the deck is empty). Discard counter +3."],
 };
+/* The keyword glossary shown to players (Effects screen). Add a line here when a new keyword is introduced. */
+const KEYWORDS = [
+  ['Win slot / Lose slot', 'Triggers right after that slot is decided (a direct hit on an empty slot is a win), in order slot 1 → 2 → 3, winner before loser.'],
+  ['Draw', 'Take cards from your deck into your hand at random.'],
+  ['Search', 'Look through your deck and take the card you choose.'],
+  ['Call', 'Like Search, but in your deck and your discard pile.'],
+  ['Recover', 'Take a card from your discard pile back into your hand.'],
+  ['Discard', 'Put a card into its owner\'s discard pile, from the hand, a slot or the deck.'],
+  ['Discard counter', 'Goes up for every card your own effects discard (yours or the opponent\'s). Shown as D on the HUD.'],
+  ['Damage +', 'Added to this slot\'s damage. Damage × 2 doubles the whole round.'],
+  ['Heal', 'Gain HP, up to 150.'],
+  ['Ban', 'The opponent cannot play that suit next round.'],
+  ['Block', 'The opponent\'s card effects do not trigger.'],
+];
 
 const MAXHP = 150;   // Standard starts at 150 HP (Classic: 100); healing caps here too
 function newGame(activeA, activeB) {
@@ -82,7 +101,8 @@ const take = (arr, c) => { const i = arr.indexOf(c); if (i < 0) return false; ar
 function discardCard(g, owner, c, byEffect, on, fromDeck) {
   /* Kéo 1: whenever it would be discarded (from the hand, a slot or the deck, by any card or rule) it goes back to the hand instead */
   if (c === S1 && on[owner] && (g.active[owner] & bit(S1))) { g.dn[owner]++; g.cnt[owner]++; if (g.log) g.log.push({ p: owner, c: S1, slot: -1, t: fromDeck ? 'Not discarded: goes from the deck to your hand (discard counter +1)' : 'Not discarded: returns to hand (discard counter +1)' }); return false; }
-  if (!fromDeck && c === S2 && on[owner] && (g.active[owner] & bit(S2))) { g.dn[owner]++; g.cnt[owner] += 2; if (g.log) g.log.push({ p: owner, c: S2, slot: -1, t: 'Discarded: discard counter +2' }); }
+  /* Kéo 2: wherever it is discarded from (hand, slot or deck), counter +2 */
+  if (c === S2 && on[owner] && (g.active[owner] & bit(S2))) { g.dn[owner]++; g.cnt[owner] += 2; if (g.log) g.log.push({ p: owner, c: S2, slot: -1, t: 'Discarded: discard counter +2' }); }
   else g.dn[owner]++;
   g.disc[owner].push(c); if (byEffect) g.eff[owner] |= bit(c); else g.eff[owner] &= ~bit(c);
   return true;
@@ -99,7 +119,7 @@ function millDeck(g, owner, k, on, picks) {
     const c = picks ? picks[j] : g.deck[owner][ri(g.deck[owner].length)];
     if (c === undefined || !g.deck[owner].includes(c)) continue;
     take(g.deck[owner], c);
-    if (!discardCard(g, owner, c, true, on, true)) g.hand[owner].push(c);   // Kéo 1 leaves the deck for the hand (still uses up this discard); Kéo 2 does nothing in the deck
+    if (!discardCard(g, owner, c, true, on, true)) g.hand[owner].push(c);   // Kéo 1 leaves the deck for the hand (still uses up this discard)
     n++;
   }
   return n;
@@ -166,7 +186,7 @@ function resolve(g, rows) {
       const snap = L ? [g.hand[0].slice(), g.hand[1].slice(), g.deck[0].slice(), g.deck[1].slice(), g.disc[0].slice(), g.disc[1].slice()] : null, L0 = L ? L.length : 0;
       switch (c) {
         case H0: if (won) { heal[p] += slotDmg[i]; fired = true; say(p, c, i, 'Heal ' + slotDmg[i] + ' HP'); } break;
-        case H1: if (won && effTake(g, p, H7)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Draw Hammer 7 from the deck'); } break;
+        case H1: if (won && effTake(g, p, H7)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Search: Hammer 7 from the deck'); } break;
         case H3: if (!won) { reduce[p] = 9; fired = true; say(p, c, i, 'Take 9 less damage this round'); } break;
         case P1: if (won && g.disc[p].length && g.hand[p].length) {
           const auto = () => { const best = bestOf(g, p, g.disc[p]); let worst = g.hand[p][0]; for (const x of g.hand[p]) if (keepValue(g, p, x) < keepValue(g, p, worst)) worst = x; return keepValue(g, p, best) > keepValue(g, p, worst) + 2 ? [best, worst] : null; };
@@ -174,46 +194,46 @@ function resolve(g, rows) {
           if (pickD && pickD.length) {
             const pickH = ask(p, { kind: 'cards', key: 'P1b', title: 'Paper 1: choose 1 card in your hand to put in the discard pile', list: g.hand[p].slice(), k: 1 }, () => { const a = auto(); return [a ? a[1] : g.hand[p][0]]; });
             const best = pickD[0], worst = pickH[0];
-            if (take(g.disc[p], best)) { g.eff[p] &= ~bit(best); take(g.hand[p], worst); g.hand[p].push(best); g.drawnN[p]++; if (!discardCard(g, p, worst, true, on)) g.hand[p].push(worst); fired = true; say(p, c, i, 'Swap ' + VI(worst) + ' for ' + VI(best) + ' from the discard pile'); }
+            if (take(g.disc[p], best)) { g.eff[p] &= ~bit(best); take(g.hand[p], worst); g.hand[p].push(best); g.drawnN[p]++; if (!discardCard(g, p, worst, true, on)) g.hand[p].push(worst); fired = true; say(p, c, i, 'Recover ' + VI(best) + ', discard ' + VI(worst)); }
           }
         } break;
-        case P2: if (won && g.disc[p].length) { const x = g.disc[p][ri(g.disc[p].length)]; take(g.disc[p], x); g.eff[p] &= ~bit(x); g.hand[p].push(x); g.drawnN[p]++; fired = true; say(p, c, i, 'Take ' + VI(x) + ' from the discard pile'); } break;
+        case P2: if (won && g.disc[p].length) { const x = g.disc[p][ri(g.disc[p].length)]; take(g.disc[p], x); g.eff[p] &= ~bit(x); g.hand[p].push(x); g.drawnN[p]++; fired = true; say(p, c, i, 'Recover ' + VI(x) + ' from the discard pile'); } break;
         case P3: if (won && effDraw(g, p, 1)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Draw 1 card from the deck'); } break;
         case S0: if (won) { const l = g.deck[p].filter(x => S(x) === 1); if (l.length) { const x = l[ri(l.length)]; if (effTake(g, p, x)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Draw 1 Paper card from the deck'); } } } break;
         case H4: if (won) { healTotal[p] = true; fired = true; say(p, c, i, 'Heal HP equal to all damage dealt this round'); } break;
         case H5: if (won) {
           const l = g.deck[p].filter(x => S(x) === 0);
-          if (l.length) { const pk = ask(p, { kind: 'cards', key: 'H5', title: 'Hammer 5: choose 1 Hammer card from your deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); effTake(g, p, pk[0]); g.drawTrig[p]++; fired = true; say(p, c, i, 'Search 1 Hammer card from the deck'); }
-          else if (effDraw(g, p, 1)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'No Hammer left: draw 1 random card'); }
+          if (l.length) { const pk = ask(p, { kind: 'cards', key: 'H5', title: 'Hammer 5: choose 1 Hammer card from your deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); effTake(g, p, pk[0]); g.drawTrig[p]++; fired = true; say(p, c, i, 'Search: 1 Hammer card from the deck'); }
+          else if (effDraw(g, p, 1)) { g.drawTrig[p]++; fired = true; say(p, c, i, 'None left: draw 1 card'); }
         } break;
-        case H6: if (won) { g.nextBan[o] |= 2; fired = true; say(p, c, i, 'Opponent cannot play Paper next round'); } break;
+        case H6: if (won) { g.nextBan[o] |= 2; fired = true; say(p, c, i, 'Ban Paper: the opponent cannot play Paper next round'); } break;
         case P4: if (won) {
           let k = 0; const any = g.deck[p].some(x => S(x) === 1);
           if (any) { for (let j = 0; j < 2; j++) { const l = g.deck[p].filter(x => S(x) === 1); if (!l.length) break; k += effTake(g, p, l[ri(l.length)]); } if (k) { fired = true; say(p, c, i, 'Draw ' + k + ' Paper card' + (k > 1 ? 's' : '') + ' from the deck'); } }
-          else { k = effDraw(g, p, 2); if (k) { fired = true; say(p, c, i, 'No Paper left: draw ' + k + ' random card' + (k > 1 ? 's' : '')); } }
+          else { k = effDraw(g, p, 2); if (k) { fired = true; say(p, c, i, 'None left: draw ' + k + ' card' + (k > 1 ? 's' : '')); } }
         } break;
-        case P5: if (won) { on[o] = false; fired = true; say(p, c, i, "From this slot on, the opponent's card effects do not trigger"); } break;
+        case P5: if (won) { on[o] = false; fired = true; say(p, c, i, "Block: from this slot on, the opponent's card effects do not trigger"); } break;
         case S5: if (won) { mult[o] *= 2; fired = true; say(p, c, i, 'All your damage this round × 2'); } else { mult[p] *= 2; fired = true; say(p, c, i, 'Lost slot: all opponent damage this round × 2'); } break;
         case S3: if (won) { const b = g.cnt[p]; slotDmg[i] += b; fired = true; say(p, c, i, '+' + b + ' damage (discard counter): ' + slotDmg[i]); } break;
-        case P6: if (won) { const l = g.deck[p].filter(x => N(x) === 7); if (l.length) { const pk = ask(p, { kind: 'cards', key: 'P6', title: 'Paper 6: choose 1 card numbered 7 from your deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); effTake(g, p, pk[0]); g.drawTrig[p]++; fired = true; say(p, c, i, 'Search 1 card numbered 7 from the deck'); } } break;
+        case P6: if (won) { const l = g.deck[p].filter(x => N(x) === 7); if (l.length) { const pk = ask(p, { kind: 'cards', key: 'P6', title: 'Paper 6: choose 1 card numbered 7 from your deck', list: l, k: 1 }, () => [bestOf(g, p, l)]); effTake(g, p, pk[0]); g.drawTrig[p]++; fired = true; say(p, c, i, 'Search: 1 card numbered 7 from the deck'); } } break;
         case S4: if (won) { const fromHand = g.deck[o].length < 1, k = millOrHand(g, o, 1, on); if (k) { g.cnt[p] += k; fired = true; say(p, c, i, 'Discard ' + k + ' opponent card' + (k > 1 ? 's' : '') + (fromHand ? ' (deck empty: from hand)' : ' from the deck')); } }
                  else { const fromHand = g.deck[p].length < 2, k = millOrHand(g, p, 2, on); if (k) { g.cnt[p] += k; fired = true; say(p, c, i, 'Lost slot: discard ' + k + ' card' + (k > 1 ? 's' : '') + ' ' + (fromHand ? 'from own hand (deck empty)' : 'from own deck')); } } break;
-        case S6: if (won && g.hand[o].length) { const x = g.hand[o][ri(g.hand[o].length)]; take(g.hand[o], x); if (!discardCard(g, o, x, true, on)) g.hand[o].push(x); g.cnt[p]++; fired = true; say(p, c, i, 'Opponent discards 1 random card from hand'); } break;
+        case S6: if (won && g.hand[o].length) { const x = g.hand[o][ri(g.hand[o].length)]; take(g.hand[o], x); if (!discardCard(g, o, x, true, on)) g.hand[o].push(x); g.cnt[p]++; fired = true; say(p, c, i, 'Discard 1 random card from the opponent\'s hand'); } break;
         case H7: if (!won) { let k = 0; for (let j = 0; j < 1; j++) { const l = g.deck[p].filter(x => S(x) === 0); if (!l.length) break; k += effTake(g, p, l[ri(l.length)]); } if (k) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Lost slot: draw ' + k + ' Hammer card from the deck'); } }
-                 else { let k = 0; for (let j = 0; j < 2; j++) { const l = g.disc[p].filter(x => S(x) === 0); if (!l.length) break; const x = l[ri(l.length)]; take(g.disc[p], x); g.eff[p] &= ~bit(x); g.hand[p].push(x); g.drawnN[p]++; k++; } if (k) { fired = true; say(p, c, i, 'Take ' + k + ' Hammer card' + (k > 1 ? 's' : '') + ' from the discard pile'); } } break;
+                 else { let k = 0; for (let j = 0; j < 2; j++) { const l = g.disc[p].filter(x => S(x) === 0); if (!l.length) break; const x = l[ri(l.length)]; take(g.disc[p], x); g.eff[p] &= ~bit(x); g.hand[p].push(x); g.drawnN[p]++; k++; } if (k) { fired = true; say(p, c, i, 'Recover ' + k + ' Hammer card' + (k > 1 ? 's' : '') + ' from the discard pile'); } } break;
         case H8: if (won) {   // AI: ban the suit the opponent holds most of
           const auto = () => { const cs = [0, 0, 0]; for (const x of g.hand[o]) cs[S(x)]++; let s = 0; for (let j = 1; j < 3; j++) if (cs[j] > cs[s]) s = j; return s; };
           const s = ask(p, { kind: 'suit', key: 'H8', title: 'Hammer 8: choose a suit the opponent cannot play next round' }, auto);
-          g.nextBan[o] |= 1 << s; fired = true; say(p, c, i, SUIT_VI[s] + ' is banned for the opponent next round'); } break;
+          g.nextBan[o] |= 1 << s; fired = true; say(p, c, i, 'Ban ' + SUIT_VI[s] + ': the opponent cannot play it next round'); } break;
         case H9: if (won && h9first[p]) { g.dblNext[p] = true; say(p, c, i, 'From next round: +10 damage dealt and +10 HP healed each round'); fired = true; } break;
         case P7: if (won) { const d = g.drawnN[p] > 0 ? g.drawnN[p] : 20; slotDmg[i] += d; fired = true; say(p, c, i, '+' + d + ' damage (' + (g.drawnN[p] ? g.drawnN[p] + ' cards drawn by effects' : 'none drawn yet') + '): ' + slotDmg[i]); } break;
         case P8: if (won) { let k = 0; for (const n of [9, 7]) { const ld = g.deck[p].filter(x => N(x) === n), lp = g.disc[p].filter(x => N(x) === n), l = ld.concat(lp); if (!l.length) continue;
             const pk = ask(p, { kind: 'cards', key: 'P8' + n, title: 'Paper 8: choose 1 card numbered ' + n + ' (deck or discard pile)', list: l, k: 1 }, () => [ld.length ? bestOf(g, p, ld) : bestOf(g, p, lp)]); k += effFind(g, p, pk[0]); }
-          if (k) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Found ' + k + ' card' + (k > 1 ? 's' : '')); } } break;
+          if (k) { g.drawTrig[p]++; fired = true; say(p, c, i, 'Call ' + k + ' card' + (k > 1 ? 's' : '')); } } break;
         case P9: if (won) { let k = 0, j = 0; for (const n of [7, 7, 6]) { j++; const ld = g.deck[p].filter(x => N(x) === n), lp = g.disc[p].filter(x => N(x) === n), l = ld.concat(lp); if (!l.length) continue;
             const pk = ask(p, { kind: 'cards', key: 'P9' + j, title: 'Paper 9: choose 1 card numbered ' + n + ' (deck or discard pile)', list: l, k: 1 }, () => [ld.length ? bestOf(g, p, ld) : bestOf(g, p, lp)]); const x = pk[0];
             k += effFind(g, p, x); }
-          if (k) g.drawTrig[p]++; if (k) { fired = true; say(p, c, i, 'Found ' + k + ' card' + (k > 1 ? 's' : '')); } } break;
+          if (k) g.drawTrig[p]++; if (k) { fired = true; say(p, c, i, 'Call ' + k + ' card' + (k > 1 ? 's' : '')); } } break;
         case S7: if (won) { const kk = Math.min(1, g.deck[o].length);
             const auto = () => g.deck[o].slice().sort((a, b) => keepValue(g, o, b) - keepValue(g, o, a)).slice(0, kk);
             const pk = kk ? ask(p, { kind: 'cards', key: 'S7', title: 'Scissors 7: choose ' + kk + ' card' + (kk > 1 ? 's' : '') + ' in the opponent\'s deck to discard', list: g.deck[o].slice().sort((a, b) => a - b), k: kk, owner: o }, auto) : [];
@@ -397,7 +417,7 @@ const PRESETS = {
   'Discard counter': ['S1','S2','S3','H2','H3','P0','H0','P3','S0','S4','S6','S5','P5','H4','H6','S7','S8','S9','H9'],
   'Control / heal': ['H0','H3','P0','S1','P1','P2','P3','H2','S3','H4','H6','P5','S6','S5','H5','H8','H9','S9','P7'],
 };
-const api = { MAXHP, newGame, clone, resolve, finishRound, outcomes, blockedSides, legalRows, randomRow, planExpert, chooseDiscardSmart, playGame, mask, unmask, limits, validDeck, parse, NAME, VI, SUIT_VI, FX, PRESETS, tier, bit, S, N, allowed, withoutRow, keepValue,
+const api = { MAXHP, KEYWORDS, newGame, clone, resolve, finishRound, outcomes, blockedSides, legalRows, randomRow, planExpert, chooseDiscardSmart, playGame, mask, unmask, limits, validDeck, parse, NAME, VI, SUIT_VI, FX, PRESETS, tier, bit, S, N, allowed, withoutRow, keepValue,
   setSeed: s => { seed = s | 0; }, getSeed: () => seed, rnd, ri };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Std184 = api;
 

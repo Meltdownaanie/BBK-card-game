@@ -24,9 +24,13 @@ const STD_GRP={0:['heal'],1:['draw'],2:['passive'],3:['block'],4:['heal'],5:['dr
  20:['draw'],21:['discard'],22:['discard'],23:['damage'],24:['discard'],25:['damage'],26:['discard'],27:['discard'],28:['discard','damage'],29:['discard']};
 function stdGrpHTML(c){return (STD_GRP[c]||[]).map(g=>'<img class="fx-ico" src="./icons/fx-'+g+'.png" alt="'+g+'" title="'+g.toUpperCase()+'" draggable="false">').join('')}
 /* effect text highlights: a named card / suit takes its suit colour, bonuses & multipliers gold, other numbers bright */
-function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|×\s?\d+|\+\s?\d+|\b(Win|Lose):|\b\d+\b/g,(m,suit,num,wl)=>{
-  if(suit)return '<span class="fxt s-'+suit.toLowerCase()+'">'+m+'</span>';
-  if(wl)return '<span class="fxt '+(wl==='Win'?'win':'lose')+'">'+m+'</span>';
+/* keyword verbs (see C.KEYWORDS) are tinted and carry their definition as a tooltip */
+const STD_KW=(()=>{const m={};for(const [k,v] of C.KEYWORDS)for(const w of k.split(' / '))m[w.toLowerCase()]=v;return m})();
+function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|×\s?\d+|\+\s?\d+|\b(Win|Lose):|\b(discard counter|draw|search|call|recover|discard|heal|ban|block)\b|\b\d+\b/gi,(m,suit,num,wl,kw)=>{
+  if(suit&&/^[A-Z]/.test(suit))return '<span class="fxt s-'+suit.toLowerCase()+'">'+m+'</span>';
+  if(suit)return m;
+  if(wl)return '<span class="fxt '+(/^w/i.test(wl)?'win':'lose')+'">'+m+'</span>';
+  if(kw)return '<span class="fxt kw" title="'+esc(STD_KW[kw.toLowerCase()]||'')+'">'+m+'</span>';
   if(/^[×+]/.test(m))return '<span class="fxt bonus">'+m+'</span>';
   return '<span class="fxt num">'+m+'</span>'})}
 function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
@@ -372,7 +376,7 @@ function stdFillHelp(){
   $('tutorialTitle').textContent='STANDARD · EFFECTS';
   const intro=document.querySelector('#tutorialOverlay .tutorial-intro');if(intro)intro.textContent='Cards with stars have their effect on: 1 blue star = Tier 1, 2 purple stars = Tier 2, 3 gold stars = Tier 3. Hold a card (or hover) to read its effect. Effects trigger right after their slot is decided (a direct hit on an empty slot counts as a win), in order slot 1 → 2 → 3, winner before loser. Damage is totalled after slot 3.';
   const guide=document.querySelector('#tutorialOverlay .tutorial-guide');if(!guide)return;
-  guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
+  guide.innerHTML='<h3 class="std-help-h">YOUR EFFECT CARDS</h3>'+mk(0)+'<h3 class="std-help-h">AI EFFECT CARDS ('+esc(STD.theirName)+')</h3>'+mk(1)+'<h3 class="std-help-h">KEYWORDS</h3><dl class="std-kw">'+C.KEYWORDS.map(([k,v])=>'<dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd>').join('')+'</dl>'+(STD.lastLog.length?'<h3 class="std-help-h">LAST ROUND EFFECTS</h3>'+STD.lastLog.map(e=>'<p class="std-help-log">'+stdLine(e).html+'</p>').join(''):'')}
 function stdInit(){
   $('overlay').hidden=true;window.__STD={STD,S,render,C,objOf,sync:stdSync,ask:stdAsk,over:stdGameOver};   // test hook (test build only)
   $('showTutorialGame').textContent='★ EFFECTS';$('dialogBack').textContent='← DECK BUILDER';$('backToMenu').textContent='☰ CHANGE DECK / LEVEL';
