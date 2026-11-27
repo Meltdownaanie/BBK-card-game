@@ -7,6 +7,11 @@ s = open(os.path.join(root, 'index.html'), encoding='utf-8').read()
 patch = open(os.path.join(root, 'tools', 'standard-patch.js'), encoding='utf-8').read()
 sec = {m.group(1): m.group(2).strip('\n') + '\n' for m in re.finditer(r'//@@(\w+)\n(.*?)(?=\n//@@|\Z)', patch, re.S)}
 
+# the Classic-only add-on (Standard has its own copy of these features)
+s = re.sub(r'\n<link rel="stylesheet" href="./classic-plus\.css[^"]*">', '', s)
+s = re.sub(r'//@@CLASSIC_PLUS_BEGIN.*?//@@CLASSIC_PLUS_END\n', '', s, flags=re.S)
+assert 'classic-plus' not in s
+
 def cut(start, end, new):
     global s
     a = s.index(start); b = s.index(end, a)
