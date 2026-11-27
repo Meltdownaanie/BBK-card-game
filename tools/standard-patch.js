@@ -26,7 +26,7 @@ function stdGrpHTML(c){return (STD_GRP[c]||[]).map(g=>'<img class="fx-ico" src="
 /* effect text highlights: a named card / suit takes its suit colour, bonuses & multipliers gold, other numbers bright */
 /* keyword verbs (see C.KEYWORDS) are tinted and carry their definition as a tooltip */
 const STD_KW=(()=>{const m={};for(const [k,v] of C.KEYWORDS)for(const w of k.split(' / '))m[w.toLowerCase()]=v;return m})();
-function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|×\s?\d+|\+\s?\d+|\b(Win|Lose):|\b(discard counter|draw|search|find|recover|discard|heal|ban|block)\b|\b\d+\b/gi,(m,suit,num,wl,kw)=>{
+function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|×\s?\d+|\+\s?\d+|\b(Win|Lose):|\b(discard counter|draw|search|call|recover|discard|heal|ban|block)\b|\b\d+\b/gi,(m,suit,num,wl,kw)=>{
   if(suit&&/^[A-Z]/.test(suit))return '<span class="fxt s-'+suit.toLowerCase()+'">'+m+'</span>';
   if(suit)return m;
   if(wl)return '<span class="fxt '+(/^w/i.test(wl)?'win':'lose')+'">'+m+'</span>';

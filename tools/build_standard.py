@@ -53,7 +53,7 @@ a = s.rindex("})();\n</script>", 0, s.index("document.getElementById('menuBoard'
 s = s[:a] + "stdInit();\n" + s[a:]
 # page chrome
 rep('<title>184 — Tactical Card Duel</title>', '<title>184 — Standard</title>')
-rep('<script src="./bot-brain.js', '<script src="./std-core.js?v=20261127d"></script>\n<script src="./bot-brain.js')
+rep('<script src="./bot-brain.js', '<script src="./std-core.js?v=20261127e"></script>\n<script src="./bot-brain.js')
 html = '''<div class="overlay std-builder" id="stdBuilder" hidden><section class="std-panel" role="dialog" aria-modal="true" aria-labelledby="stdTitle">
  <h2 id="stdTitle"><span class="h">1</span><span class="p">8</span><span class="s">4</span> STANDARD</h2>
  <p class="std-intro">Your deck always has all 30 cards. Choose which cards have their effect on: up to 9 Tier 1, 6 Tier 2 and 3 Tier 3 (4 with Hammer 2 on). Cards left off are plain.</p>
