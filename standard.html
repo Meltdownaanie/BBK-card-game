@@ -1007,14 +1007,15 @@ function stdFxText(t){return esc(t).replace(/\b(Hammer|Paper|Scissors)( \d\b)?|�
   if(/^[×+]/.test(m))return '<span class="fxt bonus">'+m+'</span>';
   return '<span class="fxt num">'+m+'</span>'})}
 function stdInfoHTML(c,on,used){const f=C.FX[c],t=C.tier(c)+1;
- if(!on||!f)return '<b>'+esc(C.VI(c))+'<span class="plain">PLAIN</span></b><p>'+(used?'Effect already used this game.':'No effect: plays as a normal card.')+'</p>';
+ if(!on||!f)return '<b>'+esc(C.VI(c))+'<span class="plain">PLAIN</span></b>'+(used?'<p>Effect already used this game.</p>':'');
  return '<b>'+esc(C.VI(c))+'<span>'+'★'.repeat(t)+' TIER '+t+'</span></b><i>'+esc(f[0])+'</i><p>'+stdGrpHTML(c)+stdFxText(f[1])+'</p>'}
 function stdTipHide(){if(stdTip.el)stdTip.el.hidden=true;stdTip.card=null}
 function stdTipFind(x,y){const t=document.elementFromPoint(x,y);if(!t||!t.closest)return null;const tag=t.closest('.fx-trig');if(tag){const c=tag.parentElement&&tag.parentElement.querySelector('.card');if(c)return c}const c=t.closest('.card');return c&&/^[01]-[a-z]+-\d$/.test(c.dataset.id||'')?c:null}
 function stdTipShow(card,dock){
  const m=/^([01])-([a-z]+)-(\d)$/.exec(card.dataset.id||'');if(!m)return;const c=ORDER.indexOf(m[2])*10+ +m[3];
  let el=stdTip.el;if(!el){el=stdTip.el=document.createElement('div');el.id='stdTip';el.setAttribute('role','tooltip');document.body.appendChild(el)}
- const on=card.classList.contains('fx'),t=C.tier(c)+1,used=c===9&&STD.g&&STD.g.h9[+m[1]];el.className='std-tip '+(on?'t'+t:'tp');el.innerHTML=stdInfoHTML(c,on,used);el.hidden=false;
+ const on=card.classList.contains('fx'),t=C.tier(c)+1,used=c===9&&STD.g&&STD.g.h9[+m[1]];if(!on&&!used){stdTipHide();return}  // plain cards: no popup
+ el.className='std-tip '+(on?'t'+t:'tp');el.innerHTML=stdInfoHTML(c,on,used);el.hidden=false;
  if(dock){el.classList.add('dock');const w=el.offsetWidth,h=el.offsetHeight,f=(document.querySelector('.app')||document.body).getBoundingClientRect();
   let top=Infinity;$('hand').querySelectorAll('.card').forEach(x=>{const r=x.getBoundingClientRect();if(r.width)top=Math.min(top,r.top)});if(!isFinite(top))top=$('hand').getBoundingClientRect().top;
   const cx=f.width?f.left+f.width/2:innerWidth/2;el.style.left=Math.max(6,Math.min(innerWidth-w-6,cx-w/2))+'px';el.style.top=Math.max(6,top-h-30)+'px';stdTip.card=card;return}
