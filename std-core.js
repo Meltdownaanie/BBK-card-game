@@ -32,7 +32,7 @@ const FX = {
   [P2]: ["Win slot", "Take 1 random card from your discard pile."],
   [P3]: ["Win slot", "Draw 1 random card from your deck."],
   [S0]: ["Win slot", "Draw 1 random Paper card from your deck."],
-  [S1]: ["When chosen for discard", "Chosen as your discard after a round: is not discarded and returns to your hand, your discard counter +1. Discarded by any card effect or from the deck: it is discarded normally."],
+  [S1]: ["When chosen for discard", "Whenever it would be discarded (from your hand, a slot or your deck, by any card or rule): it is not discarded and goes to your hand instead, your discard counter +1."],
   [S2]: ["When chosen for discard", "From your hand or a slot: your discard counter +2. In the deck it is discarded normally."],
   [S3]: ["Win slot", "Damage = this slot's damage + your discard counter (cards discarded by your own card effects, on either side)."],
   [H4]: ["Win slot", "Heal HP equal to all the damage you deal this round."],
@@ -80,8 +80,8 @@ const take = (arr, c) => { const i = arr.indexOf(c); if (i < 0) return false; ar
    cnt = the discard counter (Kéo 3, Kéo 8): only cards discarded by the player's OWN card effects (on either side), plus Kéo 1 (+1) / Kéo 2 (+2).
    Kéo 1 / Kéo 2 work only from the hand or a slot; a copy discarded from the deck (fromDeck) is just discarded. Returns true if the card really went to the pile. */
 function discardCard(g, owner, c, byEffect, on, fromDeck) {
-  /* Kéo 1 only saves itself when it is CHOSEN as a discard (round result / no card played), never from the deck or by any card effect */
-  if (!fromDeck && !byEffect && c === S1 && on[owner] && (g.active[owner] & bit(S1))) { g.dn[owner]++; g.cnt[owner]++; if (g.log) g.log.push({ p: owner, c: S1, slot: -1, t: 'Not discarded: returns to hand (discard counter +1)' }); return false; }
+  /* Kéo 1: whenever it would be discarded (from the hand, a slot or the deck, by any card or rule) it goes back to the hand instead */
+  if (c === S1 && on[owner] && (g.active[owner] & bit(S1))) { g.dn[owner]++; g.cnt[owner]++; if (g.log) g.log.push({ p: owner, c: S1, slot: -1, t: fromDeck ? 'Not discarded: goes from the deck to your hand (discard counter +1)' : 'Not discarded: returns to hand (discard counter +1)' }); return false; }
   if (!fromDeck && c === S2 && on[owner] && (g.active[owner] & bit(S2))) { g.dn[owner]++; g.cnt[owner] += 2; if (g.log) g.log.push({ p: owner, c: S2, slot: -1, t: 'Discarded: discard counter +2' }); }
   else g.dn[owner]++;
   g.disc[owner].push(c); if (byEffect) g.eff[owner] |= bit(c); else g.eff[owner] &= ~bit(c);
@@ -98,7 +98,9 @@ function millDeck(g, owner, k, on, picks) {
   for (let j = 0; j < k && g.deck[owner].length; j++) {
     const c = picks ? picks[j] : g.deck[owner][ri(g.deck[owner].length)];
     if (c === undefined || !g.deck[owner].includes(c)) continue;
-    take(g.deck[owner], c); discardCard(g, owner, c, true, on, true); n++;   // from the deck: Kéo 1 / Kéo 2 do nothing here
+    take(g.deck[owner], c);
+    if (!discardCard(g, owner, c, true, on, true)) g.hand[owner].push(c);   // Kéo 1 leaves the deck for the hand (still uses up this discard); Kéo 2 does nothing in the deck
+    n++;
   }
   return n;
 }
