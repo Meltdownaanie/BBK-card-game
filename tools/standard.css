@@ -298,3 +298,24 @@ html,body,.slot,.card{touch-action:manipulation}
 .fxt.bonus{color:#ffd34d}
 .fxt.win{color:#7cf0a4}.fxt.lose{color:#ff8a98}
 .fxt.num{color:#7fe3ff}
+
+/* battle log: readable entries */
+.std-stat-row em .fx-ico{width:1.2em;height:1.2em;margin-right:.25em}
+.lg-tabs{display:flex;gap:6px;margin:0 0 6px}
+.lg-tabs button{flex:1;min-height:30px;padding:0 6px;border-radius:8px;border:2px solid #0c0614;background:#2c2152;color:#b9a9e6;font:700 11px/1 var(--pf),system-ui,sans-serif;cursor:pointer}
+.lg-tabs button[aria-pressed="true"]{background:#ffcf33;color:#1a1332}
+#stdLogBody[data-f="me"] .lg-row.ai,#stdLogBody[data-f="ai"] .lg-row.me{display:none}
+.lg-sum{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin:2px 0 8px}
+.lg-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:6px;font-size:11px;font-weight:700;line-height:1.2;background:#ffffff12}
+.lg-chip.deal{color:#7cf0a4;background:#1f6b4033}.lg-chip.take{color:#ff8a98;background:#8a1f3a33}.lg-chip.heal{color:#ff9ec4;background:#8a1f5a33}.lg-chip.heal.ai{color:#ffb3b3}
+.lg-hp{margin-left:auto;font-size:11px;color:#b9a9e6}.lg-hp b.me{color:#4fd1c5}.lg-hp b.ai{color:#ff9a7a}
+.lg-row{display:flex;gap:8px;align-items:flex-start;margin:5px 0;padding:6px 8px;border-radius:8px;background:#ffffff0a;border-left:3px solid #4fd1c5}
+.lg-row.ai{border-left-color:#ff7a59;background:#ff7a5910}
+.lg-card{--sc:#ccc;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:30px;height:38px;border-radius:5px;background:#fff7e8;color:#1a1332;border-top:5px solid var(--sc);font:700 13px/1 var(--pn,var(--pf,monospace))}
+.lg-card.hammer{--sc:var(--c-hammer,#ff6b4a)}.lg-card.paper{--sc:var(--c-paper,#4aa3e8)}.lg-card.scissors{--sc:var(--c-scissors,#4fc76a)}
+.lg-card svg,.lg-card img{width:14px;height:14px}
+.lg-main{min-width:0;flex:1}
+.lg-cap{font-size:10px;color:#a79bc4;margin-bottom:3px}
+.lg-row.me .lg-who{color:#4fd1c5;font-weight:700}.lg-row.ai .lg-who{color:#ff9a7a;font-weight:700}
+.lg-txt{font-size:13px;line-height:1.45;color:#efe6ff}
+@media (min-width:980px) and (min-height:600px){.std-logov .std-modal-box{width:min(500px,100%);max-height:86vh}}
